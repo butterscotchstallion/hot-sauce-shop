@@ -1,2 +1,7 @@
-# hot-sauce-shop
-Hot Sauce Shop
+# Hot Sauce Shop
+- E-commerce site that sells a variety of delicious hot sauces
+
+## Tech Stack
+- Go + Ent ORM
+- Postgres
+- React + PrimeReact

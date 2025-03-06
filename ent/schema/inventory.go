@@ -18,6 +18,8 @@ func (Inventory) Fields() []ent.Field {
 		field.String("name"),
 		field.String("description"),
 		field.String("shortDescription"),
+		field.String("slug"),
+		field.Float32("price"),
 		field.Time("createdAt").
 			Default(time.Now),
 		field.Time("updatedAt").
