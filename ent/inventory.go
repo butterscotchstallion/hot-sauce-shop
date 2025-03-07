@@ -30,7 +30,7 @@ type Inventory struct {
 	// CreatedAt holds the value of the "createdAt" field.
 	CreatedAt time.Time `json:"createdAt,omitempty"`
 	// UpdatedAt holds the value of the "updatedAt" field.
-	UpdatedAt    time.Time `json:"updatedAt,omitempty"`
+	UpdatedAt    *time.Time `json:"updatedAt,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -108,7 +108,8 @@ func (i *Inventory) assignValues(columns []string, values []any) error {
 			if value, ok := values[j].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updatedAt", values[j])
 			} else if value.Valid {
-				i.UpdatedAt = value.Time
+				i.UpdatedAt = new(time.Time)
+				*i.UpdatedAt = value.Time
 			}
 		default:
 			i.selectValues.Set(columns[j], values[j])
@@ -164,8 +165,10 @@ func (i *Inventory) String() string {
 	builder.WriteString("createdAt=")
 	builder.WriteString(i.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("updatedAt=")
-	builder.WriteString(i.UpdatedAt.Format(time.ANSIC))
+	if v := i.UpdatedAt; v != nil {
+		builder.WriteString("updatedAt=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

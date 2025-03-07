@@ -125,6 +125,12 @@ func (iu *InventoryUpdate) SetUpdatedAt(t time.Time) *InventoryUpdate {
 	return iu
 }
 
+// ClearUpdatedAt clears the value of the "updatedAt" field.
+func (iu *InventoryUpdate) ClearUpdatedAt() *InventoryUpdate {
+	iu.mutation.ClearUpdatedAt()
+	return iu
+}
+
 // Mutation returns the InventoryMutation object of the builder.
 func (iu *InventoryUpdate) Mutation() *InventoryMutation {
 	return iu.mutation
@@ -160,7 +166,7 @@ func (iu *InventoryUpdate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (iu *InventoryUpdate) defaults() {
-	if _, ok := iu.mutation.UpdatedAt(); !ok {
+	if _, ok := iu.mutation.UpdatedAt(); !ok && !iu.mutation.UpdatedAtCleared() {
 		v := inventory.UpdateDefaultUpdatedAt()
 		iu.mutation.SetUpdatedAt(v)
 	}
@@ -198,6 +204,9 @@ func (iu *InventoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := iu.mutation.UpdatedAt(); ok {
 		_spec.SetField(inventory.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if iu.mutation.UpdatedAtCleared() {
+		_spec.ClearField(inventory.FieldUpdatedAt, field.TypeTime)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, iu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -316,6 +325,12 @@ func (iuo *InventoryUpdateOne) SetUpdatedAt(t time.Time) *InventoryUpdateOne {
 	return iuo
 }
 
+// ClearUpdatedAt clears the value of the "updatedAt" field.
+func (iuo *InventoryUpdateOne) ClearUpdatedAt() *InventoryUpdateOne {
+	iuo.mutation.ClearUpdatedAt()
+	return iuo
+}
+
 // Mutation returns the InventoryMutation object of the builder.
 func (iuo *InventoryUpdateOne) Mutation() *InventoryMutation {
 	return iuo.mutation
@@ -364,7 +379,7 @@ func (iuo *InventoryUpdateOne) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (iuo *InventoryUpdateOne) defaults() {
-	if _, ok := iuo.mutation.UpdatedAt(); !ok {
+	if _, ok := iuo.mutation.UpdatedAt(); !ok && !iuo.mutation.UpdatedAtCleared() {
 		v := inventory.UpdateDefaultUpdatedAt()
 		iuo.mutation.SetUpdatedAt(v)
 	}
@@ -419,6 +434,9 @@ func (iuo *InventoryUpdateOne) sqlSave(ctx context.Context) (_node *Inventory, e
 	}
 	if value, ok := iuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(inventory.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if iuo.mutation.UpdatedAtCleared() {
+		_spec.ClearField(inventory.FieldUpdatedAt, field.TypeTime)
 	}
 	_node = &Inventory{config: iuo.config}
 	_spec.Assign = _node.assignValues

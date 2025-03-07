@@ -469,6 +469,16 @@ func UpdatedAtLTE(v time.Time) predicate.Inventory {
 	return predicate.Inventory(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
+// UpdatedAtIsNil applies the IsNil predicate on the "updatedAt" field.
+func UpdatedAtIsNil() predicate.Inventory {
+	return predicate.Inventory(sql.FieldIsNull(FieldUpdatedAt))
+}
+
+// UpdatedAtNotNil applies the NotNil predicate on the "updatedAt" field.
+func UpdatedAtNotNil() predicate.Inventory {
+	return predicate.Inventory(sql.FieldNotNull(FieldUpdatedAt))
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Inventory) predicate.Inventory {
 	return predicate.Inventory(sql.AndPredicates(predicates...))

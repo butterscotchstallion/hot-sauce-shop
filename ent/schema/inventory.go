@@ -24,7 +24,9 @@ func (Inventory) Fields() []ent.Field {
 			Default(time.Now),
 		field.Time("updatedAt").
 			Default(time.Now).
-			UpdateDefault(time.Now),
+			UpdateDefault(time.Now).
+			Optional().
+			Nillable(),
 	}
 }
 

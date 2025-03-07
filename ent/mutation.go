@@ -398,7 +398,7 @@ func (m *InventoryMutation) UpdatedAt() (r time.Time, exists bool) {
 // OldUpdatedAt returns the old "updatedAt" field's value of the Inventory entity.
 // If the Inventory object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InventoryMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+func (m *InventoryMutation) OldUpdatedAt(ctx context.Context) (v *time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
 	}
@@ -412,9 +412,22 @@ func (m *InventoryMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err 
 	return oldValue.UpdatedAt, nil
 }
 
+// ClearUpdatedAt clears the value of the "updatedAt" field.
+func (m *InventoryMutation) ClearUpdatedAt() {
+	m.updatedAt = nil
+	m.clearedFields[inventory.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updatedAt" field was cleared in this mutation.
+func (m *InventoryMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[inventory.FieldUpdatedAt]
+	return ok
+}
+
 // ResetUpdatedAt resets all changes to the "updatedAt" field.
 func (m *InventoryMutation) ResetUpdatedAt() {
 	m.updatedAt = nil
+	delete(m.clearedFields, inventory.FieldUpdatedAt)
 }
 
 // Where appends a list predicates to the InventoryMutation builder.
@@ -620,7 +633,11 @@ func (m *InventoryMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *InventoryMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(inventory.FieldUpdatedAt) {
+		fields = append(fields, inventory.FieldUpdatedAt)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -633,6 +650,11 @@ func (m *InventoryMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *InventoryMutation) ClearField(name string) error {
+	switch name {
+	case inventory.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	}
 	return fmt.Errorf("unknown Inventory nullable field %s", name)
 }
 
