@@ -1,11 +1,13 @@
 import './App.scss'
-import {PrimeReactProvider} from "primereact/api";
+import BaseLayout from "./pages/BaseLayout.tsx";
+import {Outlet} from "react-router";
+import {ReactElement} from "react";
 
-function App() {
+function App(): ReactElement {
     return (
-        <PrimeReactProvider>
-            <h1 className="text-3xl font-bold underline">Hot Sauce Shop</h1>
-        </PrimeReactProvider>
+        <BaseLayout>
+            <Outlet/>
+        </BaseLayout>
     )
 }
 
