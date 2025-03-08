@@ -8,9 +8,13 @@ interface IProductCardProps {
 export default function ProductCard(props: IProductCardProps) {
     return (
         <div className="w-[200px]">
-            <div className="bg-orange-400 h-[200px]"></div>
+            <Card><img
+                className="text-center mx-auto"
+                src="/images/hot-pepper.png"
+                alt={props.product.shortDescription}
+            /></Card>
             <Card title={props.product.name}>
-                {props.product.shortDescription}
+                <p>{props.product.shortDescription}</p>
             </Card>
         </div>
     )
