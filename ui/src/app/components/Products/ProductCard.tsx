@@ -8,7 +8,7 @@ interface IProductCardProps {
 
 export default function ProductCard(props: IProductCardProps) {
     return (
-        <div className="w-[200px]">
+        <div className="w-[260px]">
             <Card><img
                 className="text-center mx-auto"
                 src="/images/hot-pepper.png"
