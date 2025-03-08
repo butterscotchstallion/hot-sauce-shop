@@ -39,7 +39,7 @@ func main() {
 
 	r := gin.Default()
 
-	r.GET("/inventory", func(c *gin.Context) {
+	r.GET("/api/v1/products", func(c *gin.Context) {
 		var res gin.H
 		inventory, err := client.Inventory.Query().All(c)
 		if err != nil {

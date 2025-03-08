@@ -9,7 +9,7 @@ type Props = {
 export default function BaseLayout({children}: Props) {
     return (
         <PrimeReactProvider>
-            <main className="container mx-auto">
+            <main className="container mx-auto max-w-7xl">
                 <header className="flex justify-between mt-4">
                     <div
                         className="text-4xl font-bold w-[200px] all-small-caps transition-colors duration-300 hover:text-orange-500 hover:animate-pulse">
