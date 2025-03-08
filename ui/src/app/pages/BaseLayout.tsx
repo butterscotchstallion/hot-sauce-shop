@@ -1,6 +1,6 @@
-import {NavLink} from "react-router";
 import {PrimeReactProvider} from "primereact/api";
 import * as React from "react";
+import NavigationMenu from "../components/Navigation/NavigationMenu.tsx";
 
 type Props = {
     children: React.ReactNode
@@ -9,13 +9,17 @@ type Props = {
 export default function BaseLayout({children}: Props) {
     return (
         <PrimeReactProvider>
+            <section className="bg-black p-4">
+                {/*
+                <div className="flex justify-end pr-4">
+                    <CartMenu/>
+                </div>
+                */}
+                <NavigationMenu/>
+            </section>
             <main className="container mx-auto max-w-7xl">
+                {/*
                 <header className="flex justify-between mt-4">
-                    <div
-                        className="text-4xl font-bold w-[200px] all-small-caps transition-colors duration-300 hover:text-orange-500 hover:animate-pulse">
-                        <NavLink to="/">Caliente Corner</NavLink>
-                    </div>
-
                     <nav>
                         <ul className="w-full flex justify-end gap-10 text-xl mt-10">
                             <li>
@@ -45,7 +49,7 @@ export default function BaseLayout({children}: Props) {
                         </ul>
                     </nav>
                 </header>
-
+                */}
                 <section className="mt-4">
                     {children}
                 </section>
