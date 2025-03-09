@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"hotsauceshop/ent"
+	"hotsauceshop/ent/inventory"
+	"hotsauceshop/ent/tag"
 )
 
 var client *ent.Client
@@ -41,7 +43,7 @@ func main() {
 
 	r.GET("/api/v1/products", func(c *gin.Context) {
 		var res gin.H
-		inventory, err := client.Inventory.Query().All(c)
+		inventoryResults, err := client.Inventory.Query().Order(ent.Asc(inventory.FieldName)).All(c)
 		if err != nil {
 			res = gin.H{
 				"status":  "ERROR",
@@ -51,7 +53,7 @@ func main() {
 			res = gin.H{
 				"status": "OK",
 				"results": gin.H{
-					"inventory": inventory,
+					"inventory": inventoryResults,
 				},
 			}
 		}
@@ -60,7 +62,7 @@ func main() {
 
 	r.GET("/api/v1/tags", func(c *gin.Context) {
 		var res gin.H
-		tags, err := client.Tag.Query().All(c)
+		tags, err := client.Tag.Query().Order(ent.Asc(tag.FieldName)).All(c)
 		if err != nil {
 			res = gin.H{
 				"status":  "ERROR",

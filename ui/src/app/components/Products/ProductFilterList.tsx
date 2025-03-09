@@ -11,15 +11,18 @@ export default function ProductFilterList(props: IProductFilterListProps): React
     return (
         <>
             <ul>
-                {props.tags.map((filter: IDisplayTag, index: number) => (
+                {props.tags.map((tag: IDisplayTag, index: number) => (
                     <li key={index}>
                         <Checkbox
-                            inputId={"filter-" + filter.slug}
+                            inputId={"filter-" + tag.slug}
                             onChange={e => props.toggleFilter(!!e.checked)}
-                            checked={filter.checked}
+                            checked={tag.checked}
                         />
-                        <label htmlFor={"filter-" + filter.slug} className="pl-2 cursor-pointer">
-                            {filter.name}
+                        <label htmlFor={"filter-" + tag.slug}
+                               className="pl-2 cursor-pointer"
+                               title={tag.description}
+                        >
+                            {tag.name}
                         </label>
                     </li>
                 ))}
