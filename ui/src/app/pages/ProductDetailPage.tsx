@@ -62,6 +62,7 @@ export default function ProductDetailPage() {
                             <p className="min-h-[300px]">{product.description}</p>
 
                             <section className="mt-10">
+                                <h2 className="font-bold text-lg mb-4">Reviews</h2>
                                 <ReviewCard review={review}/>
                             </section>
                         </div>

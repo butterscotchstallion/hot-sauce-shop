@@ -9,7 +9,7 @@ interface IReviewCardProps {
 
 export default function ReviewCard(props: IReviewCardProps) {
     return (
-        <Card title="Review Card">
+        <Card title={props.review.title}>
             <div className="flex gap-4">
                 <aside className="flex flex-row text-center items-center gap-2 w-[100px]">
                     <NavLink to={`/users/${encodeURI(props.review.name)}`}>
