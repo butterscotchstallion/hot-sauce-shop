@@ -1,6 +1,6 @@
 import {ReactElement} from "react";
 import {Checkbox} from "primereact/checkbox";
-import {IDisplayTag} from "../../pages/ProductsPage.tsx";
+import {IDisplayTag} from "../../pages/ProductListPage.tsx";
 
 interface IProductFilterListProps {
     tags: IDisplayTag[],

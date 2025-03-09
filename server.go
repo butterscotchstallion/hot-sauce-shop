@@ -51,6 +51,30 @@ func main() {
 
 	r := gin.Default()
 
+	r.GET("/api/v1/products/:slug", func(c *gin.Context) {
+		slug := c.Param("slug")
+		var res gin.H
+		if len(slug) > 0 {
+			product, err := client.Inventory.Query().
+				Where(inventory.Slug(slug)).
+				All(c)
+			if err != nil {
+				res = gin.H{
+					"status":  "ERROR",
+					"message": fmt.Sprintf("Error fetching product: %v", err),
+				}
+			} else {
+				res = gin.H{
+					"status": "OK",
+					"results": gin.H{
+						"product": product,
+					},
+				}
+			}
+		}
+		c.JSON(200, res)
+	})
+
 	r.GET("/api/v1/products", func(c *gin.Context) {
 		offset := c.DefaultQuery("offset", "1")
 		perPage := c.DefaultQuery("perPage", "10")

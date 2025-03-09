@@ -17,7 +17,7 @@ export interface IDisplayTag extends ITag {
     checked: boolean;
 }
 
-export default function ProductsPage(): ReactElement {
+export default function ProductListPage(): ReactElement {
     const [offset, setOffset] = useState<number>(0);
     const [perPage, setPerPage] = useState<number>(10);
     const [products, setProducts] = useState<IProduct[]>([]);
