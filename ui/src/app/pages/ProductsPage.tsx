@@ -8,6 +8,7 @@ import ProductList from "../components/Products/ProductList.tsx";
 import Throbber from "../components/Shared/Throbber.tsx";
 import {ITag} from "../components/Tag/ITag.ts";
 import {getTags} from "../components/Tag/TagService.ts";
+import {IProductsResults} from "../components/Products/IProductsResults.ts";
 
 // Tags with the checked attribute layered on top for
 // the purposes of this component
@@ -18,6 +19,7 @@ export interface IDisplayTag extends ITag {
 export default function ProductsPage(): ReactElement {
     const [products, setProducts] = useState<IProduct[]>([]);
     const [tags, setTags] = useState<IDisplayTag[]>([]);
+    const [totalProducts, setTotalProducts] = useState(0);
 
     function toggleFilter(checked: boolean) {
 
@@ -25,8 +27,9 @@ export default function ProductsPage(): ReactElement {
 
     useEffect(() => {
         const products$: Subscription = getProducts().subscribe({
-            next: (products: IProduct[]) => {
-                setProducts(products);
+            next: (results: IProductsResults) => {
+                setProducts(results.inventory);
+                setTotalProducts(results.total);
             },
             error: (err) => {
                 console.error(err);
@@ -63,7 +66,7 @@ export default function ProductsPage(): ReactElement {
                     <h2 className="font-bold text-lg mb-4">Products</h2>
 
                     <Suspense fallback={<Throbber/>}>
-                        <ProductList products={products}/>
+                        <ProductList products={products} total={totalProducts}/>
                     </Suspense>
                 </section>
             </div>

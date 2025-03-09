@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
@@ -36,14 +37,49 @@ func initDB() {
 	log.Println("database schema updated")
 }
 
+func closeClient() {
+	defer func(client *ent.Client) {
+		err := client.Close()
+		if err != nil {
+			log.Fatalf("failed closing client: %v", err)
+		}
+	}(client)
+}
+
 func main() {
 	initDB()
 
 	r := gin.Default()
 
 	r.GET("/api/v1/products", func(c *gin.Context) {
+		offset := c.DefaultQuery("page", "1")
+		perPage := c.DefaultQuery("perPage", "10")
+
+		perPageInt, err := strconv.Atoi(perPage)
+		if err != nil {
+			perPageInt = 10
+		}
+
+		offsetInt, err := strconv.Atoi(offset)
+		if err != nil {
+			offsetInt = 1
+		}
+
+		total, err := client.Inventory.Query().
+			Aggregate(ent.Count()).
+			Int(c)
+		log.Printf("Total: %v", total)
+		if err != nil {
+			log.Printf("Error getting total inventory items: %v", err)
+		}
+
 		var res gin.H
-		inventoryResults, err := client.Inventory.Query().Order(ent.Asc(inventory.FieldName)).All(c)
+		inventoryResults, err := client.Inventory.
+			Query().
+			Offset(offsetInt).
+			Limit(perPageInt).
+			Order(ent.Asc(inventory.FieldName)).
+			All(c)
 		if err != nil {
 			res = gin.H{
 				"status":  "ERROR",
@@ -54,10 +90,14 @@ func main() {
 				"status": "OK",
 				"results": gin.H{
 					"inventory": inventoryResults,
+					"total":     total,
 				},
 			}
 		}
+
 		c.JSON(200, res)
+
+		closeClient()
 	})
 
 	r.GET("/api/v1/tags", func(c *gin.Context) {
@@ -76,7 +116,10 @@ func main() {
 				},
 			}
 		}
+
 		c.JSON(200, res)
+
+		closeClient()
 	})
 
 	err := r.Run("localhost:8080")
