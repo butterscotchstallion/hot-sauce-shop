@@ -45,7 +45,7 @@ export default function ProductDetailPage() {
                         <h1 className="text-xl font-bold">{product.name}</h1>
                     </section>
 
-                    <section className="flex gap-4">
+                    <section className="flex gap-10">
                         <aside>
                             <ul>
                                 <li className="mb-4"><ProductImage product={product}/></li>
@@ -58,8 +58,15 @@ export default function ProductDetailPage() {
                         </aside>
 
                         <div>
-                            <h2 className="font-bold text-lg mb-4">Description</h2>
-                            <p className="min-h-[300px]">{product.description}</p>
+                            <section className="mb-2">
+                                <h2 className="font-bold text-lg mb-4">Description</h2>
+                                <p>{product.description}</p>
+                            </section>
+
+                            <section className="mb-2">
+                                <h2 className="font-bold text-lg mb-4">Ingredients</h2>
+                                <p>Aged Cayenne Red Peppers, Distilled Vinegar, Water, Salt and Garlic Powder.</p>
+                            </section>
 
                             <section className="mt-10">
                                 <h2 className="font-bold text-lg mb-4">Reviews</h2>
