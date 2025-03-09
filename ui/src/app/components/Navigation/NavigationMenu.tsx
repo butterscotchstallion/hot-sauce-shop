@@ -6,8 +6,8 @@ import {Avatar} from 'primereact/avatar';
 import {NavLink} from "react-router";
 
 export default function NavigationMenu(): ReactElement {
-    const itemRenderer = (item) => (
-        <NavLink className="flex align-items-center p-menuitem-link" to={item.url}>
+    const itemRenderer: (item: MenuItem) => ReactElement = (item: MenuItem) => (
+        <NavLink className="flex align-items-center p-menuitem-link" to={item.url || '/'}>
             <span className={item.icon}/>
             <span className="mx-2">{item.label}</span>
         </NavLink>
@@ -16,12 +16,14 @@ export default function NavigationMenu(): ReactElement {
         {
             label: 'Home',
             icon: 'pi pi-home',
-            url: "/"
+            url: "/",
+            template: itemRenderer,
         },
         {
             label: 'Products',
             icon: 'pi pi-gift',
-            url: "/products"
+            url: "/products",
+            template: itemRenderer,
         },
         {
             label: 'Contact',
