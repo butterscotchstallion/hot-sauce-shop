@@ -1,9 +1,9 @@
 import {ReactElement} from "react";
 import {Checkbox} from "primereact/checkbox";
-import {IFilters} from "../../pages/ProductsPage.tsx";
+import {IDisplayTag} from "../../pages/ProductsPage.tsx";
 
 interface IProductFilterListProps {
-    filters: IFilters[],
+    tags: IDisplayTag[],
     toggleFilter: (checked: boolean) => void,
 }
 
@@ -11,15 +11,15 @@ export default function ProductFilterList(props: IProductFilterListProps): React
     return (
         <>
             <ul>
-                {props.filters.map((filter: IFilters, index: number) => (
+                {props.tags.map((filter: IDisplayTag, index: number) => (
                     <li key={index}>
                         <Checkbox
-                            inputId={"filter-" + filter.name}
+                            inputId={"filter-" + filter.slug}
                             onChange={e => props.toggleFilter(!!e.checked)}
                             checked={filter.checked}
                         />
-                        <label htmlFor={"filter-" + filter.name} className="pl-2 cursor-pointer">
-                            {filter.displayName}
+                        <label htmlFor={"filter-" + filter.slug} className="pl-2 cursor-pointer">
+                            {filter.name}
                         </label>
                     </li>
                 ))}
