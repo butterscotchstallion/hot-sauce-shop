@@ -24,6 +24,8 @@ const (
 	FieldSlug = "slug"
 	// FieldPrice holds the string denoting the price field in the database.
 	FieldPrice = "price"
+	// FieldSpiceRating holds the string denoting the spicerating field in the database.
+	FieldSpiceRating = "spice_rating"
 	// FieldCreatedAt holds the string denoting the createdat field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updatedat field in the database.
@@ -47,6 +49,7 @@ var Columns = []string{
 	FieldShortDescription,
 	FieldSlug,
 	FieldPrice,
+	FieldSpiceRating,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -68,6 +71,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultSpiceRating holds the default value on creation for the "spiceRating" field.
+	DefaultSpiceRating int
 	// DefaultCreatedAt holds the default value on creation for the "createdAt" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updatedAt" field.
@@ -107,6 +112,11 @@ func BySlug(opts ...sql.OrderTermOption) OrderOption {
 // ByPrice orders the results by the price field.
 func ByPrice(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPrice, opts...).ToFunc()
+}
+
+// BySpiceRating orders the results by the spiceRating field.
+func BySpiceRating(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSpiceRating, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the createdAt field.

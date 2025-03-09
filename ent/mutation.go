@@ -41,6 +41,8 @@ type InventoryMutation struct {
 	slug             *string
 	price            *float32
 	addprice         *float32
+	spiceRating      *int
+	addspiceRating   *int
 	createdAt        *time.Time
 	updatedAt        *time.Time
 	clearedFields    map[string]struct{}
@@ -350,6 +352,62 @@ func (m *InventoryMutation) ResetPrice() {
 	m.addprice = nil
 }
 
+// SetSpiceRating sets the "spiceRating" field.
+func (m *InventoryMutation) SetSpiceRating(i int) {
+	m.spiceRating = &i
+	m.addspiceRating = nil
+}
+
+// SpiceRating returns the value of the "spiceRating" field in the mutation.
+func (m *InventoryMutation) SpiceRating() (r int, exists bool) {
+	v := m.spiceRating
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSpiceRating returns the old "spiceRating" field's value of the Inventory entity.
+// If the Inventory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InventoryMutation) OldSpiceRating(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSpiceRating is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSpiceRating requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSpiceRating: %w", err)
+	}
+	return oldValue.SpiceRating, nil
+}
+
+// AddSpiceRating adds i to the "spiceRating" field.
+func (m *InventoryMutation) AddSpiceRating(i int) {
+	if m.addspiceRating != nil {
+		*m.addspiceRating += i
+	} else {
+		m.addspiceRating = &i
+	}
+}
+
+// AddedSpiceRating returns the value that was added to the "spiceRating" field in this mutation.
+func (m *InventoryMutation) AddedSpiceRating() (r int, exists bool) {
+	v := m.addspiceRating
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSpiceRating resets all changes to the "spiceRating" field.
+func (m *InventoryMutation) ResetSpiceRating() {
+	m.spiceRating = nil
+	m.addspiceRating = nil
+}
+
 // SetCreatedAt sets the "createdAt" field.
 func (m *InventoryMutation) SetCreatedAt(t time.Time) {
 	m.createdAt = &t
@@ -523,7 +581,7 @@ func (m *InventoryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *InventoryMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.name != nil {
 		fields = append(fields, inventory.FieldName)
 	}
@@ -538,6 +596,9 @@ func (m *InventoryMutation) Fields() []string {
 	}
 	if m.price != nil {
 		fields = append(fields, inventory.FieldPrice)
+	}
+	if m.spiceRating != nil {
+		fields = append(fields, inventory.FieldSpiceRating)
 	}
 	if m.createdAt != nil {
 		fields = append(fields, inventory.FieldCreatedAt)
@@ -563,6 +624,8 @@ func (m *InventoryMutation) Field(name string) (ent.Value, bool) {
 		return m.Slug()
 	case inventory.FieldPrice:
 		return m.Price()
+	case inventory.FieldSpiceRating:
+		return m.SpiceRating()
 	case inventory.FieldCreatedAt:
 		return m.CreatedAt()
 	case inventory.FieldUpdatedAt:
@@ -586,6 +649,8 @@ func (m *InventoryMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldSlug(ctx)
 	case inventory.FieldPrice:
 		return m.OldPrice(ctx)
+	case inventory.FieldSpiceRating:
+		return m.OldSpiceRating(ctx)
 	case inventory.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case inventory.FieldUpdatedAt:
@@ -634,6 +699,13 @@ func (m *InventoryMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetPrice(v)
 		return nil
+	case inventory.FieldSpiceRating:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSpiceRating(v)
+		return nil
 	case inventory.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -659,6 +731,9 @@ func (m *InventoryMutation) AddedFields() []string {
 	if m.addprice != nil {
 		fields = append(fields, inventory.FieldPrice)
 	}
+	if m.addspiceRating != nil {
+		fields = append(fields, inventory.FieldSpiceRating)
+	}
 	return fields
 }
 
@@ -669,6 +744,8 @@ func (m *InventoryMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case inventory.FieldPrice:
 		return m.AddedPrice()
+	case inventory.FieldSpiceRating:
+		return m.AddedSpiceRating()
 	}
 	return nil, false
 }
@@ -684,6 +761,13 @@ func (m *InventoryMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddPrice(v)
+		return nil
+	case inventory.FieldSpiceRating:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSpiceRating(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Inventory numeric field %s", name)
@@ -735,6 +819,9 @@ func (m *InventoryMutation) ResetField(name string) error {
 		return nil
 	case inventory.FieldPrice:
 		m.ResetPrice()
+		return nil
+	case inventory.FieldSpiceRating:
+		m.ResetSpiceRating()
 		return nil
 	case inventory.FieldCreatedAt:
 		m.ResetCreatedAt()

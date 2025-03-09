@@ -51,6 +51,20 @@ func (ic *InventoryCreate) SetPrice(f float32) *InventoryCreate {
 	return ic
 }
 
+// SetSpiceRating sets the "spiceRating" field.
+func (ic *InventoryCreate) SetSpiceRating(i int) *InventoryCreate {
+	ic.mutation.SetSpiceRating(i)
+	return ic
+}
+
+// SetNillableSpiceRating sets the "spiceRating" field if the given value is not nil.
+func (ic *InventoryCreate) SetNillableSpiceRating(i *int) *InventoryCreate {
+	if i != nil {
+		ic.SetSpiceRating(*i)
+	}
+	return ic
+}
+
 // SetCreatedAt sets the "createdAt" field.
 func (ic *InventoryCreate) SetCreatedAt(t time.Time) *InventoryCreate {
 	ic.mutation.SetCreatedAt(t)
@@ -129,6 +143,10 @@ func (ic *InventoryCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (ic *InventoryCreate) defaults() {
+	if _, ok := ic.mutation.SpiceRating(); !ok {
+		v := inventory.DefaultSpiceRating
+		ic.mutation.SetSpiceRating(v)
+	}
 	if _, ok := ic.mutation.CreatedAt(); !ok {
 		v := inventory.DefaultCreatedAt()
 		ic.mutation.SetCreatedAt(v)
@@ -155,6 +173,9 @@ func (ic *InventoryCreate) check() error {
 	}
 	if _, ok := ic.mutation.Price(); !ok {
 		return &ValidationError{Name: "price", err: errors.New(`ent: missing required field "Inventory.price"`)}
+	}
+	if _, ok := ic.mutation.SpiceRating(); !ok {
+		return &ValidationError{Name: "spiceRating", err: errors.New(`ent: missing required field "Inventory.spiceRating"`)}
 	}
 	if _, ok := ic.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "createdAt", err: errors.New(`ent: missing required field "Inventory.createdAt"`)}
@@ -204,6 +225,10 @@ func (ic *InventoryCreate) createSpec() (*Inventory, *sqlgraph.CreateSpec) {
 	if value, ok := ic.mutation.Price(); ok {
 		_spec.SetField(inventory.FieldPrice, field.TypeFloat32, value)
 		_node.Price = value
+	}
+	if value, ok := ic.mutation.SpiceRating(); ok {
+		_spec.SetField(inventory.FieldSpiceRating, field.TypeInt, value)
+		_node.SpiceRating = value
 	}
 	if value, ok := ic.mutation.CreatedAt(); ok {
 		_spec.SetField(inventory.FieldCreatedAt, field.TypeTime, value)

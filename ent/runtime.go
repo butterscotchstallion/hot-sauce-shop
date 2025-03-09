@@ -15,12 +15,16 @@ import (
 func init() {
 	inventoryFields := schema.Inventory{}.Fields()
 	_ = inventoryFields
+	// inventoryDescSpiceRating is the schema descriptor for spiceRating field.
+	inventoryDescSpiceRating := inventoryFields[5].Descriptor()
+	// inventory.DefaultSpiceRating holds the default value on creation for the spiceRating field.
+	inventory.DefaultSpiceRating = inventoryDescSpiceRating.Default.(int)
 	// inventoryDescCreatedAt is the schema descriptor for createdAt field.
-	inventoryDescCreatedAt := inventoryFields[5].Descriptor()
+	inventoryDescCreatedAt := inventoryFields[6].Descriptor()
 	// inventory.DefaultCreatedAt holds the default value on creation for the createdAt field.
 	inventory.DefaultCreatedAt = inventoryDescCreatedAt.Default.(func() time.Time)
 	// inventoryDescUpdatedAt is the schema descriptor for updatedAt field.
-	inventoryDescUpdatedAt := inventoryFields[6].Descriptor()
+	inventoryDescUpdatedAt := inventoryFields[7].Descriptor()
 	// inventory.DefaultUpdatedAt holds the default value on creation for the updatedAt field.
 	inventory.DefaultUpdatedAt = inventoryDescUpdatedAt.Default.(func() time.Time)
 	// inventory.UpdateDefaultUpdatedAt holds the default value on update for the updatedAt field.

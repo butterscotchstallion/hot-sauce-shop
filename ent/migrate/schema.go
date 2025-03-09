@@ -16,6 +16,7 @@ var (
 		{Name: "short_description", Type: field.TypeString},
 		{Name: "slug", Type: field.TypeString},
 		{Name: "price", Type: field.TypeFloat32},
+		{Name: "spice_rating", Type: field.TypeInt, Default: 3},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 	}

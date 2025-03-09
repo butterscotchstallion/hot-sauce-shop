@@ -106,6 +106,27 @@ func (iu *InventoryUpdate) AddPrice(f float32) *InventoryUpdate {
 	return iu
 }
 
+// SetSpiceRating sets the "spiceRating" field.
+func (iu *InventoryUpdate) SetSpiceRating(i int) *InventoryUpdate {
+	iu.mutation.ResetSpiceRating()
+	iu.mutation.SetSpiceRating(i)
+	return iu
+}
+
+// SetNillableSpiceRating sets the "spiceRating" field if the given value is not nil.
+func (iu *InventoryUpdate) SetNillableSpiceRating(i *int) *InventoryUpdate {
+	if i != nil {
+		iu.SetSpiceRating(*i)
+	}
+	return iu
+}
+
+// AddSpiceRating adds i to the "spiceRating" field.
+func (iu *InventoryUpdate) AddSpiceRating(i int) *InventoryUpdate {
+	iu.mutation.AddSpiceRating(i)
+	return iu
+}
+
 // SetCreatedAt sets the "createdAt" field.
 func (iu *InventoryUpdate) SetCreatedAt(t time.Time) *InventoryUpdate {
 	iu.mutation.SetCreatedAt(t)
@@ -235,6 +256,12 @@ func (iu *InventoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := iu.mutation.AddedPrice(); ok {
 		_spec.AddField(inventory.FieldPrice, field.TypeFloat32, value)
+	}
+	if value, ok := iu.mutation.SpiceRating(); ok {
+		_spec.SetField(inventory.FieldSpiceRating, field.TypeInt, value)
+	}
+	if value, ok := iu.mutation.AddedSpiceRating(); ok {
+		_spec.AddField(inventory.FieldSpiceRating, field.TypeInt, value)
 	}
 	if value, ok := iu.mutation.CreatedAt(); ok {
 		_spec.SetField(inventory.FieldCreatedAt, field.TypeTime, value)
@@ -384,6 +411,27 @@ func (iuo *InventoryUpdateOne) SetNillablePrice(f *float32) *InventoryUpdateOne 
 // AddPrice adds f to the "price" field.
 func (iuo *InventoryUpdateOne) AddPrice(f float32) *InventoryUpdateOne {
 	iuo.mutation.AddPrice(f)
+	return iuo
+}
+
+// SetSpiceRating sets the "spiceRating" field.
+func (iuo *InventoryUpdateOne) SetSpiceRating(i int) *InventoryUpdateOne {
+	iuo.mutation.ResetSpiceRating()
+	iuo.mutation.SetSpiceRating(i)
+	return iuo
+}
+
+// SetNillableSpiceRating sets the "spiceRating" field if the given value is not nil.
+func (iuo *InventoryUpdateOne) SetNillableSpiceRating(i *int) *InventoryUpdateOne {
+	if i != nil {
+		iuo.SetSpiceRating(*i)
+	}
+	return iuo
+}
+
+// AddSpiceRating adds i to the "spiceRating" field.
+func (iuo *InventoryUpdateOne) AddSpiceRating(i int) *InventoryUpdateOne {
+	iuo.mutation.AddSpiceRating(i)
 	return iuo
 }
 
@@ -546,6 +594,12 @@ func (iuo *InventoryUpdateOne) sqlSave(ctx context.Context) (_node *Inventory, e
 	}
 	if value, ok := iuo.mutation.AddedPrice(); ok {
 		_spec.AddField(inventory.FieldPrice, field.TypeFloat32, value)
+	}
+	if value, ok := iuo.mutation.SpiceRating(); ok {
+		_spec.SetField(inventory.FieldSpiceRating, field.TypeInt, value)
+	}
+	if value, ok := iuo.mutation.AddedSpiceRating(); ok {
+		_spec.AddField(inventory.FieldSpiceRating, field.TypeInt, value)
 	}
 	if value, ok := iuo.mutation.CreatedAt(); ok {
 		_spec.SetField(inventory.FieldCreatedAt, field.TypeTime, value)

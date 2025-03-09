@@ -27,6 +27,8 @@ type Inventory struct {
 	Slug string `json:"slug,omitempty"`
 	// Price holds the value of the "price" field.
 	Price float32 `json:"price,omitempty"`
+	// SpiceRating holds the value of the "spiceRating" field.
+	SpiceRating int `json:"spiceRating,omitempty"`
 	// CreatedAt holds the value of the "createdAt" field.
 	CreatedAt time.Time `json:"createdAt,omitempty"`
 	// UpdatedAt holds the value of the "updatedAt" field.
@@ -62,7 +64,7 @@ func (*Inventory) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case inventory.FieldPrice:
 			values[i] = new(sql.NullFloat64)
-		case inventory.FieldID:
+		case inventory.FieldID, inventory.FieldSpiceRating:
 			values[i] = new(sql.NullInt64)
 		case inventory.FieldName, inventory.FieldDescription, inventory.FieldShortDescription, inventory.FieldSlug:
 			values[i] = new(sql.NullString)
@@ -118,6 +120,12 @@ func (i *Inventory) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field price", values[j])
 			} else if value.Valid {
 				i.Price = float32(value.Float64)
+			}
+		case inventory.FieldSpiceRating:
+			if value, ok := values[j].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field spiceRating", values[j])
+			} else if value.Valid {
+				i.SpiceRating = int(value.Int64)
 			}
 		case inventory.FieldCreatedAt:
 			if value, ok := values[j].(*sql.NullTime); !ok {
@@ -187,6 +195,9 @@ func (i *Inventory) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("price=")
 	builder.WriteString(fmt.Sprintf("%v", i.Price))
+	builder.WriteString(", ")
+	builder.WriteString("spiceRating=")
+	builder.WriteString(fmt.Sprintf("%v", i.SpiceRating))
 	builder.WriteString(", ")
 	builder.WriteString("createdAt=")
 	builder.WriteString(i.CreatedAt.Format(time.ANSIC))

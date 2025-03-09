@@ -5,6 +5,8 @@ import {getProductDetail} from "../components/Products/ProductService.ts";
 import {IProduct} from "../components/Products/IProduct.ts";
 import {Subscription} from "rxjs";
 import ProductImage from "../components/Products/ProductImage.tsx";
+import {Button} from "primereact/button";
+import SpiceRating from "../components/Products/SpiceRating.tsx";
 
 export default function ProductDetailPage() {
     const params: Readonly<Params<string>> = useParams();
@@ -38,7 +40,12 @@ export default function ProductDetailPage() {
 
                     <section className="flex gap-4">
                         <aside>
-                            <ProductImage product={product}/>
+                            <ul>
+                                <li className="mb-4"><ProductImage product={product}/></li>
+                                <li className="mb-4"><SpiceRating rating={product.spiceRating}/></li>
+                                <li className="mb-4">Price: ${product.price}</li>
+                                <li><Button className="w-full" label="Add to Cart" icon="pi pi-cart-plus"/></li>
+                            </ul>
                         </aside>
 
                         <div>

@@ -7,4 +7,5 @@ export interface IProduct {
     shortDescription: string;
     createdAt: Date;
     updatedAt: Date;
+    spiceRating: number;
 }

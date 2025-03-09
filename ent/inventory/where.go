@@ -80,6 +80,11 @@ func Price(v float32) predicate.Inventory {
 	return predicate.Inventory(sql.FieldEQ(FieldPrice, v))
 }
 
+// SpiceRating applies equality check predicate on the "spiceRating" field. It's identical to SpiceRatingEQ.
+func SpiceRating(v int) predicate.Inventory {
+	return predicate.Inventory(sql.FieldEQ(FieldSpiceRating, v))
+}
+
 // CreatedAt applies equality check predicate on the "createdAt" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Inventory {
 	return predicate.Inventory(sql.FieldEQ(FieldCreatedAt, v))
@@ -388,6 +393,46 @@ func PriceLT(v float32) predicate.Inventory {
 // PriceLTE applies the LTE predicate on the "price" field.
 func PriceLTE(v float32) predicate.Inventory {
 	return predicate.Inventory(sql.FieldLTE(FieldPrice, v))
+}
+
+// SpiceRatingEQ applies the EQ predicate on the "spiceRating" field.
+func SpiceRatingEQ(v int) predicate.Inventory {
+	return predicate.Inventory(sql.FieldEQ(FieldSpiceRating, v))
+}
+
+// SpiceRatingNEQ applies the NEQ predicate on the "spiceRating" field.
+func SpiceRatingNEQ(v int) predicate.Inventory {
+	return predicate.Inventory(sql.FieldNEQ(FieldSpiceRating, v))
+}
+
+// SpiceRatingIn applies the In predicate on the "spiceRating" field.
+func SpiceRatingIn(vs ...int) predicate.Inventory {
+	return predicate.Inventory(sql.FieldIn(FieldSpiceRating, vs...))
+}
+
+// SpiceRatingNotIn applies the NotIn predicate on the "spiceRating" field.
+func SpiceRatingNotIn(vs ...int) predicate.Inventory {
+	return predicate.Inventory(sql.FieldNotIn(FieldSpiceRating, vs...))
+}
+
+// SpiceRatingGT applies the GT predicate on the "spiceRating" field.
+func SpiceRatingGT(v int) predicate.Inventory {
+	return predicate.Inventory(sql.FieldGT(FieldSpiceRating, v))
+}
+
+// SpiceRatingGTE applies the GTE predicate on the "spiceRating" field.
+func SpiceRatingGTE(v int) predicate.Inventory {
+	return predicate.Inventory(sql.FieldGTE(FieldSpiceRating, v))
+}
+
+// SpiceRatingLT applies the LT predicate on the "spiceRating" field.
+func SpiceRatingLT(v int) predicate.Inventory {
+	return predicate.Inventory(sql.FieldLT(FieldSpiceRating, v))
+}
+
+// SpiceRatingLTE applies the LTE predicate on the "spiceRating" field.
+func SpiceRatingLTE(v int) predicate.Inventory {
+	return predicate.Inventory(sql.FieldLTE(FieldSpiceRating, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "createdAt" field.
