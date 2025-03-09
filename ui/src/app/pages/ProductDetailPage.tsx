@@ -7,12 +7,19 @@ import {Subscription} from "rxjs";
 import ProductImage from "../components/Products/ProductImage.tsx";
 import {Button} from "primereact/button";
 import SpiceRating from "../components/Products/SpiceRating.tsx";
+import ReviewCard from "../components/Reviews/ReviewCard.tsx";
 
 export default function ProductDetailPage() {
     const params: Readonly<Params<string>> = useParams();
     const productSlug: string | undefined = params.slug;
     const [product, setProduct] = useState<IProduct>();
-
+    const review = {
+        id: 1,
+        comment: "This is a review",
+        rating: 5,
+        name: "John Doe",
+        title: "Great product",
+    }
     useEffect(() => {
         if (productSlug) {
             const product$: Subscription = getProductDetail(productSlug).subscribe({
@@ -43,14 +50,20 @@ export default function ProductDetailPage() {
                             <ul>
                                 <li className="mb-4"><ProductImage product={product}/></li>
                                 <li className="mb-4"><SpiceRating rating={product.spiceRating}/></li>
-                                <li className="mb-4">Price: ${product.price}</li>
+                                <li className="mb-4"><span
+                                    className="text-green-200 font-bold pt-4">${product.price.toFixed(2)}</span>
+                                </li>
                                 <li><Button className="w-full" label="Add to Cart" icon="pi pi-cart-plus"/></li>
                             </ul>
                         </aside>
 
                         <div>
                             <h2 className="font-bold text-lg mb-4">Description</h2>
-                            <p>{product.description}</p>
+                            <p className="min-h-[300px]">{product.description}</p>
+
+                            <section className="mt-10">
+                                <ReviewCard review={review}/>
+                            </section>
                         </div>
                     </section>
                 </Suspense>

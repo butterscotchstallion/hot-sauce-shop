@@ -4,6 +4,7 @@ import {InputText} from 'primereact/inputtext';
 import {MenuItem} from 'primereact/menuitem';
 import {Avatar} from 'primereact/avatar';
 import {NavLink} from "react-router";
+import {Button} from "primereact/button";
 
 export default function NavigationMenu(): ReactElement {
     const itemRenderer: (item: MenuItem) => ReactElement = (item: MenuItem) => (
@@ -38,9 +39,10 @@ export default function NavigationMenu(): ReactElement {
         <NavLink to="/">Caliente Corner</NavLink>
     </div>;
     const end = (
-        <div className="flex align-items-center gap-2 pr-4">
+        <div className="flex align-items-center gap-4 pr-4">
             <InputText placeholder="Search" type="text" className="w-8rem sm:w-auto"/>
-            <Avatar className="ml-2" image="/images/avatars/amyelsner.png" shape="circle"/>
+            <Button label="Cart" icon="pi pi-shopping-cart"/>
+            <Avatar className="ml-2 cursor-pointer" image="/images/avatars/amyelsner.png" shape="circle"/>
         </div>
     );
 
