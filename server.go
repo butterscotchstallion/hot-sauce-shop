@@ -52,7 +52,7 @@ func main() {
 	r := gin.Default()
 
 	r.GET("/api/v1/products", func(c *gin.Context) {
-		offset := c.DefaultQuery("page", "1")
+		offset := c.DefaultQuery("offset", "1")
 		perPage := c.DefaultQuery("perPage", "10")
 
 		perPageInt, err := strconv.Atoi(perPage)
@@ -68,7 +68,6 @@ func main() {
 		total, err := client.Inventory.Query().
 			Aggregate(ent.Count()).
 			Int(c)
-		log.Printf("Total: %v", total)
 		if err != nil {
 			log.Printf("Error getting total inventory items: %v", err)
 		}
@@ -96,8 +95,6 @@ func main() {
 		}
 
 		c.JSON(200, res)
-
-		closeClient()
 	})
 
 	r.GET("/api/v1/tags", func(c *gin.Context) {
@@ -118,8 +115,6 @@ func main() {
 		}
 
 		c.JSON(200, res)
-
-		closeClient()
 	})
 
 	err := r.Run("localhost:8080")
