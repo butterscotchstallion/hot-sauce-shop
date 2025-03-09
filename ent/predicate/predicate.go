@@ -8,3 +8,6 @@ import (
 
 // Inventory is the predicate function for inventory builders.
 type Inventory func(*sql.Selector)
+
+// Tag is the predicate function for tag builders.
+type Tag func(*sql.Selector)

@@ -58,6 +58,25 @@ func main() {
 		c.JSON(200, res)
 	})
 
+	r.GET("/api/v1/tags", func(c *gin.Context) {
+		var res gin.H
+		tags, err := client.Tag.Query().All(c)
+		if err != nil {
+			res = gin.H{
+				"status":  "ERROR",
+				"message": fmt.Sprintf("Error fetching tags: %v", err),
+			}
+		} else {
+			res = gin.H{
+				"status": "OK",
+				"results": gin.H{
+					"tags": tags,
+				},
+			}
+		}
+		c.JSON(200, res)
+	})
+
 	err := r.Run("localhost:8080")
 	if err != nil {
 		log.Fatalf("Error starting server: %v", err)

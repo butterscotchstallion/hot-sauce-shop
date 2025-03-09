@@ -4,9 +4,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"hotsauceshop/ent/inventory"
 	"hotsauceshop/ent/predicate"
+	"hotsauceshop/ent/tag"
 	"math"
 
 	"entgo.io/ent"
@@ -22,6 +24,7 @@ type InventoryQuery struct {
 	order      []inventory.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Inventory
+	withTags   *TagQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +59,28 @@ func (iq *InventoryQuery) Unique(unique bool) *InventoryQuery {
 func (iq *InventoryQuery) Order(o ...inventory.OrderOption) *InventoryQuery {
 	iq.order = append(iq.order, o...)
 	return iq
+}
+
+// QueryTags chains the current query on the "tags" edge.
+func (iq *InventoryQuery) QueryTags() *TagQuery {
+	query := (&TagClient{config: iq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := iq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := iq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(inventory.Table, inventory.FieldID, selector),
+			sqlgraph.To(tag.Table, tag.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, inventory.TagsTable, inventory.TagsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(iq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Inventory entity from the query.
@@ -250,10 +275,22 @@ func (iq *InventoryQuery) Clone() *InventoryQuery {
 		order:      append([]inventory.OrderOption{}, iq.order...),
 		inters:     append([]Interceptor{}, iq.inters...),
 		predicates: append([]predicate.Inventory{}, iq.predicates...),
+		withTags:   iq.withTags.Clone(),
 		// clone intermediate query.
 		sql:  iq.sql.Clone(),
 		path: iq.path,
 	}
+}
+
+// WithTags tells the query-builder to eager-load the nodes that are connected to
+// the "tags" edge. The optional arguments are used to configure the query builder of the edge.
+func (iq *InventoryQuery) WithTags(opts ...func(*TagQuery)) *InventoryQuery {
+	query := (&TagClient{config: iq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	iq.withTags = query
+	return iq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -332,8 +369,11 @@ func (iq *InventoryQuery) prepareQuery(ctx context.Context) error {
 
 func (iq *InventoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Inventory, error) {
 	var (
-		nodes = []*Inventory{}
-		_spec = iq.querySpec()
+		nodes       = []*Inventory{}
+		_spec       = iq.querySpec()
+		loadedTypes = [1]bool{
+			iq.withTags != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Inventory).scanValues(nil, columns)
@@ -341,6 +381,7 @@ func (iq *InventoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*In
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Inventory{config: iq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +393,76 @@ func (iq *InventoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*In
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := iq.withTags; query != nil {
+		if err := iq.loadTags(ctx, query, nodes,
+			func(n *Inventory) { n.Edges.Tags = []*Tag{} },
+			func(n *Inventory, e *Tag) { n.Edges.Tags = append(n.Edges.Tags, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (iq *InventoryQuery) loadTags(ctx context.Context, query *TagQuery, nodes []*Inventory, init func(*Inventory), assign func(*Inventory, *Tag)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Inventory)
+	nids := make(map[int]map[*Inventory]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(inventory.TagsTable)
+		s.Join(joinT).On(s.C(tag.FieldID), joinT.C(inventory.TagsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(inventory.TagsPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(inventory.TagsPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Inventory]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Tag](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "tags" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
 }
 
 func (iq *InventoryQuery) sqlCount(ctx context.Context) (int, error) {

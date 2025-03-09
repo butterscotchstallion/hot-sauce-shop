@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"hotsauceshop/ent/inventory"
 	"hotsauceshop/ent/predicate"
+	"hotsauceshop/ent/tag"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -131,9 +132,45 @@ func (iu *InventoryUpdate) ClearUpdatedAt() *InventoryUpdate {
 	return iu
 }
 
+// AddTagIDs adds the "tags" edge to the Tag entity by IDs.
+func (iu *InventoryUpdate) AddTagIDs(ids ...int) *InventoryUpdate {
+	iu.mutation.AddTagIDs(ids...)
+	return iu
+}
+
+// AddTags adds the "tags" edges to the Tag entity.
+func (iu *InventoryUpdate) AddTags(t ...*Tag) *InventoryUpdate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return iu.AddTagIDs(ids...)
+}
+
 // Mutation returns the InventoryMutation object of the builder.
 func (iu *InventoryUpdate) Mutation() *InventoryMutation {
 	return iu.mutation
+}
+
+// ClearTags clears all "tags" edges to the Tag entity.
+func (iu *InventoryUpdate) ClearTags() *InventoryUpdate {
+	iu.mutation.ClearTags()
+	return iu
+}
+
+// RemoveTagIDs removes the "tags" edge to Tag entities by IDs.
+func (iu *InventoryUpdate) RemoveTagIDs(ids ...int) *InventoryUpdate {
+	iu.mutation.RemoveTagIDs(ids...)
+	return iu
+}
+
+// RemoveTags removes "tags" edges to Tag entities.
+func (iu *InventoryUpdate) RemoveTags(t ...*Tag) *InventoryUpdate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return iu.RemoveTagIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -207,6 +244,51 @@ func (iu *InventoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if iu.mutation.UpdatedAtCleared() {
 		_spec.ClearField(inventory.FieldUpdatedAt, field.TypeTime)
+	}
+	if iu.mutation.TagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   inventory.TagsTable,
+			Columns: inventory.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iu.mutation.RemovedTagsIDs(); len(nodes) > 0 && !iu.mutation.TagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   inventory.TagsTable,
+			Columns: inventory.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iu.mutation.TagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   inventory.TagsTable,
+			Columns: inventory.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, iu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -331,9 +413,45 @@ func (iuo *InventoryUpdateOne) ClearUpdatedAt() *InventoryUpdateOne {
 	return iuo
 }
 
+// AddTagIDs adds the "tags" edge to the Tag entity by IDs.
+func (iuo *InventoryUpdateOne) AddTagIDs(ids ...int) *InventoryUpdateOne {
+	iuo.mutation.AddTagIDs(ids...)
+	return iuo
+}
+
+// AddTags adds the "tags" edges to the Tag entity.
+func (iuo *InventoryUpdateOne) AddTags(t ...*Tag) *InventoryUpdateOne {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return iuo.AddTagIDs(ids...)
+}
+
 // Mutation returns the InventoryMutation object of the builder.
 func (iuo *InventoryUpdateOne) Mutation() *InventoryMutation {
 	return iuo.mutation
+}
+
+// ClearTags clears all "tags" edges to the Tag entity.
+func (iuo *InventoryUpdateOne) ClearTags() *InventoryUpdateOne {
+	iuo.mutation.ClearTags()
+	return iuo
+}
+
+// RemoveTagIDs removes the "tags" edge to Tag entities by IDs.
+func (iuo *InventoryUpdateOne) RemoveTagIDs(ids ...int) *InventoryUpdateOne {
+	iuo.mutation.RemoveTagIDs(ids...)
+	return iuo
+}
+
+// RemoveTags removes "tags" edges to Tag entities.
+func (iuo *InventoryUpdateOne) RemoveTags(t ...*Tag) *InventoryUpdateOne {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return iuo.RemoveTagIDs(ids...)
 }
 
 // Where appends a list predicates to the InventoryUpdate builder.
@@ -437,6 +555,51 @@ func (iuo *InventoryUpdateOne) sqlSave(ctx context.Context) (_node *Inventory, e
 	}
 	if iuo.mutation.UpdatedAtCleared() {
 		_spec.ClearField(inventory.FieldUpdatedAt, field.TypeTime)
+	}
+	if iuo.mutation.TagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   inventory.TagsTable,
+			Columns: inventory.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iuo.mutation.RemovedTagsIDs(); len(nodes) > 0 && !iuo.mutation.TagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   inventory.TagsTable,
+			Columns: inventory.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iuo.mutation.TagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   inventory.TagsTable,
+			Columns: inventory.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Inventory{config: iuo.config}
 	_spec.Assign = _node.assignValues

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"hotsauceshop/ent/inventory"
+	"hotsauceshop/ent/tag"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -76,6 +77,21 @@ func (ic *InventoryCreate) SetNillableUpdatedAt(t *time.Time) *InventoryCreate {
 		ic.SetUpdatedAt(*t)
 	}
 	return ic
+}
+
+// AddTagIDs adds the "tags" edge to the Tag entity by IDs.
+func (ic *InventoryCreate) AddTagIDs(ids ...int) *InventoryCreate {
+	ic.mutation.AddTagIDs(ids...)
+	return ic
+}
+
+// AddTags adds the "tags" edges to the Tag entity.
+func (ic *InventoryCreate) AddTags(t ...*Tag) *InventoryCreate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return ic.AddTagIDs(ids...)
 }
 
 // Mutation returns the InventoryMutation object of the builder.
@@ -196,6 +212,22 @@ func (ic *InventoryCreate) createSpec() (*Inventory, *sqlgraph.CreateSpec) {
 	if value, ok := ic.mutation.UpdatedAt(); ok {
 		_spec.SetField(inventory.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = &value
+	}
+	if nodes := ic.mutation.TagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   inventory.TagsTable,
+			Columns: inventory.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

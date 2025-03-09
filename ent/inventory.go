@@ -30,8 +30,29 @@ type Inventory struct {
 	// CreatedAt holds the value of the "createdAt" field.
 	CreatedAt time.Time `json:"createdAt,omitempty"`
 	// UpdatedAt holds the value of the "updatedAt" field.
-	UpdatedAt    *time.Time `json:"updatedAt,omitempty"`
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the InventoryQuery when eager-loading is set.
+	Edges        InventoryEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// InventoryEdges holds the relations/edges for other nodes in the graph.
+type InventoryEdges struct {
+	// Tags holds the value of the tags edge.
+	Tags []*Tag `json:"tags,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// TagsOrErr returns the Tags value or an error if the edge
+// was not loaded in eager-loading.
+func (e InventoryEdges) TagsOrErr() ([]*Tag, error) {
+	if e.loadedTypes[0] {
+		return e.Tags, nil
+	}
+	return nil, &NotLoadedError{edge: "tags"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -122,6 +143,11 @@ func (i *Inventory) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (i *Inventory) Value(name string) (ent.Value, error) {
 	return i.selectValues.Get(name)
+}
+
+// QueryTags queries the "tags" edge of the Inventory entity.
+func (i *Inventory) QueryTags() *TagQuery {
+	return NewInventoryClient(i.config).QueryTags(i)
 }
 
 // Update returns a builder for updating this Inventory.

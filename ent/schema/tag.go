@@ -8,20 +8,21 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// Inventory holds the schema definition for the Inventory entity.
-type Inventory struct {
+// Tag holds the schema definition for the Tag entity.
+type Tag struct {
 	ent.Schema
 }
 
-func (Inventory) Fields() []ent.Field {
+// Fields of the Tag.
+func (Tag) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name"),
 		field.String("description"),
-		field.String("shortDescription"),
 		field.String("slug"),
-		field.Float32("price"),
 		field.Time("createdAt").
-			Default(time.Now),
+			Default(time.Now).
+			Optional().
+			Nillable(),
 		field.Time("updatedAt").
 			Default(time.Now).
 			UpdateDefault(time.Now).
@@ -30,8 +31,10 @@ func (Inventory) Fields() []ent.Field {
 	}
 }
 
-func (Inventory) Edges() []ent.Edge {
+// Edges of the Tag.
+func (Tag) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("tags", Tag.Type),
+		edge.From("inventory", Inventory.Type).
+			Ref("tags"),
 	}
 }

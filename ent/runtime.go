@@ -5,6 +5,7 @@ package ent
 import (
 	"hotsauceshop/ent/inventory"
 	"hotsauceshop/ent/schema"
+	"hotsauceshop/ent/tag"
 	"time"
 )
 
@@ -24,4 +25,16 @@ func init() {
 	inventory.DefaultUpdatedAt = inventoryDescUpdatedAt.Default.(func() time.Time)
 	// inventory.UpdateDefaultUpdatedAt holds the default value on update for the updatedAt field.
 	inventory.UpdateDefaultUpdatedAt = inventoryDescUpdatedAt.UpdateDefault.(func() time.Time)
+	tagFields := schema.Tag{}.Fields()
+	_ = tagFields
+	// tagDescCreatedAt is the schema descriptor for createdAt field.
+	tagDescCreatedAt := tagFields[3].Descriptor()
+	// tag.DefaultCreatedAt holds the default value on creation for the createdAt field.
+	tag.DefaultCreatedAt = tagDescCreatedAt.Default.(func() time.Time)
+	// tagDescUpdatedAt is the schema descriptor for updatedAt field.
+	tagDescUpdatedAt := tagFields[4].Descriptor()
+	// tag.DefaultUpdatedAt holds the default value on creation for the updatedAt field.
+	tag.DefaultUpdatedAt = tagDescUpdatedAt.Default.(func() time.Time)
+	// tag.UpdateDefaultUpdatedAt holds the default value on update for the updatedAt field.
+	tag.UpdateDefaultUpdatedAt = tagDescUpdatedAt.UpdateDefault.(func() time.Time)
 }

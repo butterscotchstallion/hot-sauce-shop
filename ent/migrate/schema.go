@@ -25,11 +25,55 @@ var (
 		Columns:    InventoriesColumns,
 		PrimaryKey: []*schema.Column{InventoriesColumns[0]},
 	}
+	// TagsColumns holds the columns for the "tags" table.
+	TagsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString},
+		{Name: "slug", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+	}
+	// TagsTable holds the schema information for the "tags" table.
+	TagsTable = &schema.Table{
+		Name:       "tags",
+		Columns:    TagsColumns,
+		PrimaryKey: []*schema.Column{TagsColumns[0]},
+	}
+	// InventoryTagsColumns holds the columns for the "inventory_tags" table.
+	InventoryTagsColumns = []*schema.Column{
+		{Name: "inventory_id", Type: field.TypeInt},
+		{Name: "tag_id", Type: field.TypeInt},
+	}
+	// InventoryTagsTable holds the schema information for the "inventory_tags" table.
+	InventoryTagsTable = &schema.Table{
+		Name:       "inventory_tags",
+		Columns:    InventoryTagsColumns,
+		PrimaryKey: []*schema.Column{InventoryTagsColumns[0], InventoryTagsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "inventory_tags_inventory_id",
+				Columns:    []*schema.Column{InventoryTagsColumns[0]},
+				RefColumns: []*schema.Column{InventoriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "inventory_tags_tag_id",
+				Columns:    []*schema.Column{InventoryTagsColumns[1]},
+				RefColumns: []*schema.Column{TagsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		InventoriesTable,
+		TagsTable,
+		InventoryTagsTable,
 	}
 )
 
 func init() {
+	InventoryTagsTable.ForeignKeys[0].RefTable = InventoriesTable
+	InventoryTagsTable.ForeignKeys[1].RefTable = TagsTable
 }

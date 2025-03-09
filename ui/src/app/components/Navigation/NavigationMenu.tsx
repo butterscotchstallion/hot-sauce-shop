@@ -22,8 +22,8 @@ export default function NavigationMenu(): ReactElement {
             icon: 'pi pi-home'
         },
         {
-            label: 'Features',
-            icon: 'pi pi-star'
+            label: 'Products',
+            icon: 'pi pi-gift'
         },
         {
             label: 'Projects',
@@ -79,13 +79,13 @@ export default function NavigationMenu(): ReactElement {
     ];
 
     const start = <div
-        className="text-2xl font-bold w-[200px] all-small-caps transition-colors duration-300 hover:text-orange-500 hover:animate-pulse">
+        className="text-2xl pl-2 font-bold w-[200px] all-small-caps transition-colors duration-300 hover:text-orange-500 hover:animate-pulse">
         <NavLink to="/">Caliente Corner</NavLink>
     </div>;
     const end = (
-        <div className="flex align-items-center gap-2">
+        <div className="flex align-items-center gap-2 pr-4">
             <InputText placeholder="Search" type="text" className="w-8rem sm:w-auto"/>
-            <Avatar image="https://primefaces.org/cdn/primereact/images/avatar/amyelsner.png" shape="circle"/>
+            <Avatar className="ml-2" image="/images/avatars/amyelsner.png" shape="circle"/>
         </div>
     );
 

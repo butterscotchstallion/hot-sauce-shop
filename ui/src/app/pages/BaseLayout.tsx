@@ -9,14 +9,17 @@ type Props = {
 export default function BaseLayout({children}: Props) {
     return (
         <PrimeReactProvider>
+            <NavigationMenu/>
+            {/*
             <section className="bg-black p-4">
-                {/*
+
                 <div className="flex justify-end pr-4">
                     <CartMenu/>
                 </div>
-                */}
+
                 <NavigationMenu/>
             </section>
+            */}
             <main className="container mx-auto max-w-7xl">
                 {/*
                 <header className="flex justify-between mt-4">

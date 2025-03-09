@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"hotsauceshop/ent/inventory"
+	"hotsauceshop/ent/tag"
 	"reflect"
 	"sync"
 
@@ -74,6 +75,7 @@ func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			inventory.Table: inventory.ValidColumn,
+			tag.Table:       tag.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)
