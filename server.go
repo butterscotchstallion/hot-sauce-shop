@@ -58,7 +58,7 @@ func main() {
 			product, err := client.Inventory.Query().
 				Where(inventory.Slug(slug)).
 				All(c)
-			if err != nil {
+			if err != nil || len(product) == 0 {
 				res = gin.H{
 					"status":  "ERROR",
 					"message": fmt.Sprintf("Error fetching product: %v", err),
@@ -67,7 +67,7 @@ func main() {
 				res = gin.H{
 					"status": "OK",
 					"results": gin.H{
-						"product": product,
+						"product": product[0],
 					},
 				}
 			}
