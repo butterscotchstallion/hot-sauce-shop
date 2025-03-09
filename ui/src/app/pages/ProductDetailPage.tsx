@@ -8,6 +8,7 @@ import ProductImage from "../components/Products/ProductImage.tsx";
 import {Button} from "primereact/button";
 import SpiceRating from "../components/Products/SpiceRating.tsx";
 import ReviewCard from "../components/Reviews/ReviewCard.tsx";
+import {Card} from "primereact/card";
 
 export default function ProductDetailPage() {
     const params: Readonly<Params<string>> = useParams();
@@ -60,12 +61,16 @@ export default function ProductDetailPage() {
                         <div>
                             <section className="mb-2">
                                 <h2 className="font-bold text-lg mb-4">Description</h2>
-                                <p>{product.description}</p>
+                                <Card>
+                                    <p>{product.description}</p>
+                                </Card>
                             </section>
 
                             <section className="mb-2">
                                 <h2 className="font-bold text-lg mb-4">Ingredients</h2>
-                                <p>Aged Cayenne Red Peppers, Distilled Vinegar, Water, Salt and Garlic Powder.</p>
+                                <Card>
+                                    <p>Aged Cayenne Red Peppers, Distilled Vinegar, Water, Salt and Garlic Powder.</p>
+                                </Card>
                             </section>
 
                             <section className="mt-10">
