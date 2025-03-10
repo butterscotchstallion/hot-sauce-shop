@@ -41,6 +41,21 @@ var (
 		Columns:    TagsColumns,
 		PrimaryKey: []*schema.Column{TagsColumns[0]},
 	}
+	// UsersColumns holds the columns for the "users" table.
+	UsersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "username", Type: field.TypeString},
+		{Name: "password", Type: field.TypeString},
+		{Name: "avatar_filename", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+	}
+	// UsersTable holds the schema information for the "users" table.
+	UsersTable = &schema.Table{
+		Name:       "users",
+		Columns:    UsersColumns,
+		PrimaryKey: []*schema.Column{UsersColumns[0]},
+	}
 	// InventoryTagsColumns holds the columns for the "inventory_tags" table.
 	InventoryTagsColumns = []*schema.Column{
 		{Name: "inventory_id", Type: field.TypeInt},
@@ -70,6 +85,7 @@ var (
 	Tables = []*schema.Table{
 		InventoriesTable,
 		TagsTable,
+		UsersTable,
 		InventoryTagsTable,
 	}
 )

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"hotsauceshop/ent/inventory"
 	"hotsauceshop/ent/tag"
+	"hotsauceshop/ent/user"
 	"reflect"
 	"sync"
 
@@ -76,6 +77,7 @@ func checkColumn(table, column string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			inventory.Table: inventory.ValidColumn,
 			tag.Table:       tag.ValidColumn,
+			user.Table:      user.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)
