@@ -14,7 +14,11 @@ export default function ProductCard(props: IProductCardProps) {
         <div className="w-[260px]">
             <NavLink to={props.product.slug}>
                 <ProductImage product={props.product}/>
-                <Card title={props.product.name}>
+                <Card>
+                    <h2 className="max-w-60 whitespace-nowrap text-2xl font-bold overflow-hidden text-ellipsis"
+                        title={props.product.name}>
+                        {props.product.name}
+                    </h2>
                     <p className="pb-4">{props.product.shortDescription}</p>
 
                     <section className="mb-4">
