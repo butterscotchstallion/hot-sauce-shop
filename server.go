@@ -79,21 +79,21 @@ func main() {
 		offset := c.DefaultQuery("offset", "1")
 		perPage := c.DefaultQuery("perPage", "10")
 
-		perPageInt, err := strconv.Atoi(perPage)
-		if err != nil {
+		perPageInt, perPageErr := strconv.Atoi(perPage)
+		if perPageErr != nil {
 			perPageInt = 10
 		}
 
-		offsetInt, err := strconv.Atoi(offset)
-		if err != nil {
+		offsetInt, offsetErr := strconv.Atoi(offset)
+		if offsetErr != nil {
 			offsetInt = 1
 		}
 
-		total, err := client.Inventory.Query().
+		total, totalErr := client.Inventory.Query().
 			Aggregate(ent.Count()).
 			Int(c)
-		if err != nil {
-			log.Printf("Error getting total inventory items: %v", err)
+		if totalErr != nil {
+			log.Printf("Error getting total inventory items: %v", totalErr)
 		}
 
 		var res gin.H

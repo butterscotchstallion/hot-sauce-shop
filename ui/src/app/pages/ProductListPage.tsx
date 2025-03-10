@@ -38,7 +38,6 @@ export default function ProductListPage(): ReactElement {
             next: (results: IProductsResults) => {
                 setProducts(results.inventory);
                 setTotalProducts(results.total);
-                console.info("Fetched products: offset=" + offset);
             },
             error: (err: string) => {
                 console.error(err);
