@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// CartItems is the predicate function for cartitems builders.
+type CartItems func(*sql.Selector)
+
 // Inventory is the predicate function for inventory builders.
 type Inventory func(*sql.Selector)
 

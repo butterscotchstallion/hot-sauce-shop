@@ -548,6 +548,29 @@ func HasTagsWith(preds ...predicate.Tag) predicate.Inventory {
 	})
 }
 
+// HasCartItems applies the HasEdge predicate on the "cartItems" edge.
+func HasCartItems() predicate.Inventory {
+	return predicate.Inventory(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, CartItemsTable, CartItemsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCartItemsWith applies the HasEdge predicate on the "cartItems" edge with a given conditions (other predicates).
+func HasCartItemsWith(preds ...predicate.CartItems) predicate.Inventory {
+	return predicate.Inventory(func(s *sql.Selector) {
+		step := newCartItemsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Inventory) predicate.Inventory {
 	return predicate.Inventory(sql.AndPredicates(predicates...))

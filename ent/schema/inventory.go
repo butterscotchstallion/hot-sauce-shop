@@ -35,5 +35,6 @@ func (Inventory) Fields() []ent.Field {
 func (Inventory) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("tags", Tag.Type),
+		edge.From("cartItems", CartItems.Type).Ref("inventory"),
 	}
 }

@@ -26,8 +26,30 @@ type User struct {
 	// CreatedAt holds the value of the "createdAt" field.
 	CreatedAt time.Time `json:"createdAt,omitempty"`
 	// UpdatedAt holds the value of the "updatedAt" field.
-	UpdatedAt    *time.Time `json:"updatedAt,omitempty"`
-	selectValues sql.SelectValues
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges           UserEdges `json:"edges"`
+	cart_items_user *int
+	selectValues    sql.SelectValues
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// CartItems holds the value of the cartItems edge.
+	CartItems []*User `json:"cartItems,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// CartItemsOrErr returns the CartItems value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CartItemsOrErr() ([]*User, error) {
+	if e.loadedTypes[0] {
+		return e.CartItems, nil
+	}
+	return nil, &NotLoadedError{edge: "cartItems"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -41,6 +63,8 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
+		case user.ForeignKeys[0]: // cart_items_user
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -93,6 +117,13 @@ func (u *User) assignValues(columns []string, values []any) error {
 				u.UpdatedAt = new(time.Time)
 				*u.UpdatedAt = value.Time
 			}
+		case user.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field cart_items_user", value)
+			} else if value.Valid {
+				u.cart_items_user = new(int)
+				*u.cart_items_user = int(value.Int64)
+			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
 		}
@@ -104,6 +135,11 @@ func (u *User) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (u *User) Value(name string) (ent.Value, error) {
 	return u.selectValues.Get(name)
+}
+
+// QueryCartItems queries the "cartItems" edge of the User entity.
+func (u *User) QueryCartItems() *UserQuery {
+	return NewUserClient(u.config).QueryCartItems(u)
 }
 
 // Update returns a builder for updating this User.

@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hotsauceshop/ent/cartitems"
 	"hotsauceshop/ent/inventory"
 	"hotsauceshop/ent/tag"
 	"hotsauceshop/ent/user"
@@ -75,6 +76,7 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			cartitems.Table: cartitems.ValidColumn,
 			inventory.Table: inventory.ValidColumn,
 			tag.Table:       tag.ValidColumn,
 			user.Table:      user.ValidColumn,

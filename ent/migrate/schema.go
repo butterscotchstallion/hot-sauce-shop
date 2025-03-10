@@ -8,6 +8,19 @@ import (
 )
 
 var (
+	// CartItemsColumns holds the columns for the "cart_items" table.
+	CartItemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "quantity", Type: field.TypeInt8, Default: 1},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+	}
+	// CartItemsTable holds the schema information for the "cart_items" table.
+	CartItemsTable = &schema.Table{
+		Name:       "cart_items",
+		Columns:    CartItemsColumns,
+		PrimaryKey: []*schema.Column{CartItemsColumns[0]},
+	}
 	// InventoriesColumns holds the columns for the "inventories" table.
 	InventoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -49,12 +62,46 @@ var (
 		{Name: "avatar_filename", Type: field.TypeString},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "cart_items_user", Type: field.TypeInt, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
 		Name:       "users",
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "users_cart_items_user",
+				Columns:    []*schema.Column{UsersColumns[6]},
+				RefColumns: []*schema.Column{CartItemsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// CartItemsInventoryColumns holds the columns for the "cart_items_inventory" table.
+	CartItemsInventoryColumns = []*schema.Column{
+		{Name: "cart_items_id", Type: field.TypeInt},
+		{Name: "inventory_id", Type: field.TypeInt},
+	}
+	// CartItemsInventoryTable holds the schema information for the "cart_items_inventory" table.
+	CartItemsInventoryTable = &schema.Table{
+		Name:       "cart_items_inventory",
+		Columns:    CartItemsInventoryColumns,
+		PrimaryKey: []*schema.Column{CartItemsInventoryColumns[0], CartItemsInventoryColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "cart_items_inventory_cart_items_id",
+				Columns:    []*schema.Column{CartItemsInventoryColumns[0]},
+				RefColumns: []*schema.Column{CartItemsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "cart_items_inventory_inventory_id",
+				Columns:    []*schema.Column{CartItemsInventoryColumns[1]},
+				RefColumns: []*schema.Column{InventoriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 	}
 	// InventoryTagsColumns holds the columns for the "inventory_tags" table.
 	InventoryTagsColumns = []*schema.Column{
@@ -81,16 +128,49 @@ var (
 			},
 		},
 	}
+	// UserCartItemsColumns holds the columns for the "user_cartItems" table.
+	UserCartItemsColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "cartItem_id", Type: field.TypeInt},
+	}
+	// UserCartItemsTable holds the schema information for the "user_cartItems" table.
+	UserCartItemsTable = &schema.Table{
+		Name:       "user_cartItems",
+		Columns:    UserCartItemsColumns,
+		PrimaryKey: []*schema.Column{UserCartItemsColumns[0], UserCartItemsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_cartItems_user_id",
+				Columns:    []*schema.Column{UserCartItemsColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_cartItems_cartItem_id",
+				Columns:    []*schema.Column{UserCartItemsColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		CartItemsTable,
 		InventoriesTable,
 		TagsTable,
 		UsersTable,
+		CartItemsInventoryTable,
 		InventoryTagsTable,
+		UserCartItemsTable,
 	}
 )
 
 func init() {
+	UsersTable.ForeignKeys[0].RefTable = CartItemsTable
+	CartItemsInventoryTable.ForeignKeys[0].RefTable = CartItemsTable
+	CartItemsInventoryTable.ForeignKeys[1].RefTable = InventoriesTable
 	InventoryTagsTable.ForeignKeys[0].RefTable = InventoriesTable
 	InventoryTagsTable.ForeignKeys[1].RefTable = TagsTable
+	UserCartItemsTable.ForeignKeys[0].RefTable = UsersTable
+	UserCartItemsTable.ForeignKeys[1].RefTable = UsersTable
 }

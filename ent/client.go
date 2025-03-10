@@ -11,6 +11,7 @@ import (
 
 	"hotsauceshop/ent/migrate"
 
+	"hotsauceshop/ent/cartitems"
 	"hotsauceshop/ent/inventory"
 	"hotsauceshop/ent/tag"
 	"hotsauceshop/ent/user"
@@ -26,6 +27,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// CartItems is the client for interacting with the CartItems builders.
+	CartItems *CartItemsClient
 	// Inventory is the client for interacting with the Inventory builders.
 	Inventory *InventoryClient
 	// Tag is the client for interacting with the Tag builders.
@@ -43,6 +46,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.CartItems = NewCartItemsClient(c.config)
 	c.Inventory = NewInventoryClient(c.config)
 	c.Tag = NewTagClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -138,6 +142,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:       ctx,
 		config:    cfg,
+		CartItems: NewCartItemsClient(cfg),
 		Inventory: NewInventoryClient(cfg),
 		Tag:       NewTagClient(cfg),
 		User:      NewUserClient(cfg),
@@ -160,6 +165,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:       ctx,
 		config:    cfg,
+		CartItems: NewCartItemsClient(cfg),
 		Inventory: NewInventoryClient(cfg),
 		Tag:       NewTagClient(cfg),
 		User:      NewUserClient(cfg),
@@ -169,7 +175,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Inventory.
+//		CartItems.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -191,6 +197,7 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.CartItems.Use(hooks...)
 	c.Inventory.Use(hooks...)
 	c.Tag.Use(hooks...)
 	c.User.Use(hooks...)
@@ -199,6 +206,7 @@ func (c *Client) Use(hooks ...Hook) {
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
+	c.CartItems.Intercept(interceptors...)
 	c.Inventory.Intercept(interceptors...)
 	c.Tag.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
@@ -207,6 +215,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *CartItemsMutation:
+		return c.CartItems.mutate(ctx, m)
 	case *InventoryMutation:
 		return c.Inventory.mutate(ctx, m)
 	case *TagMutation:
@@ -215,6 +225,171 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// CartItemsClient is a client for the CartItems schema.
+type CartItemsClient struct {
+	config
+}
+
+// NewCartItemsClient returns a client for the CartItems from the given config.
+func NewCartItemsClient(c config) *CartItemsClient {
+	return &CartItemsClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `cartitems.Hooks(f(g(h())))`.
+func (c *CartItemsClient) Use(hooks ...Hook) {
+	c.hooks.CartItems = append(c.hooks.CartItems, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `cartitems.Intercept(f(g(h())))`.
+func (c *CartItemsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CartItems = append(c.inters.CartItems, interceptors...)
+}
+
+// Create returns a builder for creating a CartItems entity.
+func (c *CartItemsClient) Create() *CartItemsCreate {
+	mutation := newCartItemsMutation(c.config, OpCreate)
+	return &CartItemsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CartItems entities.
+func (c *CartItemsClient) CreateBulk(builders ...*CartItemsCreate) *CartItemsCreateBulk {
+	return &CartItemsCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CartItemsClient) MapCreateBulk(slice any, setFunc func(*CartItemsCreate, int)) *CartItemsCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CartItemsCreateBulk{err: fmt.Errorf("calling to CartItemsClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CartItemsCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CartItemsCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CartItems.
+func (c *CartItemsClient) Update() *CartItemsUpdate {
+	mutation := newCartItemsMutation(c.config, OpUpdate)
+	return &CartItemsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CartItemsClient) UpdateOne(ci *CartItems) *CartItemsUpdateOne {
+	mutation := newCartItemsMutation(c.config, OpUpdateOne, withCartItems(ci))
+	return &CartItemsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CartItemsClient) UpdateOneID(id int) *CartItemsUpdateOne {
+	mutation := newCartItemsMutation(c.config, OpUpdateOne, withCartItemsID(id))
+	return &CartItemsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CartItems.
+func (c *CartItemsClient) Delete() *CartItemsDelete {
+	mutation := newCartItemsMutation(c.config, OpDelete)
+	return &CartItemsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CartItemsClient) DeleteOne(ci *CartItems) *CartItemsDeleteOne {
+	return c.DeleteOneID(ci.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CartItemsClient) DeleteOneID(id int) *CartItemsDeleteOne {
+	builder := c.Delete().Where(cartitems.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CartItemsDeleteOne{builder}
+}
+
+// Query returns a query builder for CartItems.
+func (c *CartItemsClient) Query() *CartItemsQuery {
+	return &CartItemsQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCartItems},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CartItems entity by its id.
+func (c *CartItemsClient) Get(ctx context.Context, id int) (*CartItems, error) {
+	return c.Query().Where(cartitems.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CartItemsClient) GetX(ctx context.Context, id int) *CartItems {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a CartItems.
+func (c *CartItemsClient) QueryUser(ci *CartItems) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cartitems.Table, cartitems.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, cartitems.UserTable, cartitems.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(ci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryInventory queries the inventory edge of a CartItems.
+func (c *CartItemsClient) QueryInventory(ci *CartItems) *InventoryQuery {
+	query := (&InventoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cartitems.Table, cartitems.FieldID, id),
+			sqlgraph.To(inventory.Table, inventory.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, cartitems.InventoryTable, cartitems.InventoryPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(ci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CartItemsClient) Hooks() []Hook {
+	return c.hooks.CartItems
+}
+
+// Interceptors returns the client interceptors.
+func (c *CartItemsClient) Interceptors() []Interceptor {
+	return c.inters.CartItems
+}
+
+func (c *CartItemsClient) mutate(ctx context.Context, m *CartItemsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CartItemsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CartItemsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CartItemsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CartItemsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown CartItems mutation op: %q", m.Op())
 	}
 }
 
@@ -335,6 +510,22 @@ func (c *InventoryClient) QueryTags(i *Inventory) *TagQuery {
 			sqlgraph.From(inventory.Table, inventory.FieldID, id),
 			sqlgraph.To(tag.Table, tag.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, inventory.TagsTable, inventory.TagsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(i.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCartItems queries the cartItems edge of a Inventory.
+func (c *InventoryClient) QueryCartItems(i *Inventory) *CartItemsQuery {
+	query := (&CartItemsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := i.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(inventory.Table, inventory.FieldID, id),
+			sqlgraph.To(cartitems.Table, cartitems.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, inventory.CartItemsTable, inventory.CartItemsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(i.driver.Dialect(), step)
 		return fromV, nil
@@ -624,6 +815,22 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 	return obj
 }
 
+// QueryCartItems queries the cartItems edge of a User.
+func (c *UserClient) QueryCartItems(u *User) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.CartItemsTable, user.CartItemsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -652,9 +859,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Inventory, Tag, User []ent.Hook
+		CartItems, Inventory, Tag, User []ent.Hook
 	}
 	inters struct {
-		Inventory, Tag, User []ent.Interceptor
+		CartItems, Inventory, Tag, User []ent.Interceptor
 	}
 )

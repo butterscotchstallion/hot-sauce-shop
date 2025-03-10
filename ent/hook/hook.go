@@ -8,6 +8,18 @@ import (
 	"hotsauceshop/ent"
 )
 
+// The CartItemsFunc type is an adapter to allow the use of ordinary
+// function as CartItems mutator.
+type CartItemsFunc func(context.Context, *ent.CartItemsMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CartItemsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CartItemsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CartItemsMutation", m)
+}
+
 // The InventoryFunc type is an adapter to allow the use of ordinary
 // function as Inventory mutator.
 type InventoryFunc func(context.Context, *ent.InventoryMutation) (ent.Value, error)

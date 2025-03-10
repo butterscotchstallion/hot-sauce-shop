@@ -8,17 +8,15 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// User holds the schema definition for the User entity.
-type User struct {
+// CartItems holds the schema definition for the CartItems entity.
+type CartItems struct {
 	ent.Schema
 }
 
-// Fields of the User.
-func (User) Fields() []ent.Field {
+// Fields of the CartItems.
+func (CartItems) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("username"),
-		field.String("password"),
-		field.String("avatarFilename"),
+		field.Int8("quantity").Default(1),
 		field.Time("createdAt").
 			Default(time.Now),
 		field.Time("updatedAt").
@@ -29,9 +27,10 @@ func (User) Fields() []ent.Field {
 	}
 }
 
-// Edges of the User.
-func (User) Edges() []ent.Edge {
+// Edges of the CartItems.
+func (CartItems) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("cartItems", User.Type),
+		edge.To("user", User.Type),
+		edge.To("inventory", Inventory.Type),
 	}
 }

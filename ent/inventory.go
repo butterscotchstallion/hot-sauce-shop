@@ -43,9 +43,11 @@ type Inventory struct {
 type InventoryEdges struct {
 	// Tags holds the value of the tags edge.
 	Tags []*Tag `json:"tags,omitempty"`
+	// CartItems holds the value of the cartItems edge.
+	CartItems []*CartItems `json:"cartItems,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // TagsOrErr returns the Tags value or an error if the edge
@@ -55,6 +57,15 @@ func (e InventoryEdges) TagsOrErr() ([]*Tag, error) {
 		return e.Tags, nil
 	}
 	return nil, &NotLoadedError{edge: "tags"}
+}
+
+// CartItemsOrErr returns the CartItems value or an error if the edge
+// was not loaded in eager-loading.
+func (e InventoryEdges) CartItemsOrErr() ([]*CartItems, error) {
+	if e.loadedTypes[1] {
+		return e.CartItems, nil
+	}
+	return nil, &NotLoadedError{edge: "cartItems"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -156,6 +167,11 @@ func (i *Inventory) Value(name string) (ent.Value, error) {
 // QueryTags queries the "tags" edge of the Inventory entity.
 func (i *Inventory) QueryTags() *TagQuery {
 	return NewInventoryClient(i.config).QueryTags(i)
+}
+
+// QueryCartItems queries the "cartItems" edge of the Inventory entity.
+func (i *Inventory) QueryCartItems() *CartItemsQuery {
+	return NewInventoryClient(i.config).QueryCartItems(i)
 }
 
 // Update returns a builder for updating this Inventory.

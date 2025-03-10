@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"hotsauceshop/ent/cartitems"
 	"hotsauceshop/ent/inventory"
 	"hotsauceshop/ent/schema"
 	"hotsauceshop/ent/tag"
@@ -14,6 +15,22 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	cartitemsFields := schema.CartItems{}.Fields()
+	_ = cartitemsFields
+	// cartitemsDescQuantity is the schema descriptor for quantity field.
+	cartitemsDescQuantity := cartitemsFields[0].Descriptor()
+	// cartitems.DefaultQuantity holds the default value on creation for the quantity field.
+	cartitems.DefaultQuantity = cartitemsDescQuantity.Default.(int8)
+	// cartitemsDescCreatedAt is the schema descriptor for createdAt field.
+	cartitemsDescCreatedAt := cartitemsFields[1].Descriptor()
+	// cartitems.DefaultCreatedAt holds the default value on creation for the createdAt field.
+	cartitems.DefaultCreatedAt = cartitemsDescCreatedAt.Default.(func() time.Time)
+	// cartitemsDescUpdatedAt is the schema descriptor for updatedAt field.
+	cartitemsDescUpdatedAt := cartitemsFields[2].Descriptor()
+	// cartitems.DefaultUpdatedAt holds the default value on creation for the updatedAt field.
+	cartitems.DefaultUpdatedAt = cartitemsDescUpdatedAt.Default.(func() time.Time)
+	// cartitems.UpdateDefaultUpdatedAt holds the default value on update for the updatedAt field.
+	cartitems.UpdateDefaultUpdatedAt = cartitemsDescUpdatedAt.UpdateDefault.(func() time.Time)
 	inventoryFields := schema.Inventory{}.Fields()
 	_ = inventoryFields
 	// inventoryDescSpiceRating is the schema descriptor for spiceRating field.

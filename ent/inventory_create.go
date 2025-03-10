@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hotsauceshop/ent/cartitems"
 	"hotsauceshop/ent/inventory"
 	"hotsauceshop/ent/tag"
 	"time"
@@ -106,6 +107,21 @@ func (ic *InventoryCreate) AddTags(t ...*Tag) *InventoryCreate {
 		ids[i] = t[i].ID
 	}
 	return ic.AddTagIDs(ids...)
+}
+
+// AddCartItemIDs adds the "cartItems" edge to the CartItems entity by IDs.
+func (ic *InventoryCreate) AddCartItemIDs(ids ...int) *InventoryCreate {
+	ic.mutation.AddCartItemIDs(ids...)
+	return ic
+}
+
+// AddCartItems adds the "cartItems" edges to the CartItems entity.
+func (ic *InventoryCreate) AddCartItems(c ...*CartItems) *InventoryCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return ic.AddCartItemIDs(ids...)
 }
 
 // Mutation returns the InventoryMutation object of the builder.
@@ -247,6 +263,22 @@ func (ic *InventoryCreate) createSpec() (*Inventory, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ic.mutation.CartItemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   inventory.CartItemsTable,
+			Columns: inventory.CartItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cartitems.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

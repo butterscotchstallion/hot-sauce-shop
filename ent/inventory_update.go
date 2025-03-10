@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hotsauceshop/ent/cartitems"
 	"hotsauceshop/ent/inventory"
 	"hotsauceshop/ent/predicate"
 	"hotsauceshop/ent/tag"
@@ -168,6 +169,21 @@ func (iu *InventoryUpdate) AddTags(t ...*Tag) *InventoryUpdate {
 	return iu.AddTagIDs(ids...)
 }
 
+// AddCartItemIDs adds the "cartItems" edge to the CartItems entity by IDs.
+func (iu *InventoryUpdate) AddCartItemIDs(ids ...int) *InventoryUpdate {
+	iu.mutation.AddCartItemIDs(ids...)
+	return iu
+}
+
+// AddCartItems adds the "cartItems" edges to the CartItems entity.
+func (iu *InventoryUpdate) AddCartItems(c ...*CartItems) *InventoryUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return iu.AddCartItemIDs(ids...)
+}
+
 // Mutation returns the InventoryMutation object of the builder.
 func (iu *InventoryUpdate) Mutation() *InventoryMutation {
 	return iu.mutation
@@ -192,6 +208,27 @@ func (iu *InventoryUpdate) RemoveTags(t ...*Tag) *InventoryUpdate {
 		ids[i] = t[i].ID
 	}
 	return iu.RemoveTagIDs(ids...)
+}
+
+// ClearCartItems clears all "cartItems" edges to the CartItems entity.
+func (iu *InventoryUpdate) ClearCartItems() *InventoryUpdate {
+	iu.mutation.ClearCartItems()
+	return iu
+}
+
+// RemoveCartItemIDs removes the "cartItems" edge to CartItems entities by IDs.
+func (iu *InventoryUpdate) RemoveCartItemIDs(ids ...int) *InventoryUpdate {
+	iu.mutation.RemoveCartItemIDs(ids...)
+	return iu
+}
+
+// RemoveCartItems removes "cartItems" edges to CartItems entities.
+func (iu *InventoryUpdate) RemoveCartItems(c ...*CartItems) *InventoryUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return iu.RemoveCartItemIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -310,6 +347,51 @@ func (iu *InventoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if iu.mutation.CartItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   inventory.CartItemsTable,
+			Columns: inventory.CartItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cartitems.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iu.mutation.RemovedCartItemsIDs(); len(nodes) > 0 && !iu.mutation.CartItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   inventory.CartItemsTable,
+			Columns: inventory.CartItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cartitems.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iu.mutation.CartItemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   inventory.CartItemsTable,
+			Columns: inventory.CartItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cartitems.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -476,6 +558,21 @@ func (iuo *InventoryUpdateOne) AddTags(t ...*Tag) *InventoryUpdateOne {
 	return iuo.AddTagIDs(ids...)
 }
 
+// AddCartItemIDs adds the "cartItems" edge to the CartItems entity by IDs.
+func (iuo *InventoryUpdateOne) AddCartItemIDs(ids ...int) *InventoryUpdateOne {
+	iuo.mutation.AddCartItemIDs(ids...)
+	return iuo
+}
+
+// AddCartItems adds the "cartItems" edges to the CartItems entity.
+func (iuo *InventoryUpdateOne) AddCartItems(c ...*CartItems) *InventoryUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return iuo.AddCartItemIDs(ids...)
+}
+
 // Mutation returns the InventoryMutation object of the builder.
 func (iuo *InventoryUpdateOne) Mutation() *InventoryMutation {
 	return iuo.mutation
@@ -500,6 +597,27 @@ func (iuo *InventoryUpdateOne) RemoveTags(t ...*Tag) *InventoryUpdateOne {
 		ids[i] = t[i].ID
 	}
 	return iuo.RemoveTagIDs(ids...)
+}
+
+// ClearCartItems clears all "cartItems" edges to the CartItems entity.
+func (iuo *InventoryUpdateOne) ClearCartItems() *InventoryUpdateOne {
+	iuo.mutation.ClearCartItems()
+	return iuo
+}
+
+// RemoveCartItemIDs removes the "cartItems" edge to CartItems entities by IDs.
+func (iuo *InventoryUpdateOne) RemoveCartItemIDs(ids ...int) *InventoryUpdateOne {
+	iuo.mutation.RemoveCartItemIDs(ids...)
+	return iuo
+}
+
+// RemoveCartItems removes "cartItems" edges to CartItems entities.
+func (iuo *InventoryUpdateOne) RemoveCartItems(c ...*CartItems) *InventoryUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return iuo.RemoveCartItemIDs(ids...)
 }
 
 // Where appends a list predicates to the InventoryUpdate builder.
@@ -648,6 +766,51 @@ func (iuo *InventoryUpdateOne) sqlSave(ctx context.Context) (_node *Inventory, e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if iuo.mutation.CartItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   inventory.CartItemsTable,
+			Columns: inventory.CartItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cartitems.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iuo.mutation.RemovedCartItemsIDs(); len(nodes) > 0 && !iuo.mutation.CartItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   inventory.CartItemsTable,
+			Columns: inventory.CartItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cartitems.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iuo.mutation.CartItemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   inventory.CartItemsTable,
+			Columns: inventory.CartItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cartitems.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
