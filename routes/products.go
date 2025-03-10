@@ -1,4 +1,4 @@
-package products
+package routes
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"hotsauceshop/ent/inventory"
 )
 
-func Routes(r *gin.Engine, client *ent.Client) {
+func Products(r *gin.Engine, client *ent.Client) {
 	r.GET("/api/v1/products/:slug", func(c *gin.Context) {
 		slug := c.Param("slug")
 		var res gin.H

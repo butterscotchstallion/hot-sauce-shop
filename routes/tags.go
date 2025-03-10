@@ -1,4 +1,4 @@
-package tags
+package routes
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"hotsauceshop/ent/tag"
 )
 
-func Routes(r *gin.Engine, client *ent.Client) {
+func Tags(r *gin.Engine, client *ent.Client) {
 	r.GET("/api/v1/tags", func(c *gin.Context) {
 		var res gin.H
 		tags, err := client.Tag.Query().Order(ent.Asc(tag.FieldName)).All(c)

@@ -7,8 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"hotsauceshop/ent"
-	"hotsauceshop/products"
-	"hotsauceshop/tags"
+	"hotsauceshop/routes"
+	_ "hotsauceshop/routes"
 )
 
 var client *ent.Client
@@ -42,8 +42,8 @@ func main() {
 	initDB()
 
 	r := gin.Default()
-	products.Routes(r, client)
-	tags.Routes(r, client)
+	routes.Products(r, client)
+	routes.Tags(r, client)
 
 	err := r.Run("localhost:8080")
 	if err != nil {
