@@ -3,22 +3,24 @@ package routes
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 	"hotsauceshop/ent"
 	"hotsauceshop/ent/inventory"
+	"hotsauceshop/lib"
+	_ "hotsauceshop/lib"
 )
 
-func Products(r *gin.Engine, client *ent.Client) {
+func Products(r *gin.Engine, conn *pgx.Conn) {
 	r.GET("/api/v1/products/:slug", func(c *gin.Context) {
 		slug := c.Param("slug")
 		var res gin.H
 		if len(slug) > 0 {
-			product, err := client.Inventory.Query().
-				Where(inventory.Slug(slug)).
-				All(c)
-			if err != nil || len(product) == 0 {
+			product, err := lib.GetInventoryItemBySlug(conn, slug)
+			if err != nil {
 				res = gin.H{
 					"status":  "ERROR",
 					"message": fmt.Sprintf("Error fetching product: %v", err),
@@ -27,12 +29,12 @@ func Products(r *gin.Engine, client *ent.Client) {
 				res = gin.H{
 					"status": "OK",
 					"results": gin.H{
-						"product": product[0],
+						"product": product,
 					},
 				}
 			}
 		}
-		c.JSON(200, res)
+		c.JSON(http.StatusOK, res)
 	})
 
 	r.GET("/api/v1/products", func(c *gin.Context) {
@@ -49,9 +51,7 @@ func Products(r *gin.Engine, client *ent.Client) {
 			offsetInt = 1
 		}
 
-		total, totalErr := client.Inventory.Query().
-			Aggregate(ent.Count()).
-			Int(c)
+		total, totalErr := lib.GetTotalInventoryItems(conn)
 		if totalErr != nil {
 			log.Printf("Error getting total inventory items: %v", totalErr)
 		}
@@ -68,6 +68,7 @@ func Products(r *gin.Engine, client *ent.Client) {
 				"status":  "ERROR",
 				"message": fmt.Sprintf("Error fetching inventory: %v", err),
 			}
+			c.JSON(http.StatusInternalServerError, res)
 		} else {
 			res = gin.H{
 				"status": "OK",
@@ -76,8 +77,15 @@ func Products(r *gin.Engine, client *ent.Client) {
 					"total":     total,
 				},
 			}
+			c.JSON(http.StatusOK, res)
 		}
+	})
 
-		c.JSON(200, res)
+	r.POST("/api/v1/products", func(c *gin.Context) {
+		/*
+			inventory, err := client.Inventory.Create().
+			SetName("yummy hot sauce").
+			Save(c)
+		*/
 	})
 }

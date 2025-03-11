@@ -142,6 +142,12 @@ func (iu *InventoryUpdate) SetNillableCreatedAt(t *time.Time) *InventoryUpdate {
 	return iu
 }
 
+// ClearCreatedAt clears the value of the "createdAt" field.
+func (iu *InventoryUpdate) ClearCreatedAt() *InventoryUpdate {
+	iu.mutation.ClearCreatedAt()
+	return iu
+}
+
 // SetUpdatedAt sets the "updatedAt" field.
 func (iu *InventoryUpdate) SetUpdatedAt(t time.Time) *InventoryUpdate {
 	iu.mutation.SetUpdatedAt(t)
@@ -302,6 +308,9 @@ func (iu *InventoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := iu.mutation.CreatedAt(); ok {
 		_spec.SetField(inventory.FieldCreatedAt, field.TypeTime, value)
+	}
+	if iu.mutation.CreatedAtCleared() {
+		_spec.ClearField(inventory.FieldCreatedAt, field.TypeTime)
 	}
 	if value, ok := iu.mutation.UpdatedAt(); ok {
 		_spec.SetField(inventory.FieldUpdatedAt, field.TypeTime, value)
@@ -531,6 +540,12 @@ func (iuo *InventoryUpdateOne) SetNillableCreatedAt(t *time.Time) *InventoryUpda
 	return iuo
 }
 
+// ClearCreatedAt clears the value of the "createdAt" field.
+func (iuo *InventoryUpdateOne) ClearCreatedAt() *InventoryUpdateOne {
+	iuo.mutation.ClearCreatedAt()
+	return iuo
+}
+
 // SetUpdatedAt sets the "updatedAt" field.
 func (iuo *InventoryUpdateOne) SetUpdatedAt(t time.Time) *InventoryUpdateOne {
 	iuo.mutation.SetUpdatedAt(t)
@@ -721,6 +736,9 @@ func (iuo *InventoryUpdateOne) sqlSave(ctx context.Context) (_node *Inventory, e
 	}
 	if value, ok := iuo.mutation.CreatedAt(); ok {
 		_spec.SetField(inventory.FieldCreatedAt, field.TypeTime, value)
+	}
+	if iuo.mutation.CreatedAtCleared() {
+		_spec.ClearField(inventory.FieldCreatedAt, field.TypeTime)
 	}
 	if value, ok := iuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(inventory.FieldUpdatedAt, field.TypeTime, value)

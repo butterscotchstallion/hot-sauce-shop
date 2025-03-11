@@ -137,9 +137,6 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.AvatarFilename(); !ok {
 		return &ValidationError{Name: "avatarFilename", err: errors.New(`ent: missing required field "User.avatarFilename"`)}
 	}
-	if _, ok := uc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "createdAt", err: errors.New(`ent: missing required field "User.createdAt"`)}
-	}
 	return nil
 }
 
@@ -180,7 +177,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
-		_node.CreatedAt = value
+		_node.CreatedAt = &value
 	}
 	if value, ok := uc.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)

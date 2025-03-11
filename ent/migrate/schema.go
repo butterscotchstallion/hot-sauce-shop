@@ -30,7 +30,7 @@ var (
 		{Name: "slug", Type: field.TypeString},
 		{Name: "price", Type: field.TypeFloat32},
 		{Name: "spice_rating", Type: field.TypeInt, Default: 3},
-		{Name: "created_at", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 	}
 	// InventoriesTable holds the schema information for the "inventories" table.
@@ -60,7 +60,7 @@ var (
 		{Name: "username", Type: field.TypeString},
 		{Name: "password", Type: field.TypeString},
 		{Name: "avatar_filename", Type: field.TypeString},
-		{Name: "created_at", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "cart_items_user", Type: field.TypeInt, Nullable: true},
 	}

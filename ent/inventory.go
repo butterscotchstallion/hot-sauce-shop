@@ -30,7 +30,7 @@ type Inventory struct {
 	// SpiceRating holds the value of the "spiceRating" field.
 	SpiceRating int `json:"spiceRating,omitempty"`
 	// CreatedAt holds the value of the "createdAt" field.
-	CreatedAt time.Time `json:"createdAt,omitempty"`
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
 	// UpdatedAt holds the value of the "updatedAt" field.
 	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -142,7 +142,8 @@ func (i *Inventory) assignValues(columns []string, values []any) error {
 			if value, ok := values[j].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field createdAt", values[j])
 			} else if value.Valid {
-				i.CreatedAt = value.Time
+				i.CreatedAt = new(time.Time)
+				*i.CreatedAt = value.Time
 			}
 		case inventory.FieldUpdatedAt:
 			if value, ok := values[j].(*sql.NullTime); !ok {
@@ -215,8 +216,10 @@ func (i *Inventory) String() string {
 	builder.WriteString("spiceRating=")
 	builder.WriteString(fmt.Sprintf("%v", i.SpiceRating))
 	builder.WriteString(", ")
-	builder.WriteString("createdAt=")
-	builder.WriteString(i.CreatedAt.Format(time.ANSIC))
+	if v := i.CreatedAt; v != nil {
+		builder.WriteString("createdAt=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	if v := i.UpdatedAt; v != nil {
 		builder.WriteString("updatedAt=")

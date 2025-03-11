@@ -1100,7 +1100,7 @@ func (m *InventoryMutation) CreatedAt() (r time.Time, exists bool) {
 // OldCreatedAt returns the old "createdAt" field's value of the Inventory entity.
 // If the Inventory object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InventoryMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+func (m *InventoryMutation) OldCreatedAt(ctx context.Context) (v *time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
 	}
@@ -1114,9 +1114,22 @@ func (m *InventoryMutation) OldCreatedAt(ctx context.Context) (v time.Time, err 
 	return oldValue.CreatedAt, nil
 }
 
+// ClearCreatedAt clears the value of the "createdAt" field.
+func (m *InventoryMutation) ClearCreatedAt() {
+	m.createdAt = nil
+	m.clearedFields[inventory.FieldCreatedAt] = struct{}{}
+}
+
+// CreatedAtCleared returns if the "createdAt" field was cleared in this mutation.
+func (m *InventoryMutation) CreatedAtCleared() bool {
+	_, ok := m.clearedFields[inventory.FieldCreatedAt]
+	return ok
+}
+
 // ResetCreatedAt resets all changes to the "createdAt" field.
 func (m *InventoryMutation) ResetCreatedAt() {
 	m.createdAt = nil
+	delete(m.clearedFields, inventory.FieldCreatedAt)
 }
 
 // SetUpdatedAt sets the "updatedAt" field.
@@ -1506,6 +1519,9 @@ func (m *InventoryMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *InventoryMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(inventory.FieldCreatedAt) {
+		fields = append(fields, inventory.FieldCreatedAt)
+	}
 	if m.FieldCleared(inventory.FieldUpdatedAt) {
 		fields = append(fields, inventory.FieldUpdatedAt)
 	}
@@ -1523,6 +1539,9 @@ func (m *InventoryMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *InventoryMutation) ClearField(name string) error {
 	switch name {
+	case inventory.FieldCreatedAt:
+		m.ClearCreatedAt()
+		return nil
 	case inventory.FieldUpdatedAt:
 		m.ClearUpdatedAt()
 		return nil
@@ -2591,7 +2610,7 @@ func (m *UserMutation) CreatedAt() (r time.Time, exists bool) {
 // OldCreatedAt returns the old "createdAt" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+func (m *UserMutation) OldCreatedAt(ctx context.Context) (v *time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
 	}
@@ -2605,9 +2624,22 @@ func (m *UserMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error
 	return oldValue.CreatedAt, nil
 }
 
+// ClearCreatedAt clears the value of the "createdAt" field.
+func (m *UserMutation) ClearCreatedAt() {
+	m.createdAt = nil
+	m.clearedFields[user.FieldCreatedAt] = struct{}{}
+}
+
+// CreatedAtCleared returns if the "createdAt" field was cleared in this mutation.
+func (m *UserMutation) CreatedAtCleared() bool {
+	_, ok := m.clearedFields[user.FieldCreatedAt]
+	return ok
+}
+
 // ResetCreatedAt resets all changes to the "createdAt" field.
 func (m *UserMutation) ResetCreatedAt() {
 	m.createdAt = nil
+	delete(m.clearedFields, user.FieldCreatedAt)
 }
 
 // SetUpdatedAt sets the "updatedAt" field.
@@ -2874,6 +2906,9 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(user.FieldCreatedAt) {
+		fields = append(fields, user.FieldCreatedAt)
+	}
 	if m.FieldCleared(user.FieldUpdatedAt) {
 		fields = append(fields, user.FieldUpdatedAt)
 	}
@@ -2891,6 +2926,9 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
 	switch name {
+	case user.FieldCreatedAt:
+		m.ClearCreatedAt()
+		return nil
 	case user.FieldUpdatedAt:
 		m.ClearUpdatedAt()
 		return nil

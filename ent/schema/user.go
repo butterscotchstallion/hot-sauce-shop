@@ -20,7 +20,9 @@ func (User) Fields() []ent.Field {
 		field.String("password"),
 		field.String("avatarFilename"),
 		field.Time("createdAt").
-			Default(time.Now),
+			Default(time.Now).
+			Optional().
+			Nillable(),
 		field.Time("updatedAt").
 			Default(time.Now).
 			UpdateDefault(time.Now).

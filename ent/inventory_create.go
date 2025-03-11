@@ -193,9 +193,6 @@ func (ic *InventoryCreate) check() error {
 	if _, ok := ic.mutation.SpiceRating(); !ok {
 		return &ValidationError{Name: "spiceRating", err: errors.New(`ent: missing required field "Inventory.spiceRating"`)}
 	}
-	if _, ok := ic.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "createdAt", err: errors.New(`ent: missing required field "Inventory.createdAt"`)}
-	}
 	return nil
 }
 
@@ -248,7 +245,7 @@ func (ic *InventoryCreate) createSpec() (*Inventory, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := ic.mutation.CreatedAt(); ok {
 		_spec.SetField(inventory.FieldCreatedAt, field.TypeTime, value)
-		_node.CreatedAt = value
+		_node.CreatedAt = &value
 	}
 	if value, ok := ic.mutation.UpdatedAt(); ok {
 		_spec.SetField(inventory.FieldUpdatedAt, field.TypeTime, value)

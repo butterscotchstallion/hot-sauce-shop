@@ -475,6 +475,16 @@ func CreatedAtLTE(v time.Time) predicate.Inventory {
 	return predicate.Inventory(sql.FieldLTE(FieldCreatedAt, v))
 }
 
+// CreatedAtIsNil applies the IsNil predicate on the "createdAt" field.
+func CreatedAtIsNil() predicate.Inventory {
+	return predicate.Inventory(sql.FieldIsNull(FieldCreatedAt))
+}
+
+// CreatedAtNotNil applies the NotNil predicate on the "createdAt" field.
+func CreatedAtNotNil() predicate.Inventory {
+	return predicate.Inventory(sql.FieldNotNull(FieldCreatedAt))
+}
+
 // UpdatedAtEQ applies the EQ predicate on the "updatedAt" field.
 func UpdatedAtEQ(v time.Time) predicate.Inventory {
 	return predicate.Inventory(sql.FieldEQ(FieldUpdatedAt, v))

@@ -24,7 +24,7 @@ type User struct {
 	// AvatarFilename holds the value of the "avatarFilename" field.
 	AvatarFilename string `json:"avatarFilename,omitempty"`
 	// CreatedAt holds the value of the "createdAt" field.
-	CreatedAt time.Time `json:"createdAt,omitempty"`
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
 	// UpdatedAt holds the value of the "updatedAt" field.
 	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -108,7 +108,8 @@ func (u *User) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field createdAt", values[i])
 			} else if value.Valid {
-				u.CreatedAt = value.Time
+				u.CreatedAt = new(time.Time)
+				*u.CreatedAt = value.Time
 			}
 		case user.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -174,8 +175,10 @@ func (u *User) String() string {
 	builder.WriteString("avatarFilename=")
 	builder.WriteString(u.AvatarFilename)
 	builder.WriteString(", ")
-	builder.WriteString("createdAt=")
-	builder.WriteString(u.CreatedAt.Format(time.ANSIC))
+	if v := u.CreatedAt; v != nil {
+		builder.WriteString("createdAt=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	if v := u.UpdatedAt; v != nil {
 		builder.WriteString("updatedAt=")

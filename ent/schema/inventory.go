@@ -23,7 +23,9 @@ func (Inventory) Fields() []ent.Field {
 		field.Int("spiceRating").
 			Default(3),
 		field.Time("createdAt").
-			Default(time.Now),
+			Default(time.Now).
+			Optional().
+			Nillable(),
 		field.Time("updatedAt").
 			Default(time.Now).
 			UpdateDefault(time.Now).

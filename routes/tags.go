@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"hotsauceshop/ent"
@@ -17,6 +18,7 @@ func Tags(r *gin.Engine, client *ent.Client) {
 				"status":  "ERROR",
 				"message": fmt.Sprintf("Error fetching tags: %v", err),
 			}
+			c.JSON(http.StatusInternalServerError, res)
 		} else {
 			res = gin.H{
 				"status": "OK",
@@ -24,8 +26,7 @@ func Tags(r *gin.Engine, client *ent.Client) {
 					"tags": tags,
 				},
 			}
+			c.JSON(http.StatusOK, res)
 		}
-
-		c.JSON(200, res)
 	})
 }
