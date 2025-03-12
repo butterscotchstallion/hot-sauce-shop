@@ -5,14 +5,14 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"hotsauceshop/ent"
-	"hotsauceshop/ent/tag"
+	"github.com/jackc/pgx/v5"
+	"hotsauceshop/lib"
 )
 
-func Tags(r *gin.Engine, client *ent.Client) {
+func Tags(r *gin.Engine, conn *pgx.Conn) {
 	r.GET("/api/v1/tags", func(c *gin.Context) {
 		var res gin.H
-		tags, err := client.Tag.Query().Order(ent.Asc(tag.FieldName)).All(c)
+		tags, err := lib.GetTagsOrderedByName(conn)
 		if err != nil {
 			res = gin.H{
 				"status":  "ERROR",

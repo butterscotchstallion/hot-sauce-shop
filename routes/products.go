@@ -3,18 +3,17 @@ package routes
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
-	"hotsauceshop/ent"
-	"hotsauceshop/ent/inventory"
 	"hotsauceshop/lib"
 	_ "hotsauceshop/lib"
 )
 
-func Products(r *gin.Engine, conn *pgx.Conn) {
+func Products(r *gin.Engine, conn *pgx.Conn, logger *slog.Logger) {
 	r.GET("/api/v1/products/:slug", func(c *gin.Context) {
 		slug := c.Param("slug")
 		var res gin.H
@@ -57,12 +56,7 @@ func Products(r *gin.Engine, conn *pgx.Conn) {
 		}
 
 		var res gin.H
-		inventoryResults, err := client.Inventory.
-			Query().
-			Offset(offsetInt).
-			Limit(perPageInt).
-			Order(ent.Asc(inventory.FieldName)).
-			All(c)
+		inventoryResults, err := lib.GetInventoryItemsOrderedByName(conn, logger, perPageInt, offsetInt)
 		if err != nil {
 			res = gin.H{
 				"status":  "ERROR",

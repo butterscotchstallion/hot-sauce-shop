@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"log/slog"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -30,9 +31,10 @@ func main() {
 	initDB()
 
 	r := gin.Default()
-	routes.Products(r, client)
-	routes.Tags(r, client)
-	routes.Cart(r, client)
+	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	routes.Products(r, conn, logger)
+	routes.Tags(r, conn)
+	routes.Cart(r, conn, logger)
 
 	err := r.Run("localhost:8080")
 	if err != nil {
