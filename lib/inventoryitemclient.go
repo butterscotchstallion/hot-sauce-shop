@@ -10,15 +10,15 @@ import (
 )
 
 type InventoryItem struct {
-	Id               int       `json:"id" db:"id"`
-	Name             string    `json:"name" db:"name"`
-	ShortDescription string    `json:"shortDescription" db:"short_description"`
-	Description      string    `json:"description" db:"description"`
-	Slug             string    `json:"slug" db:"slug"`
-	Price            float32   `json:"price" db:"price"`
-	SpiceRating      int8      `json:"spiceRating" db:"spice_rating"`
-	CreatedAt        time.Time `json:"createdAt" db:"created_at"`
-	UpdatedAt        time.Time `json:"updatedAt" db:"updated_at"`
+	Id               int        `json:"id" db:"id"`
+	Name             string     `json:"name" db:"name"`
+	ShortDescription string     `json:"shortDescription" db:"short_description"`
+	Description      string     `json:"description" db:"description"`
+	Slug             string     `json:"slug" db:"slug"`
+	Price            float32    `json:"price" db:"price"`
+	SpiceRating      int8       `json:"spiceRating" db:"spice_rating"`
+	CreatedAt        time.Time  `json:"createdAt" db:"created_at"`
+	UpdatedAt        *time.Time `json:"updatedAt" db:"updated_at"`
 }
 
 func GetInventoryItemsOrderedByName(c *pgx.Conn, logger *slog.Logger, limit int, offset int) ([]InventoryItem, error) {
