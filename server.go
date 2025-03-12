@@ -7,11 +7,11 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"hotsauceshop/routes"
 )
 
-var conn *pgx.Conn
+var dbpool *pgxpool.Pool
 
 func initDB() {
 	var err error
@@ -20,7 +20,7 @@ func initDB() {
 		log.Fatalf("ERROR: Could not get DB url!")
 	}
 
-	conn, err = pgx.Connect(context.Background(), dbUrl)
+	dbpool, err = pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v", err)
 	}
@@ -29,12 +29,13 @@ func initDB() {
 
 func main() {
 	initDB()
+	defer dbpool.Close()
 
 	r := gin.Default()
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
-	routes.Products(r, conn, logger)
-	routes.Tags(r, conn)
-	routes.Cart(r, conn, logger)
+	routes.Products(r, dbpool, logger)
+	routes.Tags(r, dbpool)
+	routes.Cart(r, dbpool, logger)
 
 	err := r.Run("localhost:8080")
 	if err != nil {

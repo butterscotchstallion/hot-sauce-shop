@@ -8,17 +8,17 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"hotsauceshop/lib"
 	_ "hotsauceshop/lib"
 )
 
-func Products(r *gin.Engine, conn *pgx.Conn, logger *slog.Logger) {
+func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	r.GET("/api/v1/products/:slug", func(c *gin.Context) {
 		slug := c.Param("slug")
 		var res gin.H
 		if len(slug) > 0 {
-			product, err := lib.GetInventoryItemBySlug(conn, slug)
+			product, err := lib.GetInventoryItemBySlug(dbPool, slug)
 			if err != nil {
 				res = gin.H{
 					"status":  "ERROR",
@@ -50,13 +50,13 @@ func Products(r *gin.Engine, conn *pgx.Conn, logger *slog.Logger) {
 			offsetInt = 0
 		}
 
-		total, totalErr := lib.GetTotalInventoryItems(conn)
+		total, totalErr := lib.GetTotalInventoryItems(dbPool)
 		if totalErr != nil {
 			log.Printf("Error getting total inventory items: %v", totalErr)
 		}
 
 		var res gin.H
-		inventoryResults, err := lib.GetInventoryItemsOrderedByName(conn, logger, perPageInt, offsetInt)
+		inventoryResults, err := lib.GetInventoryItemsOrderedByName(dbPool, logger, perPageInt, offsetInt)
 		if err != nil {
 			res = gin.H{
 				"status":  "ERROR",

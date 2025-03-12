@@ -5,14 +5,14 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"hotsauceshop/lib"
 )
 
-func Tags(r *gin.Engine, conn *pgx.Conn) {
+func Tags(r *gin.Engine, dbPool *pgxpool.Pool) {
 	r.GET("/api/v1/tags", func(c *gin.Context) {
 		var res gin.H
-		tags, err := lib.GetTagsOrderedByName(conn)
+		tags, err := lib.GetTagsOrderedByName(dbPool)
 		if err != nil {
 			res = gin.H{
 				"status":  "ERROR",

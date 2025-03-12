@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type User struct {
@@ -16,7 +16,7 @@ type User struct {
 	UpdatedAt      time.Time `json:"updatedAt"`
 }
 
-func GetUserById(c *pgx.Conn, id int) (User, error) {
+func GetUserById(dbPool *pgxpool.Pool, id int) (User, error) {
 	const query = `
 		SELECT 
 		id, 
@@ -27,7 +27,7 @@ func GetUserById(c *pgx.Conn, id int) (User, error) {
 		updated_at AS updatedAt
 		FROM users WHERE id = @id
 	`
-	row := c.QueryRow(context.Background(), query, id)
+	row := dbPool.QueryRow(context.Background(), query, id)
 	var user User
 	err := row.Scan(&user)
 	if err != nil {
@@ -36,14 +36,14 @@ func GetUserById(c *pgx.Conn, id int) (User, error) {
 	return user, nil
 }
 
-func UserExists(c *pgx.Conn, id int) (bool, error) {
+func UserExists(dbPool *pgxpool.Pool, id int) (bool, error) {
 	exists := false
 	const query = `
 		SELECT EXISTS (
 			SELECT 1 FROM users WHERE id = $1
         )
 	`
-	err := c.QueryRow(context.Background(), query, id).Scan(&exists)
+	err := dbPool.QueryRow(context.Background(), query, id).Scan(&exists)
 	if err != nil {
 		return false, err
 	}

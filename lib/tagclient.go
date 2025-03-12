@@ -5,27 +5,29 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Tag struct {
-	Id        int       `json:"id"`
-	Name      string    `json:"name"`
-	Desc      string    `json:"description"`
-	Slug      string    `json:"slug"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	Id        int        `json:"id" db:"id"`
+	Name      string     `json:"name" db:"name"`
+	Desc      string     `json:"description" db:"description"`
+	Slug      string     `json:"slug" db:"slug"`
+	CreatedAt *time.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt *time.Time `json:"updatedAt" db:"updated_at"`
 }
 
-func GetTagsOrderedByName(c *pgx.Conn) ([]Tag, error) {
+func GetTagsOrderedByName(dbPool *pgxpool.Pool) ([]Tag, error) {
 	const query = `
-		SELECT name, description, slug, created_at AS createdAt, updated_at AS updatedAt
+		SELECT id, name, description, slug, created_at, updated_at
 		FROM tags
 		ORDER BY name
 	`
-	rows, err := c.Query(context.Background(), query)
+	rows, err := dbPool.Query(context.Background(), query)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	tags, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[Tag])
 	if collectRowsErr != nil {
 		return nil, collectRowsErr

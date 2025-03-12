@@ -6,17 +6,17 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"hotsauceshop/lib"
 )
 
 const USER_ID = 1
 
-func Cart(r *gin.Engine, conn *pgx.Conn, logger *slog.Logger) {
+func Cart(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	r.GET("/api/v1/cart", func(c *gin.Context) {
 		var res gin.H
 
-		cartItems, err := lib.GetCartItems(conn)
+		cartItems, err := lib.GetCartItems(dbPool)
 		if err != nil {
 			res = gin.H{
 				"status":  "ERROR",
@@ -51,7 +51,7 @@ func Cart(r *gin.Engine, conn *pgx.Conn, logger *slog.Logger) {
 		}
 
 		// Create cart item
-		err := lib.UpdateCart(conn, newCart)
+		err := lib.UpdateCart(dbPool, newCart)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",
