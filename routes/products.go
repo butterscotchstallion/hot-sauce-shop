@@ -37,7 +37,7 @@ func Products(r *gin.Engine, conn *pgx.Conn, logger *slog.Logger) {
 	})
 
 	r.GET("/api/v1/products", func(c *gin.Context) {
-		offset := c.DefaultQuery("offset", "1")
+		offset := c.DefaultQuery("offset", "0")
 		perPage := c.DefaultQuery("perPage", "10")
 
 		perPageInt, perPageErr := strconv.Atoi(perPage)
@@ -47,7 +47,7 @@ func Products(r *gin.Engine, conn *pgx.Conn, logger *slog.Logger) {
 
 		offsetInt, offsetErr := strconv.Atoi(offset)
 		if offsetErr != nil {
-			offsetInt = 1
+			offsetInt = 0
 		}
 
 		total, totalErr := lib.GetTotalInventoryItems(conn)

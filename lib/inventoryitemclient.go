@@ -10,37 +10,30 @@ import (
 )
 
 type InventoryItem struct {
-	Id               int       `json:"id"`
-	Name             string    `json:"name"`
-	ShortDescription string    `json:"shortDescription"`
-	Description      string    `json:"description"`
-	Slug             string    `json:"slug"`
-	Price            float32   `json:"price"`
-	SpiceRating      int8      `json:"spiceRating"`
-	CreatedAt        time.Time `json:"createdAt"`
-	UpdatedAt        time.Time `json:"updatedAt"`
+	Id               int       `json:"id" db:"id"`
+	Name             string    `json:"name" db:"name"`
+	ShortDescription string    `json:"shortDescription" db:"short_description"`
+	Description      string    `json:"description" db:"description"`
+	Slug             string    `json:"slug" db:"slug"`
+	Price            float32   `json:"price" db:"price"`
+	SpiceRating      int8      `json:"spiceRating" db:"spice_rating"`
+	CreatedAt        time.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt        time.Time `json:"updatedAt" db:"updated_at"`
 }
 
 func GetInventoryItemsOrderedByName(c *pgx.Conn, logger *slog.Logger, limit int, offset int) ([]InventoryItem, error) {
-	offsetClause := ""
-	limitClause := ""
-
-	if limit > 0 {
-		limitClause = fmt.Sprintf("LIMIT %d\n", limit)
-	}
-
-	if offset > 0 {
-		offsetClause = fmt.Sprintf("OFFSET %d\n", offset)
-	}
+	limitClause := fmt.Sprintf("LIMIT %d\n", limit)
+	offsetClause := fmt.Sprintf("OFFSET %d\n", offset)
 
 	query := `
-		SELECT name, 
+		SELECT id,
+		       name, 
 		       description,
-		       short_description AS shortDescription,
+		       short_description,
 		       slug,
 		       price,
-		       created_at AS createdAt,
-		       updated_at AS updatedAt, 
+		       created_at,
+		       updated_at,
 		       spice_rating
 		FROM inventories
 		ORDER BY name
@@ -50,6 +43,8 @@ func GetInventoryItemsOrderedByName(c *pgx.Conn, logger *slog.Logger, limit int,
 		logger.Error(fmt.Sprintf("Error running inventory item query: %v", err))
 		return nil, err
 	}
+
+	logger.Info(fmt.Sprintf("Inventory rows: %v", rows))
 
 	inventoryItems, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[InventoryItem])
 	if collectRowsErr != nil {
