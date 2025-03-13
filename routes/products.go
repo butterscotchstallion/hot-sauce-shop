@@ -20,10 +20,12 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		if len(slug) > 0 {
 			product, err := lib.GetInventoryItemBySlug(dbPool, slug)
 			if err != nil {
+				logger.Error(fmt.Sprintf("Error fetching product: %v", err))
 				res = gin.H{
 					"status":  "ERROR",
 					"message": fmt.Sprintf("Error fetching product: %v", err),
 				}
+				c.JSON(http.StatusInternalServerError, res)
 			} else {
 				res = gin.H{
 					"status": "OK",
@@ -31,9 +33,9 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 						"product": product,
 					},
 				}
+				c.JSON(http.StatusOK, res)
 			}
 		}
-		c.JSON(http.StatusOK, res)
 	})
 
 	r.GET("/api/v1/products", func(c *gin.Context) {

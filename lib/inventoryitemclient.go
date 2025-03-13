@@ -13,8 +13,8 @@ import (
 type InventoryItem struct {
 	Id               int        `json:"id" db:"id"`
 	Name             string     `json:"name" db:"name"`
-	ShortDescription string     `json:"shortDescription" db:"short_description"`
 	Description      string     `json:"description" db:"description"`
+	ShortDescription string     `json:"shortDescription" db:"short_description"`
 	Slug             string     `json:"slug" db:"slug"`
 	Price            float32    `json:"price" db:"price"`
 	SpiceRating      int8       `json:"spiceRating" db:"spice_rating"`
@@ -56,23 +56,30 @@ func GetInventoryItemsOrderedByName(dbPool *pgxpool.Pool, logger *slog.Logger, l
 
 func GetInventoryItemBySlug(dbPool *pgxpool.Pool, slug string) (InventoryItem, error) {
 	const query = `
-		SELECT name, 
-		       description,
-		       short_description AS shortDescription,
-		       slug,
-		       price,
-		       created_at AS createdAt,
-		       updated_at AS updatedAt, 
-		       spice_rating
+		SELECT
+			id,
+		   	name, 
+		   	description,
+		   	short_description,
+		   	slug,
+		   	price,
+		   	created_at,
+		   	updated_at,
+		   	spice_rating
 		FROM inventories
-		WHERE slug = @slug
+		WHERE slug = $1
 	`
 	inventoryItem := InventoryItem{}
-	err := dbPool.QueryRow(context.Background(), query, slug).Scan(&inventoryItem)
+	rows, err := dbPool.Query(context.Background(), query, slug)
 	if err != nil {
 		return inventoryItem, err
 	}
-	return inventoryItem, nil
+	inventoryItems, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[InventoryItem])
+	if collectRowsErr != nil {
+		return inventoryItems[0], collectRowsErr
+	}
+
+	return inventoryItems[0], nil
 }
 
 func InventoryItemExists(dbPool *pgxpool.Pool, id int) (bool, error) {
@@ -87,27 +94,6 @@ func InventoryItemExists(dbPool *pgxpool.Pool, id int) (bool, error) {
 		return false, err
 	}
 	return true, nil
-}
-
-func GetInventoryItemById(dbPool *pgxpool.Pool, id int) (InventoryItem, error) {
-	const query = `
-		SELECT name, 
-		       description,
-		       short_description AS shortDescription,
-		       slug,
-		       price,
-		       created_at AS createdAt,
-		       updated_at AS updatedAt, 
-		       spice_rating
-		FROM inventories
-		WHERE id = @id
-	`
-	inventoryItem := InventoryItem{}
-	err := dbPool.QueryRow(context.Background(), query, id).Scan(&inventoryItem)
-	if err != nil {
-		return inventoryItem, err
-	}
-	return inventoryItem, nil
 }
 
 func GetTotalInventoryItems(dbPool *pgxpool.Pool) (int32, error) {
