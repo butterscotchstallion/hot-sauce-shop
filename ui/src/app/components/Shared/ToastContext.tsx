@@ -1,9 +1,9 @@
 import {Toast, ToastMessageOptions} from "primereact/toast";
-import {Context, createContext, RefObject, useContext, useRef} from "react";
+import {Context, createContext, ReactElement, RefObject, useContext, useRef} from "react";
 
 const ToastContext: Context<undefined> = createContext(undefined);
 
-export const ToastContextProvider = ({children}) => {
+export const ToastContextProvider = ({children}): ReactElement => {
     const toastRef: RefObject<null> = useRef(null);
 
     const showToast = (options: ToastMessageOptions) => {

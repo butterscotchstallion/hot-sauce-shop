@@ -29,5 +29,4 @@ export default function ProductFilterList(props: IProductFilterListProps): React
             </ul>
         </>
     )
-
 }

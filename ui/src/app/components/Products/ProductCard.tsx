@@ -5,15 +5,15 @@ import {NavLink} from "react-router";
 import ProductImage from "./ProductImage.tsx";
 import SpiceRating from "./SpiceRating.tsx";
 import {addCartItem} from "../Cart/CartService.ts";
-import {useToastContext} from "../Shared/ToastContext.tsx";
+import {Toast} from "primereact/toast";
+import {RefObject} from "react";
 
 interface IProductCardProps {
-    product: IProduct
+    product: IProduct,
+    toast: RefObject<Toast | null>
 }
 
 export default function ProductCard(props: IProductCardProps) {
-    const {showToast} = useToastContext();
-
     function addToCart(inventoryItemId: number) {
         addCartItem({
             inventoryItemId,
@@ -22,7 +22,7 @@ export default function ProductCard(props: IProductCardProps) {
             quantity: 1,
         }).subscribe({
             next: () => {
-                showToast({
+                props.toast.current?.show({
                     severity: 'success',
                     summary: 'Success',
                     detail: 'Item added to cart',
@@ -30,7 +30,7 @@ export default function ProductCard(props: IProductCardProps) {
                 });
             },
             error: (err) => {
-                showToast({
+                props.toast.current?.show({
                     severity: 'error',
                     summary: 'Error',
                     detail: 'Error adding item added to cart: ' + err,
