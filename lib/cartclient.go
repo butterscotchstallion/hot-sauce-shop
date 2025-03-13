@@ -3,6 +3,7 @@ package lib
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -10,18 +11,19 @@ import (
 )
 
 type CartItem struct {
-	Id            int32         `json:"id"`
-	InventoryItem InventoryItem `json:"inventoryItem"`
-	Quantity      int8          `json:"quantity"`
-	CreatedAt     time.Time     `json:"createdAt"`
-	UpdatedAt     time.Time     `json:"updatedAt"`
+	Id              int        `json:"id" db:"id"`
+	InventoryItemId int        `json:"inventoryItem" db:"inventory_item_id"`
+	UserId          int        `json:"userId" db:"user_id"`
+	Quantity        int        `json:"quantity" db:"quantity"`
+	CreatedAt       *time.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt       *time.Time `json:"updatedAt" db:"updated_at"`
 }
 
 type AddCartItemRequest struct {
-	InventoryItem    InventoryItem `json:"inventoryItem"`
-	Quantity         int8          `json:"quantity"`
-	UserId           int           `json:"userId"`
-	OverrideQuantity bool          `json:"overrideQuantity"`
+	InventoryItemId  int  `json:"inventoryItemId"`
+	Quantity         int  `json:"quantity"`
+	UserId           int  `json:"userId"`
+	OverrideQuantity bool `json:"overrideQuantity"`
 }
 
 func GetCartItems(dbPool *pgxpool.Pool) ([]CartItem, error) {
@@ -44,7 +46,7 @@ validateAddCartItemRequest
 3. Check if quantity is > 0
 */
 func validateAddCartItemRequest(dbPool *pgxpool.Pool, req AddCartItemRequest) (bool, error) {
-	itemExists, itemExistsErr := InventoryItemExists(dbPool, req.InventoryItem.Id)
+	itemExists, itemExistsErr := InventoryItemExists(dbPool, req.InventoryItemId)
 	if itemExistsErr != nil {
 		return false, itemExistsErr
 	}
@@ -54,8 +56,8 @@ func validateAddCartItemRequest(dbPool *pgxpool.Pool, req AddCartItemRequest) (b
 		return false, userExistsErr
 	}
 
-	if req.Quantity <= 1 || req.Quantity > 100 {
-		return false, errors.New("quantity must be between 1 and 100")
+	if req.Quantity < 1 || req.Quantity > 100 {
+		return false, errors.New(fmt.Sprintf("quantity must be between 1 and 100: %v", req.Quantity))
 	}
 
 	return itemExists && userExists, nil
@@ -75,12 +77,12 @@ func UpdateCart(dbPool *pgxpool.Pool, req AddCartItemRequest) error {
 		return validityErr
 	}
 
-	existingCartItem, err := GetCartItemByInventoryItemIdAndUserId(dbPool, req.InventoryItem.Id, req.UserId)
+	existingCartItem, err := GetCartItemByInventoryItemIdAndUserId(dbPool, req.InventoryItemId, req.UserId)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return err
 	}
 
-	quantity := int8(1)
+	quantity := 1
 	if existingCartItem != (CartItem{}) {
 		quantity = existingCartItem.Quantity + 1
 	}
@@ -89,7 +91,7 @@ func UpdateCart(dbPool *pgxpool.Pool, req AddCartItemRequest) error {
 		quantity = req.Quantity
 	}
 
-	_, addCartErr := addCartItem(dbPool, req.InventoryItem.Id, req.UserId, quantity)
+	_, addCartErr := addCartItem(dbPool, req.InventoryItemId, req.UserId, quantity)
 
 	if addCartErr != nil {
 		return addCartErr
@@ -98,7 +100,7 @@ func UpdateCart(dbPool *pgxpool.Pool, req AddCartItemRequest) error {
 	return nil
 }
 
-func addCartItem(dbPool *pgxpool.Pool, inventoryItemId int, userId int, quantity int8) (int32, error) {
+func addCartItem(dbPool *pgxpool.Pool, inventoryItemId int, userId int, quantity int) (int32, error) {
 	lastInsertId := int32(0)
 	const query = `
 		INSERT INTO cart_items (quantity, inventory_item_id, user_id) 
@@ -121,8 +123,13 @@ func GetCartItemByInventoryItemIdAndUserId(dbPool *pgxpool.Pool, inventoryItemId
 		AND user_id = $2
 	`
 	cartItem := CartItem{}
-	err := dbPool.QueryRow(context.Background(), query, inventoryItemId, userId).Scan(&cartItem)
+	rows, err := dbPool.Query(context.Background(), query, inventoryItemId, userId)
 	if err != nil {
+		return cartItem, err
+	}
+	defer rows.Close()
+	cartItem, collectRowsErr := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[CartItem])
+	if collectRowsErr != nil {
 		return cartItem, err
 	}
 	return cartItem, nil

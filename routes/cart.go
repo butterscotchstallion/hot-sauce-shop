@@ -43,6 +43,7 @@ func Cart(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	var newCart lib.AddCartItemRequest
 	r.POST("/api/v1/cart", func(c *gin.Context) {
 		if err := c.ShouldBindJSON(&newCart); err != nil {
+			logger.Error(err.Error())
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status":  "ERROR",
 				"message": err.Error(),
@@ -53,6 +54,7 @@ func Cart(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		// Create cart item
 		err := lib.UpdateCart(dbPool, newCart)
 		if err != nil {
+			logger.Error(err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",
 				"message": err.Error(),
