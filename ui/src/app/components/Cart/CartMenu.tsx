@@ -2,9 +2,9 @@ import * as React from "react";
 import {useEffect, useRef} from "react";
 import {Button} from "primereact/button";
 import {Menu} from "primereact/menu";
-import {getCartItems} from "./CartService.ts";
-import {ICart} from "./ICart.ts";
 import {Toast} from "primereact/toast";
+import {ICart} from "./ICart.ts";
+import {getCartItems} from "./CartService.ts";
 
 export default function CartMenu() {
     const toast = useRef<Toast>(null);

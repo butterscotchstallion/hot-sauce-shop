@@ -25,8 +25,6 @@ export default function ProductListPage(): ReactElement {
     const [products, setProducts] = useState<IProduct[]>([]);
     const [tags, setTags] = useState<IDisplayTag[]>([]);
     const [totalProducts, setTotalProducts] = useState<number>(0);
-    const [isErrorLoadingTags, setIsErrorLoadingTags] = useState<boolean>(false);
-    const [isErrorLoadingProducts, setIsErrorLoadingProducts] = useState<boolean>(false);
 
     function toggleFilter(checked: boolean) {
         console.log(checked);
@@ -52,7 +50,6 @@ export default function ProductListPage(): ReactElement {
                         life: 3000,
                     })
                 }
-                setIsErrorLoadingProducts(true);
             }
         });
         return () => {
@@ -78,7 +75,6 @@ export default function ProductListPage(): ReactElement {
                         life: 3000,
                     })
                 }
-                setIsErrorLoadingTags(true);
             }
         });
         return () => {

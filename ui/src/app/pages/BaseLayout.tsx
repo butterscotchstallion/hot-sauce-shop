@@ -7,6 +7,7 @@ type Props = {
 }
 
 export default function BaseLayout({children}: Props) {
+    
     return (
         <PrimeReactProvider>
             <NavigationMenu/>
