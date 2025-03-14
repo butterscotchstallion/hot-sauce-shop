@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -71,7 +72,7 @@ UpdateCart
  3. If override quantity, update quantity
  4. Add cart item
 */
-func UpdateCart(dbPool *pgxpool.Pool, req AddCartItemRequest) error {
+func UpdateCart(dbPool *pgxpool.Pool, logger *slog.Logger, req AddCartItemRequest) error {
 	isValid, validityErr := validateAddCartItemRequest(dbPool, req)
 	if validityErr != nil || !isValid {
 		return validityErr
@@ -82,6 +83,8 @@ func UpdateCart(dbPool *pgxpool.Pool, req AddCartItemRequest) error {
 		return err
 	}
 
+	logger.Info(fmt.Sprintf("existingCartItem: %v", existingCartItem))
+
 	quantity := 1
 	if existingCartItem != (CartItem{}) {
 		quantity = existingCartItem.Quantity + 1
@@ -91,8 +94,9 @@ func UpdateCart(dbPool *pgxpool.Pool, req AddCartItemRequest) error {
 		quantity = req.Quantity
 	}
 
-	_, addCartErr := addCartItem(dbPool, req.InventoryItemId, req.UserId, quantity)
+	logger.Info(fmt.Sprintf("Adding cart item %v with quantity: %v", req.InventoryItemId, quantity))
 
+	_, addCartErr := addCartItem(dbPool, req.InventoryItemId, req.UserId, quantity)
 	if addCartErr != nil {
 		return addCartErr
 	}
@@ -100,14 +104,16 @@ func UpdateCart(dbPool *pgxpool.Pool, req AddCartItemRequest) error {
 	return nil
 }
 
-func addCartItem(dbPool *pgxpool.Pool, inventoryItemId int, userId int, quantity int) (int32, error) {
-	lastInsertId := int32(0)
+func addCartItem(dbPool *pgxpool.Pool, inventoryItemId int, userId int, quantity int) (int, error) {
+	lastInsertId := 0
 	const query = `
-		INSERT INTO cart_items (quantity, inventory_item_id, user_id) 
-		VALUES ($1, $2, $3)
+		INSERT INTO cart_items (quantity, inventory_item_id, user_id, created_at) 
+		VALUES ($1, $2, $3, NOW())
+		ON CONFLICT(inventory_item_id, user_id)
+		    DO UPDATE SET quantity = cart_items.quantity + 1, updated_at = NOW()
 		RETURNING id
 	`
-	insertErr := dbPool.QueryRow(context.Background(), query, quantity, inventoryItemId, userId).Scan(lastInsertId)
+	insertErr := dbPool.QueryRow(context.Background(), query, quantity, inventoryItemId, userId).Scan(&lastInsertId)
 	if insertErr != nil {
 		return 0, insertErr
 	}

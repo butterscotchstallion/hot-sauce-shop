@@ -52,7 +52,7 @@ func Cart(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		}
 
 		// Create cart item
-		err := lib.UpdateCart(dbPool, newCart)
+		err := lib.UpdateCart(dbPool, logger, newCart)
 		if err != nil {
 			logger.Error(err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{

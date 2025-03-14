@@ -6,7 +6,7 @@ import ProductImage from "./ProductImage.tsx";
 import SpiceRating from "./SpiceRating.tsx";
 import {addCartItem} from "../Cart/CartService.ts";
 import {Toast} from "primereact/toast";
-import {RefObject} from "react";
+import {RefObject, useState} from "react";
 
 interface IProductCardProps {
     product: IProduct,
@@ -14,9 +14,12 @@ interface IProductCardProps {
 }
 
 export default function ProductCard(props: IProductCardProps) {
-    function addToCart(inventoryItemId: number) {
+    const [isAddingToCart, setIsAddingToCart] = useState<boolean>(false);
+
+    function addToCart(product: IProduct) {
+        setIsAddingToCart(true);
         addCartItem({
-            inventoryItemId,
+            inventoryItemId: product.id,
             userId: 1,
             overrideQuantity: false,
             quantity: 1,
@@ -25,17 +28,19 @@ export default function ProductCard(props: IProductCardProps) {
                 props.toast.current?.show({
                     severity: 'success',
                     summary: 'Success',
-                    detail: 'Item added to cart',
+                    detail: product.name + ' added to cart',
                     life: 3000,
                 });
+                setIsAddingToCart(false);
             },
             error: (err) => {
                 props.toast.current?.show({
                     severity: 'error',
                     summary: 'Error',
-                    detail: 'Error adding item added to cart: ' + err,
+                    detail: 'Error adding ' + product.name + ' to cart: ' + err,
                     life: 3000,
                 });
+                setIsAddingToCart(false);
             }
         })
     }
@@ -63,7 +68,8 @@ export default function ProductCard(props: IProductCardProps) {
                     <Button
                         label="Add"
                         icon="pi pi-shopping-cart"
-                        onClick={() => addToCart(props.product.id)}/>
+                        disabled={isAddingToCart}
+                        onClick={() => addToCart(props.product)}/>
                 </div>
             </Card>
         </div>

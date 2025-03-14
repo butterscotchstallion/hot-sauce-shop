@@ -17,7 +17,7 @@ type InventoryItem struct {
 	ShortDescription string     `json:"shortDescription" db:"short_description"`
 	Slug             string     `json:"slug" db:"slug"`
 	Price            float32    `json:"price" db:"price"`
-	SpiceRating      int8       `json:"spiceRating" db:"spice_rating"`
+	SpiceRating      int        `json:"spiceRating" db:"spice_rating"`
 	CreatedAt        time.Time  `json:"createdAt" db:"created_at"`
 	UpdatedAt        *time.Time `json:"updatedAt" db:"updated_at"`
 }
