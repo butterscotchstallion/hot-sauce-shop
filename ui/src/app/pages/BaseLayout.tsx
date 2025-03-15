@@ -18,7 +18,6 @@ export default function BaseLayout({children}: Props) {
             next: (cartItems: ICart[]) => {
                 dispatch(setCartItems(cartItems));
                 dispatch(setIdQuantityMap(cartItems));
-                console.log("Set cart items: ", cartItems);
             },
             error: () => {
                 console.error('Error loading cart items');

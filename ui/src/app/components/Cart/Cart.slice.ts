@@ -25,7 +25,6 @@ export const cartSlice: Slice = createSlice({
         },
         setIdQuantityMap: (state, action) => {
             state.idQuantityMap = getIdQuantityMap(action.payload);
-            console.log(state.idQuantityMap);
         },
         cartItemAdded: (state, action) => {
             if (typeof state.idQuantityMap[action.payload.id] === "undefined") {
