@@ -4,9 +4,13 @@ import {Button} from "primereact/button";
 import {NavLink} from "react-router";
 import ProductImage from "./ProductImage.tsx";
 import SpiceRating from "./SpiceRating.tsx";
-import {addCartItem} from "../Cart/CartService.ts";
 import {Toast} from "primereact/toast";
-import {RefObject, useState} from "react";
+import {RefObject, useEffect, useMemo, useState} from "react";
+import {ICartMap} from "../Cart/ICartMap.ts";
+import {RootState} from "../../store.ts";
+import {useDispatch, useSelector} from "react-redux";
+import {addCartItem} from "../Cart/CartService.ts";
+import {cartItemAdded} from "../Cart/Cart.slice.ts";
 
 interface IProductCardProps {
     product: IProduct,
@@ -14,7 +18,24 @@ interface IProductCardProps {
 }
 
 export default function ProductCard(props: IProductCardProps) {
+    const cartMap: ICartMap = useSelector((state: RootState) => {
+        return state.cart.nameQuantityMap;
+    });
+    const dispatch = useDispatch();
     const [isAddingToCart, setIsAddingToCart] = useState<boolean>(false);
+    const [productQuantityMap, setProductQuantityMap] = useState<Map<string, number>>(
+        useMemo(() => new Map<string, number>(), [])
+    );
+
+    useEffect(() => {
+        let qty: number = 0;
+        if (cartMap && typeof cartMap[props.product.name] === "number") {
+            qty = cartMap[props.product.name];
+        }
+        const productQuantityMapCopy = productQuantityMap;
+        productQuantityMapCopy.set(props.product.name, qty);
+        setProductQuantityMap(productQuantityMapCopy);
+    }, [cartMap, productQuantityMap, props.product.name]);
 
     function addToCart(product: IProduct) {
         setIsAddingToCart(true);
@@ -32,8 +53,9 @@ export default function ProductCard(props: IProductCardProps) {
                     life: 3000,
                 });
                 setIsAddingToCart(false);
+                dispatch(cartItemAdded(product));
             },
-            error: (err) => {
+            error: (err: string) => {
                 props.toast.current?.show({
                     severity: 'error',
                     summary: 'Error',
@@ -68,6 +90,7 @@ export default function ProductCard(props: IProductCardProps) {
                     <Button
                         label="Add"
                         icon="pi pi-shopping-cart"
+                        badge={props.product.name in cartMap ? cartMap[props.product.name].toString() : '0'}
                         disabled={isAddingToCart}
                         onClick={() => addToCart(props.product)}/>
                 </div>
