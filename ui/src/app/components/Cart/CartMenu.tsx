@@ -3,13 +3,15 @@ import {useEffect, useRef} from "react";
 import {Button} from "primereact/button";
 import {Menu} from "primereact/menu";
 import {Toast} from "primereact/toast";
+import {RootState} from "../../store.ts";
+import {useSelector} from "react-redux";
 import {ICart} from "./ICart.ts";
-import {getCartItems} from "./CartService.ts";
 
 export default function CartMenu() {
+    const cart = useSelector((state: RootState) => state.cart);
     const toast = useRef<Toast>(null);
     const cartMenu = React.useRef<Menu>(null);
-    const [numCartItems, setNumCartItems] = React.useState<number>(0);
+    const [cartItemsQuantity, setCartItemsQuantity] = React.useState<number>(0);
     const items = [
         {
             label: 'Cart',
@@ -27,19 +29,15 @@ export default function CartMenu() {
     ];
 
     useEffect(() => {
-        const cartItems$ = getCartItems().subscribe({
-            next: (cartItems: ICart[]) => {
-                setNumCartItems(cartItems.length);
-            },
-            error: () => {
-                toast.current?.show({severity: 'error', summary: 'Error', detail: 'Error loading cart items'});
-            }
-        })
+        calculateCartItemsTotal(cart.items);
+    }, [cart]);
 
-        return () => {
-            cartItems$.unsubscribe();
-        }
-    }, []);
+    function calculateCartItemsTotal(cartItems: ICart[]) {
+        setCartItemsQuantity(cartItems.reduce(
+            (sum, item) => sum + item.quantity,
+            0,
+        ));
+    }
 
     return (
         <>
@@ -48,7 +46,7 @@ export default function CartMenu() {
                 label="Cart"
                 icon="pi pi-shopping-cart"
                 className="mr-2"
-                badge={numCartItems.toString()}
+                badge={cartItemsQuantity.toString()}
                 onClick={(event) => {
                     if (cartMenu?.current) {
                         return cartMenu.current.toggle(event);
