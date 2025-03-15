@@ -23,8 +23,11 @@ type InventoryItem struct {
 }
 
 func GetInventoryItemsOrderedByName(dbPool *pgxpool.Pool, logger *slog.Logger, limit int, offset int) ([]InventoryItem, error) {
-	limitClause := fmt.Sprintf("LIMIT %d\n", limit)
 	offsetClause := fmt.Sprintf("OFFSET %d\n", offset)
+	limitClause := ""
+	if limit > 0 {
+		limitClause = fmt.Sprintf("LIMIT %d\n", limit)
+	}
 
 	query := `
 		SELECT id,

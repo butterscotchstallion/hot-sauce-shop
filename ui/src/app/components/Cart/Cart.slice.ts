@@ -1,34 +1,39 @@
 import {createSlice, Slice} from "@reduxjs/toolkit";
 import {ICart} from "./ICart.ts";
+import {getIdQuantityMap} from "./CartService.ts";
 
-interface INameQuantityMap {
-    [key: string]: number;
+interface IIDQuantityMap {
+    [key: number]: number;
 }
 
 interface IInitialCartState {
     items: ICart[];
-    nameQuantityMap: INameQuantityMap;
+    idQuantityMap: IIDQuantityMap;
 }
 
 const initialState: IInitialCartState = {
     items: [],
-    nameQuantityMap: {}
+    idQuantityMap: {}
 }
 
 export const cartSlice: Slice = createSlice({
     name: 'cart',
     initialState,
     reducers: {
-        setItems: (state, action) => {
+        setCartItems: (state, action) => {
             state.items = action.payload;
         },
+        setIdQuantityMap: (state, action) => {
+            state.idQuantityMap = getIdQuantityMap(action.payload);
+            console.log(state.idQuantityMap);
+        },
         cartItemAdded: (state, action) => {
-            if (typeof state.nameQuantityMap[action.payload.name] === "undefined") {
-                state.nameQuantityMap[action.payload.name] = 1;
+            if (typeof state.idQuantityMap[action.payload.id] === "undefined") {
+                state.idQuantityMap[action.payload.id] = 1;
             } else {
-                state.nameQuantityMap[action.payload.name]++;
+                state.idQuantityMap[action.payload.id]++;
             }
-            if (typeof state.nameQuantityMap[action.payload.name] === "undefined") {
+            if (typeof state.idQuantityMap[action.payload.id] === "undefined") {
                 state.items.push(action.payload);
             }
         },
@@ -36,7 +41,7 @@ export const cartSlice: Slice = createSlice({
             for (let j = 0; j < state.items.length; j++) {
                 if (state.items[j].id === action.payload.id) {
                     delete state.items[j];
-                    state.nameQuantityMap[action.payload.name] = 0;
+                    state.idQuantityMap[action.payload.id] = 0;
                     break;
                 }
             }
@@ -44,6 +49,5 @@ export const cartSlice: Slice = createSlice({
     }
 });
 
-export const {cartItemAdded, cartItemRemoved} = cartSlice.actions;
-
+export const {cartItemAdded, cartItemRemoved, setIdQuantityMap, setCartItems} = cartSlice.actions;
 export default cartSlice.reducer;

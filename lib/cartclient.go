@@ -13,7 +13,7 @@ import (
 
 type CartItem struct {
 	Id              int        `json:"id" db:"id"`
-	InventoryItemId int        `json:"inventoryItem" db:"inventory_item_id"`
+	InventoryItemId int        `json:"inventoryItemId" db:"inventory_item_id"`
 	UserId          int        `json:"userId" db:"user_id"`
 	Quantity        int        `json:"quantity" db:"quantity"`
 	CreatedAt       *time.Time `json:"createdAt" db:"created_at"`

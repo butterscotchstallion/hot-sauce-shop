@@ -17,6 +17,15 @@ export function getCartItems(): Subject<ICart[]> {
     return cartItems$;
 }
 
+// Cannot serialize Map type :(
+export function getIdQuantityMap(cartItems: ICart[]) {
+    const idQuantityMap: any = {};
+    cartItems.forEach((item: ICart) => {
+        idQuantityMap[item.inventoryItemId] = item.quantity;
+    })
+    return idQuantityMap;
+}
+
 export function addCartItem(addCartItemRequest: IAddCartItemRequest): Subject<boolean> {
     const addCartItem$ = new Subject<boolean>();
     fetch(CART_URL, {

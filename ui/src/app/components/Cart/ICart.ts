@@ -1,9 +1,9 @@
-import {IProduct} from "../Products/IProduct.ts";
 import {IUser} from "../User/IUser.ts";
 
 export interface ICart {
     id: number;
-    inventory: IProduct;
+    inventoryItemId: number;
+    quantity: number;
     user: IUser;
     createdAt: Date;
     updatedAt: Date;
