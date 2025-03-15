@@ -14,6 +14,7 @@ import (
 type CartItem struct {
 	Id              int        `json:"id" db:"id"`
 	InventoryItemId int        `json:"inventoryItemId" db:"inventory_item_id"`
+	Price           float32    `json:"price" db:"price"`
 	UserId          int        `json:"userId" db:"user_id"`
 	Quantity        int        `json:"quantity" db:"quantity"`
 	CreatedAt       *time.Time `json:"createdAt" db:"created_at"`
@@ -28,7 +29,12 @@ type AddCartItemRequest struct {
 }
 
 func GetCartItems(dbPool *pgxpool.Pool) ([]CartItem, error) {
-	const query = `SELECT * FROM cart_items`
+	const query = `
+		SELECT ci.*, i.price 
+		FROM cart_items ci
+		JOIN inventories i ON ci.inventory_item_id = i.id
+		ORDER BY ci.updated_at DESC
+	`
 	rows, err := dbPool.Query(context.Background(), query)
 	if err != nil {
 		return nil, err
@@ -78,7 +84,7 @@ func UpdateCart(dbPool *pgxpool.Pool, logger *slog.Logger, req AddCartItemReques
 		return validityErr
 	}
 
-	existingCartItem, err := GetCartItemByInventoryItemIdAndUserId(dbPool, req.InventoryItemId, req.UserId)
+	existingCartItem, err := GetCartItemsByInventoryItemIdAndUserId(dbPool, req.InventoryItemId, req.UserId)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return err
 	}
@@ -120,10 +126,10 @@ func addCartItem(dbPool *pgxpool.Pool, inventoryItemId int, userId int, quantity
 	return lastInsertId, nil
 }
 
-func GetCartItemByInventoryItemIdAndUserId(dbPool *pgxpool.Pool, inventoryItemId int, userId int) (CartItem, error) {
+func GetCartItemsByInventoryItemIdAndUserId(dbPool *pgxpool.Pool, inventoryItemId int, userId int) (CartItem, error) {
 	const query = `
-		SELECT * 
-		FROM cart_items
+		SELECT ci.*
+		FROM cart_items ci
 		WHERE 1=1
 		AND inventory_item_id = $1
 		AND user_id = $2

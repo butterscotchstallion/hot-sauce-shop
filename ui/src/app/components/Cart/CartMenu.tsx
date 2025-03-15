@@ -1,17 +1,20 @@
 import * as React from "react";
-import {useEffect, useRef} from "react";
+import {RefObject, useEffect, useRef} from "react";
 import {Button} from "primereact/button";
 import {Menu} from "primereact/menu";
 import {Toast} from "primereact/toast";
 import {RootState} from "../../store.ts";
 import {useSelector} from "react-redux";
 import {ICart} from "./ICart.ts";
+import {IIDQuantityMap, IInitialCartState} from "./Cart.slice.ts";
 
 export default function CartMenu() {
-    const cart = useSelector((state: RootState) => state.cart);
-    const toast = useRef<Toast>(null);
-    const cartMenu = React.useRef<Menu>(null);
+    const cartState: IInitialCartState = useSelector((state: RootState) => state.cart);
+    const idQuantityMap: IIDQuantityMap = useSelector((state: RootState) => state.cart.idQuantityMap);
+    const toast: RefObject<Toast | null> = useRef<Toast>(null);
+    const cartMenu: RefObject<Menu | null> = React.useRef<Menu>(null);
     const [cartItemsQuantity, setCartItemsQuantity] = React.useState<number>(0);
+    const [cartSubtotal, setCartSubtotal] = React.useState<number>(0);
     const items = [
         {
             label: 'Cart',
@@ -29,12 +32,22 @@ export default function CartMenu() {
     ];
 
     useEffect(() => {
-        calculateCartItemsTotal(cart.items);
-    }, [cart]);
+        const newTotal: number = calculateCartItemsTotal(cartState.items);
+        setCartItemsQuantity(newTotal);
+        console.log("Total cart items set to: " + newTotal);
+    }, [cartState, idQuantityMap, cartItemsQuantity]);
 
-    function calculateCartItemsTotal(cartItems: ICart[]) {
-        setCartItemsQuantity(cartItems.reduce(
-            (sum, item) => sum + item.quantity,
+    function calculateCartItemsTotal(cartItems: ICart[]): number {
+        return cartItems.reduce(
+            (sum: number, item: ICart) => sum + item.quantity,
+            0,
+        );
+    }
+
+    function recalculateSubtotal(cartItems: ICart[]) {
+        setCartSubtotal(cartItems.reduce(
+            (acc: number, item: ICart) =>
+                acc + item.price * item.quantity,
             0,
         ));
     }
@@ -54,7 +67,6 @@ export default function CartMenu() {
                 }}
                 aria-controls="popup_menu_right"
                 aria-haspopup/>
-
             <Toast ref={toast}/>
         </>
     )
