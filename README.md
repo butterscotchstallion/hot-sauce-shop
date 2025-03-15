@@ -4,4 +4,4 @@
 ## Tech Stack
 - Go
 - Postgres
-- React + PrimeReact
+- React, PrimeReact, Redux
