@@ -22,7 +22,9 @@ type InventoryItem struct {
 	UpdatedAt        *time.Time `json:"updatedAt" db:"updated_at"`
 }
 
-func GetInventoryItemsOrderedByName(dbPool *pgxpool.Pool, logger *slog.Logger, limit int, offset int) ([]InventoryItem, error) {
+func GetInventoryItemsOrderedBySortKey(dbPool *pgxpool.Pool, logger *slog.Logger, limit int, offset int, sort string) ([]InventoryItem, error) {
+	// Sort is validated at endpoint
+	sortClause := fmt.Sprintf("ORDER BY %s\n", sort)
 	offsetClause := fmt.Sprintf("OFFSET %d\n", offset)
 	limitClause := ""
 	if limit > 0 {
@@ -40,8 +42,7 @@ func GetInventoryItemsOrderedByName(dbPool *pgxpool.Pool, logger *slog.Logger, l
 		       updated_at,
 		       spice_rating
 		FROM inventories
-		ORDER BY name
-	` + limitClause + offsetClause
+	` + sortClause + limitClause + offsetClause
 	rows, err := dbPool.Query(context.Background(), query)
 	defer rows.Close()
 	if err != nil {

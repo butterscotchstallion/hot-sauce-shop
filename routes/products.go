@@ -5,6 +5,7 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
+	"slices"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -41,6 +42,11 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	r.GET("/api/v1/products", func(c *gin.Context) {
 		offset := c.DefaultQuery("offset", "0")
 		perPage := c.DefaultQuery("perPage", "10")
+		sort := c.DefaultQuery("sort", "name")
+		sorts := []string{"name", "price", "spice_rating"}
+		if !slices.Contains(sorts, sort) {
+			sort = "name"
+		}
 
 		perPageInt, perPageErr := strconv.Atoi(perPage)
 		if perPageErr != nil {
@@ -58,7 +64,7 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		}
 
 		var res gin.H
-		inventoryResults, err := lib.GetInventoryItemsOrderedByName(dbPool, logger, perPageInt, offsetInt)
+		inventoryResults, err := lib.GetInventoryItemsOrderedBySortKey(dbPool, logger, perPageInt, offsetInt, sort)
 		if err != nil {
 			res = gin.H{
 				"status":  "ERROR",

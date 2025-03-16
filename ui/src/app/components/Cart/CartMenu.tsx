@@ -101,7 +101,7 @@ export default function CartMenu() {
         deleteCartItemInventoryId = cartItem.inventoryItemId;
         confirmDialog({
             header: "Remove Cart Item",
-            message: 'Are you sure you want to remove this cart item?',
+            message: 'Are you sure you want to remove ' + cartItem.name + ' (' + cartItem.quantity + ') from your cart?',
             icon: 'pi pi-exclamation-triangle',
             defaultFocus: 'accept',
             accept: onRemoveCartConfirmed,
