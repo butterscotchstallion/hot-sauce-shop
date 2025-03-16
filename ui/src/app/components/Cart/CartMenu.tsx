@@ -41,6 +41,13 @@ export default function CartMenu() {
         );
     }
 
+    const removeCartItemTpl = (cartItem: ICart) => {
+        return <Button
+            severity={"danger"}
+            icon="pi pi-trash"
+            className="p-button-rounded p-button-text"/>
+    };
+
     return (
         <>
             <Button
@@ -67,14 +74,13 @@ export default function CartMenu() {
                             header="Name"></Column>
                         <Column className="w-[20%]" field="price" header="Price"></Column>
                         <Column className="w-[5%]" field="quantity" header="Quantity"></Column>
-                        <Column className="w-[5%]" header="Remove">
-                            <Button severity={"danger"} icon="pi pi-trash" className="p-button-rounded p-button-text"/>
-                        </Column>
+                        <Column className="w-[5%]" header="Remove" body={removeCartItemTpl}/>
                     </DataTable>
                 </section>
 
-                <section className="mt-4">
+                <section className="mt-4 mb-4 flex justify-between">
                     <h3 className="text-xl font-bold">Total: ${cartSubtotal.toFixed(2)}</h3>
+                    <Button label="Checkout" icon="pi pi-shopping-cart" className="p-button-rounded"/>
                 </section>
             </Sidebar>
 
