@@ -3,14 +3,18 @@ import {RefObject, useEffect, useRef} from "react";
 import {Button} from "primereact/button";
 import {Toast} from "primereact/toast";
 import {RootState} from "../../store.ts";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {ICart} from "./ICart.ts";
-import {IIDQuantityMap, IInitialCartState} from "./Cart.slice.ts";
+import {IIDQuantityMap, IInitialCartState, setCartItemQuantity} from "./Cart.slice.ts";
 import {Sidebar} from "primereact/sidebar";
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
+import {confirmPopup, ConfirmPopup} from "primereact/confirmpopup";
+import {Dropdown} from "primereact/dropdown";
+import {addCartItem} from "./CartService.ts";
 
 export default function CartMenu() {
+    const dispatch = useDispatch();
     const [sidebarVisible, setSidebarVisible] = React.useState<boolean>(false);
     const cartState: IInitialCartState = useSelector((state: RootState) => state.cart);
     const idQuantityMap: IIDQuantityMap = useSelector((state: RootState) => state.cart.idQuantityMap);
@@ -43,10 +47,78 @@ export default function CartMenu() {
 
     const removeCartItemTpl = (cartItem: ICart) => {
         return <Button
+            onClick={() => openRemoveCartConfirmation(cartItem)}
+            title="Remove cart item"
             severity={"danger"}
             icon="pi pi-trash"
             className="p-button-rounded p-button-text"/>
     };
+
+    const onRemoveCartConfirmed = () => {
+
+    }
+
+    const onRemoveCartRejected = () => {
+
+    }
+
+    const quantityOptions = Array.from(
+        {length: 50},
+        (_, i) => ({
+            label: String(i + 1),
+            value: i + 1,
+        }),
+    );
+
+    const openRemoveCartConfirmation = (event) => {
+        confirmPopup({
+            target: event.currentTarget,
+            message: 'Are you sure you want to remove this cart item?',
+            icon: 'pi pi-exclamation-triangle',
+            defaultFocus: 'accept',
+            accept: onRemoveCartConfirmed,
+            reject: onRemoveCartRejected
+        });
+    };
+
+    function setCartItemQuantityFromMenu(cartItem: ICart, quantity: number) {
+        console.log("Setting quantity for cart item " + cartItem.id + " to " + quantity);
+        addCartItem({
+            inventoryItemId: cartItem.id,
+            userId: 1,
+            overrideQuantity: true,
+            quantity: quantity,
+        }).subscribe({
+            next: () => {
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Success',
+                    detail: 'Cart item quantity updated',
+                    life: 3000,
+                });
+                dispatch(setCartItemQuantity({
+                    id: cartItem.id,
+                    quantity
+                }));
+            },
+            error: (err: string) => {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'Error updating cart item quantity: ' + err,
+                })
+            }
+        });
+    }
+
+    const quantityColTpl = (cartItem: ICart) => {
+        return <Dropdown value={cartItem.quantity}
+                         onChange={(e) => setCartItemQuantityFromMenu(cartItem, e.value)}
+                         options={quantityOptions}
+                         optionLabel="label"
+                         optionValue="value"
+                         placeholder="Select a City" className="w-full md:w-14rem"/>
+    }
 
     return (
         <>
@@ -66,14 +138,14 @@ export default function CartMenu() {
                 onHide={() => setSidebarVisible(false)}
             >
                 <h2 className="text-2xl font-bold">Cart</h2>
-                <section className="mt-4">
+                <section className="mt-4 cart-table-area">
                     <DataTable className="w-full" value={cartState.items}>
                         <Column
                             className="w-[40%] max-w-[80px] whitespace-nowrap overflow-hidden text-ellipsis"
                             field="name"
                             header="Name"></Column>
                         <Column className="w-[20%]" field="price" header="Price"></Column>
-                        <Column className="w-[5%]" field="quantity" header="Quantity"></Column>
+                        <Column className="w-[5%]" body={quantityColTpl} header="Quantity"></Column>
                         <Column className="w-[5%]" header="Remove" body={removeCartItemTpl}/>
                     </DataTable>
                 </section>
@@ -85,6 +157,7 @@ export default function CartMenu() {
             </Sidebar>
 
             <Toast ref={toast}/>
+            <ConfirmPopup/>
         </>
     )
 }
