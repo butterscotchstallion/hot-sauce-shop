@@ -98,7 +98,7 @@ func UpdateCart(dbPool *pgxpool.Pool, logger *slog.Logger, req AddCartItemReques
 	// When overriding the quantity, we don't want to follow the usual flow
 	if req.OverrideQuantity {
 		logger.Info(fmt.Sprintf("Updating cart item %v with quantity: %v", req.InventoryItemId, quantity))
-		updateErr := updateCartItemQuantity(dbPool, existingCartItem.Id, quantity)
+		updateErr := updateCartItemQuantity(dbPool, req.InventoryItemId, quantity, req.UserId)
 		if updateErr != nil {
 			return updateErr
 		}
@@ -113,13 +113,14 @@ func UpdateCart(dbPool *pgxpool.Pool, logger *slog.Logger, req AddCartItemReques
 	return nil
 }
 
-func updateCartItemQuantity(dbPool *pgxpool.Pool, cartItemId int, quantity int) error {
+func updateCartItemQuantity(dbPool *pgxpool.Pool, inventoryItemId int, userId int, quantity int) error {
 	const query = `
 		UPDATE cart_items
 		SET quantity = $1
-		WHERE id = $2
+		WHERE inventory_item_id = $2
+		AND user_id = $3
 	`
-	_, err := dbPool.Exec(context.Background(), query, quantity, cartItemId)
+	_, err := dbPool.Exec(context.Background(), query, quantity, inventoryItemId, userId)
 	if err != nil {
 		return err
 	}

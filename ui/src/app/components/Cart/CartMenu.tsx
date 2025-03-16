@@ -84,7 +84,7 @@ export default function CartMenu() {
     function setCartItemQuantityFromMenu(cartItem: ICart, quantity: number) {
         console.log("Setting quantity for cart item " + cartItem.id + " to " + quantity);
         addCartItem({
-            inventoryItemId: cartItem.id,
+            inventoryItemId: cartItem.inventoryItemId,
             userId: 1,
             overrideQuantity: true,
             quantity: quantity,
