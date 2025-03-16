@@ -36,7 +36,7 @@ export const cartSlice: Slice = createSlice({
             }
             // Update map
             for (const inventoryItemId in state.idQuantityMap) {
-                if (inventoryItemId === action.payload.id) {
+                if (Number(inventoryItemId) === action.payload.id) {
                     state.idQuantityMap[inventoryItemId] = action.payload.quantity;
                     break;
                 }
