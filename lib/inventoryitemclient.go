@@ -22,13 +22,21 @@ type InventoryItem struct {
 	UpdatedAt        *time.Time `json:"updatedAt" db:"updated_at"`
 }
 
-func GetInventoryItemsOrderedBySortKey(dbPool *pgxpool.Pool, logger *slog.Logger, limit int, offset int, sort string) ([]InventoryItem, error) {
+type ProductAutocompleteSuggestion struct {
+	Name string `json:"name"`
+}
+
+func GetInventoryItemsOrderedBySortKey(dbPool *pgxpool.Pool, logger *slog.Logger, limit int, offset int, sort string, searchQuery string) ([]InventoryItem, error) {
 	// Sort is validated at endpoint
 	sortClause := fmt.Sprintf("ORDER BY %s\n", sort)
 	offsetClause := fmt.Sprintf("OFFSET %d\n", offset)
 	limitClause := ""
 	if limit > 0 {
 		limitClause = fmt.Sprintf("LIMIT %d\n", limit)
+	}
+	searchClause := ""
+	if searchQuery != "" {
+		searchClause = "WHERE name ILIKE '%$1%'\n"
 	}
 
 	query := `
@@ -42,8 +50,14 @@ func GetInventoryItemsOrderedBySortKey(dbPool *pgxpool.Pool, logger *slog.Logger
 		       updated_at,
 		       spice_rating
 		FROM inventories
-	` + sortClause + limitClause + offsetClause
-	rows, err := dbPool.Query(context.Background(), query)
+	` + searchClause + sortClause + limitClause + offsetClause
+	var rows pgx.Rows
+	var err error
+	if searchClause != "" {
+		rows, err = dbPool.Query(context.Background(), query, searchQuery)
+	} else {
+		rows, err = dbPool.Query(context.Background(), query)
+	}
 	defer rows.Close()
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error running inventory item query: %v", err))
@@ -56,6 +70,30 @@ func GetInventoryItemsOrderedBySortKey(dbPool *pgxpool.Pool, logger *slog.Logger
 	}
 
 	return inventoryItems, err
+}
+
+func GetAutocompleteSuggestions(dbPool *pgxpool.Pool, logger *slog.Logger, searchQuery string) ([]ProductAutocompleteSuggestion, error) {
+	const query = `
+		SELECT name
+		FROM inventories
+		WHERE name ILIKE '%' || $1 || '%'
+		ORDER BY name
+		LIMIT 10
+	`
+	rows, err := dbPool.Query(context.Background(), query, searchQuery)
+	defer rows.Close()
+	if err != nil {
+		logger.Error(fmt.Sprintf("Error running inventory item query: %v", err))
+		return nil, err
+	}
+
+	suggestions, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[ProductAutocompleteSuggestion])
+	if collectRowsErr != nil {
+		logger.Error(fmt.Sprintf("Error collecting inventory item suggestions: %v", collectRowsErr))
+		return nil, collectRowsErr
+	}
+
+	return suggestions, nil
 }
 
 func GetInventoryItemBySlug(dbPool *pgxpool.Pool, slug string) (InventoryItem, error) {
@@ -75,6 +113,7 @@ func GetInventoryItemBySlug(dbPool *pgxpool.Pool, slug string) (InventoryItem, e
 	`
 	inventoryItem := InventoryItem{}
 	rows, err := dbPool.Query(context.Background(), query, slug)
+	defer rows.Close()
 	if err != nil {
 		return inventoryItem, err
 	}

@@ -1,10 +1,10 @@
 import {ReactElement} from 'react';
 import {Menubar} from 'primereact/menubar';
-import {InputText} from 'primereact/inputtext';
 import {MenuItem} from 'primereact/menuitem';
 import {Avatar} from 'primereact/avatar';
 import {NavLink} from "react-router";
 import CartMenu from "../Cart/CartMenu.tsx";
+import ProductAutocomplete from "../Products/ProductAutocomplete.tsx";
 
 export default function NavigationMenu(): ReactElement {
     const itemRenderer: (item: MenuItem) => ReactElement = (item: MenuItem) => (
@@ -40,7 +40,7 @@ export default function NavigationMenu(): ReactElement {
     </div>;
     const end = (
         <div className="flex align-items-center gap-4 pr-4">
-            <InputText placeholder="Search" type="text" className="w-8rem sm:w-auto"/>
+            <ProductAutocomplete/>
             <CartMenu/>
             <Avatar className="ml-2 cursor-pointer" image="/images/avatars/amyelsner.png" shape="circle"/>
         </div>

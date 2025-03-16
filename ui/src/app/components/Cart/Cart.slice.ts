@@ -54,6 +54,7 @@ export const cartSlice: Slice = createSlice({
                 for (let j = 0; j < state.items.length; j++) {
                     if (state.items[j].inventoryItemId === action.payload.id) {
                         state.items[j].quantity++;
+                        console.info("Updated quantity of " + state.items[j].name + " to " + state.items[j].quantity);
                         break;
                     }
                 }

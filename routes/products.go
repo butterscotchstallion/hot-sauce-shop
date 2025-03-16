@@ -40,14 +40,30 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	})
 
 	r.GET("/api/v1/products", func(c *gin.Context) {
+		searchQuery := c.DefaultQuery("q", "")
 		offset := c.DefaultQuery("offset", "0")
 		perPage := c.DefaultQuery("perPage", "10")
+
+		// Validate search
+		if len(searchQuery) > 25 {
+			c.JSON(
+				http.StatusBadRequest,
+				gin.H{
+					"status":  "ERROR",
+					"message": "Search query must be less than 25 characters",
+				},
+			)
+			return
+		}
+
+		// Validate sort
 		sort := c.DefaultQuery("sort", "name")
 		sorts := []string{"name", "price", "spice_rating"}
 		if !slices.Contains(sorts, sort) {
 			sort = "name"
 		}
 
+		// Validate page/offset
 		perPageInt, perPageErr := strconv.Atoi(perPage)
 		if perPageErr != nil {
 			perPageInt = 10
@@ -64,7 +80,9 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		}
 
 		var res gin.H
-		inventoryResults, err := lib.GetInventoryItemsOrderedBySortKey(dbPool, logger, perPageInt, offsetInt, sort)
+		inventoryResults, err := lib.GetInventoryItemsOrderedBySortKey(
+			dbPool, logger, perPageInt, offsetInt, sort, searchQuery,
+		)
 		if err != nil {
 			res = gin.H{
 				"status":  "ERROR",
@@ -81,6 +99,39 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			}
 			c.JSON(http.StatusOK, res)
 		}
+	})
+
+	r.GET("/api/v1/products/autocomplete", func(c *gin.Context) {
+		searchQuery := c.DefaultQuery("q", "")
+		if len(searchQuery) == 0 || len(searchQuery) > 25 {
+			c.JSON(
+				http.StatusBadRequest,
+				gin.H{
+					"status":  "ERROR",
+					"message": "Search query must be between 1-25 characters",
+				},
+			)
+			return
+		}
+
+		suggestions, err := lib.GetAutocompleteSuggestions(dbPool, logger, searchQuery)
+		if err != nil {
+			c.JSON(
+				http.StatusInternalServerError,
+				gin.H{
+					"status":  "ERROR",
+					"message": fmt.Sprintf("Error fetching autocomplete suggestions: %v", err),
+				},
+			)
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "OK",
+			"results": gin.H{
+				"suggestions": suggestions,
+			},
+		})
 	})
 
 	r.POST("/api/v1/products", func(c *gin.Context) {

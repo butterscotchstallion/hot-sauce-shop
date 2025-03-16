@@ -10,3 +10,5 @@
 ![product list](screenshots/products-list.png)
 ## Cart
 ![cart](screenshots/cart.png)
+## Product autocomplete
+![autocomplete](screenshots/autocomplete.png)
