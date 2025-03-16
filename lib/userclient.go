@@ -49,3 +49,11 @@ func UserExists(dbPool *pgxpool.Pool, id int) (bool, error) {
 	}
 	return true, nil
 }
+
+/*
+GetUserIdFromSession
+Placeholder until user system is implemented
+*/
+func GetUserIdFromSession() int {
+	return 1
+}

@@ -60,13 +60,10 @@ export const cartSlice: Slice = createSlice({
             }
         },
         cartItemRemoved: (state, action) => {
-            for (let j = 0; j < state.items.length; j++) {
-                if (state.items[j].id === action.payload.id) {
-                    delete state.items[j];
-                    state.idQuantityMap[action.payload.id] = 0;
-                    break;
-                }
-            }
+            state.idQuantityMap[action.payload.id] = 0;
+            state.items = state.items.filter((item: ICart) => {
+                return item.inventoryItemId !== action.payload.id
+            })
         }
     }
 });

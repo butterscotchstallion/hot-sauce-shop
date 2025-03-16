@@ -29,6 +29,10 @@ type AddCartItemRequest struct {
 	OverrideQuantity bool `json:"overrideQuantity"`
 }
 
+type DeleteCartItemRequest struct {
+	InventoryItemId int `json:"inventoryItemId"`
+}
+
 func GetCartItems(dbPool *pgxpool.Pool) ([]CartItem, error) {
 	const query = `
 		SELECT ci.*, i.price, i.name 
@@ -163,4 +167,17 @@ func GetCartItemsByInventoryItemIdAndUserId(dbPool *pgxpool.Pool, inventoryItemI
 		return cartItem, err
 	}
 	return cartItem, nil
+}
+
+func DeleteCartItem(dbPool *pgxpool.Pool, inventoryItemId int, userId int) error {
+	const query = `
+		DELETE FROM cart_items
+		WHERE inventory_item_id = $1
+		AND user_id = $2
+	`
+	_, err := dbPool.Exec(context.Background(), query, inventoryItemId, userId)
+	if err != nil {
+		return err
+	}
+	return nil
 }

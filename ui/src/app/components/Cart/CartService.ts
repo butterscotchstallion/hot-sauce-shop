@@ -2,6 +2,7 @@ import {Subject} from "rxjs";
 import {CART_URL} from "../Shared/Api.ts";
 import {ICart} from "./ICart.ts";
 import {IAddCartItemRequest} from "./IAddCartItemRequest.ts";
+import {IDeleteCartItemRequest} from "./IDeleteCartItemRequest.ts";
 
 export function getCartItems(): Subject<ICart[]> {
     const cartItems$ = new Subject<ICart[]>();
@@ -50,4 +51,26 @@ export function addCartItem(addCartItemRequest: IAddCartItemRequest): Subject<bo
         addCartItem$.error(err);
     })
     return addCartItem$;
+}
+
+export function deleteCartItem(deleteCartItemRequest: IDeleteCartItemRequest): Subject<boolean> {
+    const deleteCartItem$ = new Subject<boolean>();
+    fetch(CART_URL, {
+        method: 'DELETE',
+        body: JSON.stringify(deleteCartItemRequest),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                if (resp?.status === "OK") {
+                    deleteCartItem$.next(true);
+                } else {
+                    deleteCartItem$.error(resp?.message || "Unknown error");
+                }
+            });
+        }
+    });
+    return deleteCartItem$;
 }

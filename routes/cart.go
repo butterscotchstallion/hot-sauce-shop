@@ -65,4 +65,30 @@ func Cart(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			})
 		}
 	})
+
+	var deleteRequest lib.DeleteCartItemRequest
+	r.DELETE("/api/v1/cart", func(c *gin.Context) {
+		if err := c.ShouldBindJSON(&deleteRequest); err != nil {
+			logger.Error(err.Error())
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "ERROR",
+				"message": err.Error(),
+			})
+			return
+		}
+
+		userId := lib.GetUserIdFromSession()
+		deleteErr := lib.DeleteCartItem(dbPool, deleteRequest.InventoryItemId, userId)
+		if deleteErr != nil {
+			logger.Error(deleteErr.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": deleteErr.Error(),
+			})
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"status": "OK",
+			})
+		}
+	})
 }

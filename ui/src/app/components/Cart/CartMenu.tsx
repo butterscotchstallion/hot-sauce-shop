@@ -5,13 +5,13 @@ import {Toast} from "primereact/toast";
 import {RootState} from "../../store.ts";
 import {useDispatch, useSelector} from "react-redux";
 import {ICart} from "./ICart.ts";
-import {IIDQuantityMap, IInitialCartState, setCartItemQuantity} from "./Cart.slice.ts";
+import {cartItemRemoved, IIDQuantityMap, IInitialCartState, setCartItemQuantity} from "./Cart.slice.ts";
 import {Sidebar} from "primereact/sidebar";
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
-import {confirmPopup, ConfirmPopup} from "primereact/confirmpopup";
 import {Dropdown} from "primereact/dropdown";
-import {addCartItem} from "./CartService.ts";
+import {addCartItem, deleteCartItem} from "./CartService.ts";
+import {confirmDialog, ConfirmDialog} from "primereact/confirmdialog";
 
 export default function CartMenu() {
     const dispatch = useDispatch();
@@ -21,6 +21,7 @@ export default function CartMenu() {
     const toast: RefObject<Toast | null> = useRef<Toast>(null);
     const [cartItemsQuantity, setCartItemsQuantity] = React.useState<number>(0);
     const [cartSubtotal, setCartSubtotal] = React.useState<number>(0);
+    let deleteCartItemInventoryId: number = 0;
 
     useEffect(() => {
         const newTotal: number = calculateCartItemsTotal(cartState.items);
@@ -55,11 +56,37 @@ export default function CartMenu() {
     };
 
     const onRemoveCartConfirmed = () => {
-
+        if (deleteCartItemInventoryId > 0) {
+            deleteCartItem({
+                inventoryItemId: deleteCartItemInventoryId,
+            }).subscribe({
+                next: () => {
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Success',
+                        detail: 'Cart item removed',
+                        life: 3000,
+                    });
+                    dispatch(cartItemRemoved({
+                        id: deleteCartItemInventoryId,
+                    }));
+                },
+                error: (message: string) => {
+                    toast.current?.show({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error removing cart item: ' + message,
+                        life: 3000,
+                    })
+                }
+            });
+        } else {
+            console.error("No cart item to remove");
+        }
     }
 
     const onRemoveCartRejected = () => {
-
+        deleteCartItemInventoryId = 0;
     }
 
     const quantityOptions = Array.from(
@@ -70,9 +97,10 @@ export default function CartMenu() {
         }),
     );
 
-    const openRemoveCartConfirmation = (event) => {
-        confirmPopup({
-            target: event.currentTarget,
+    const openRemoveCartConfirmation = (cartItem: ICart) => {
+        deleteCartItemInventoryId = cartItem.inventoryItemId;
+        confirmDialog({
+            header: "Remove Cart Item",
             message: 'Are you sure you want to remove this cart item?',
             icon: 'pi pi-exclamation-triangle',
             defaultFocus: 'accept',
@@ -158,7 +186,7 @@ export default function CartMenu() {
             </Sidebar>
 
             <Toast ref={toast}/>
-            <ConfirmPopup/>
+            <ConfirmDialog/>
         </>
     )
 }
