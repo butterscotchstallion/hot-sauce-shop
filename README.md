@@ -8,3 +8,5 @@
 
 ## Product list
 ![product list](screenshots/products-list.png)
+## Cart
+![cart](screenshots/cart.png)
