@@ -100,6 +100,7 @@ export default function CartMenu() {
                     id: cartItem.inventoryItemId,
                     quantity
                 }));
+                setCartSubtotal(recalculateSubtotal(cartState.items));
             },
             error: (err: string) => {
                 toast.current?.show({
