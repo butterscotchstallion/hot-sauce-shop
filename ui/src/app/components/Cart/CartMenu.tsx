@@ -97,7 +97,7 @@ export default function CartMenu() {
                     life: 3000,
                 });
                 dispatch(setCartItemQuantity({
-                    id: cartItem.id,
+                    id: cartItem.inventoryItemId,
                     quantity
                 }));
             },
