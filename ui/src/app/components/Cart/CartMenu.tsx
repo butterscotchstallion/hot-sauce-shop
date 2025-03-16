@@ -1,39 +1,28 @@
 import * as React from "react";
 import {RefObject, useEffect, useRef} from "react";
 import {Button} from "primereact/button";
-import {Menu} from "primereact/menu";
 import {Toast} from "primereact/toast";
 import {RootState} from "../../store.ts";
 import {useSelector} from "react-redux";
 import {ICart} from "./ICart.ts";
 import {IIDQuantityMap, IInitialCartState} from "./Cart.slice.ts";
+import {Sidebar} from "primereact/sidebar";
+import {DataTable} from "primereact/datatable";
+import {Column} from "primereact/column";
 
 export default function CartMenu() {
+    const [sidebarVisible, setSidebarVisible] = React.useState<boolean>(false);
     const cartState: IInitialCartState = useSelector((state: RootState) => state.cart);
     const idQuantityMap: IIDQuantityMap = useSelector((state: RootState) => state.cart.idQuantityMap);
     const toast: RefObject<Toast | null> = useRef<Toast>(null);
-    const cartMenu: RefObject<Menu | null> = React.useRef<Menu>(null);
     const [cartItemsQuantity, setCartItemsQuantity] = React.useState<number>(0);
     const [cartSubtotal, setCartSubtotal] = React.useState<number>(0);
-    const items = [
-        {
-            label: 'Cart',
-            items: [
-                {
-                    label: 'Refresh',
-                    icon: 'pi pi-refresh'
-                },
-                {
-                    label: 'Export',
-                    icon: 'pi pi-upload'
-                }
-            ]
-        }
-    ];
 
     useEffect(() => {
         const newTotal: number = calculateCartItemsTotal(cartState.items);
-        setCartItemsQuantity(newTotal);
+        setCartItemsQuantity(newTotal)
+        const newSubtotal: number = recalculateSubtotal(cartState.items);
+        setCartSubtotal(newSubtotal);
         console.log("Total cart items set to: " + newTotal);
     }, [cartState, idQuantityMap, cartItemsQuantity]);
 
@@ -44,29 +33,51 @@ export default function CartMenu() {
         );
     }
 
-    function recalculateSubtotal(cartItems: ICart[]) {
-        setCartSubtotal(cartItems.reduce(
+    function recalculateSubtotal(cartItems: ICart[]): number {
+        return cartItems.reduce(
             (acc: number, item: ICart) =>
                 acc + item.price * item.quantity,
             0,
-        ));
+        );
     }
 
     return (
         <>
-            <Menu model={items} ref={cartMenu} popup id="popup_menu_right" popupAlignment="right"/>
             <Button
                 label="Cart"
                 icon="pi pi-shopping-cart"
                 className="mr-2"
                 badge={cartItemsQuantity.toString()}
-                onClick={(event) => {
-                    if (cartMenu?.current) {
-                        return cartMenu.current.toggle(event);
-                    }
-                }}
+                onClick={() => setSidebarVisible(true)}
                 aria-controls="popup_menu_right"
                 aria-haspopup/>
+
+            <Sidebar
+                style={{width: '28rem'}}
+                position={"right"}
+                visible={sidebarVisible}
+                onHide={() => setSidebarVisible(false)}
+            >
+                <h2 className="text-2xl font-bold">Cart</h2>
+                <section className="mt-4">
+                    <DataTable className="w-full" value={cartState.items}>
+                        <Column
+                            className="w-[40%] max-w-[80px] whitespace-nowrap overflow-hidden text-ellipsis"
+                            field="name"
+                            header="Name"></Column>
+                        <Column className="w-[20%]" field="price" header="Price"></Column>
+                        <Column className="w-[5%]" field="quantity" header="Quantity"></Column>
+                        <Column className="w-[5%]" header="Remove">
+                            <Button severity={"danger"} icon="pi pi-trash" className="p-button-rounded p-button-text"/>
+                        </Column>
+                    </DataTable>
+                </section>
+
+                <section className="mt-4">
+                    <h3 className="text-xl font-bold">Total: ${cartSubtotal.toFixed(2)}</h3>
+                </section>
+            </Sidebar>
+
             <Toast ref={toast}/>
         </>
     )

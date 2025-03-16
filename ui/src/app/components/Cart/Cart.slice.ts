@@ -31,11 +31,9 @@ export const cartSlice: Slice = createSlice({
                 state.idQuantityMap[action.payload.id] = 1;
             } else {
                 state.idQuantityMap[action.payload.id]++;
-                console.log("incremented " + action.payload.name + " to " + state.idQuantityMap[action.payload.id]);
             }
             if (typeof state.idQuantityMap[action.payload.id] === "undefined") {
                 state.items.push(action.payload);
-                console.log("pushed new item: " + action.payload.name);
             } else {
                 for (let j = 0; j < state.items.length; j++) {
                     if (state.items[j].inventoryItemId === action.payload.id) {

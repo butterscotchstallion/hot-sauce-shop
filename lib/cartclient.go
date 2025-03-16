@@ -14,6 +14,7 @@ import (
 type CartItem struct {
 	Id              int        `json:"id" db:"id"`
 	InventoryItemId int        `json:"inventoryItemId" db:"inventory_item_id"`
+	Name            string     `json:"name" db:"name"`
 	Price           float32    `json:"price" db:"price"`
 	UserId          int        `json:"userId" db:"user_id"`
 	Quantity        int        `json:"quantity" db:"quantity"`
@@ -30,10 +31,10 @@ type AddCartItemRequest struct {
 
 func GetCartItems(dbPool *pgxpool.Pool) ([]CartItem, error) {
 	const query = `
-		SELECT ci.*, i.price 
+		SELECT ci.*, i.price, i.name 
 		FROM cart_items ci
 		JOIN inventories i ON ci.inventory_item_id = i.id
-		ORDER BY ci.updated_at DESC
+		ORDER BY ci.updated_at, ci.created_at DESC
 	`
 	rows, err := dbPool.Query(context.Background(), query)
 	if err != nil {
