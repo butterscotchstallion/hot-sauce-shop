@@ -33,9 +33,9 @@ export default function ProductListPage(): ReactElement {
     const [totalProducts, setTotalProducts] = useState<number>(0);
     const [productListSortKey, setProductListSortKey] = useState<string>("name");
     const productListSortOptions: IProductListSortOptions[] = [
-        {label: "Name", value: "name"},
-        {label: "Price", value: "price"},
-        {label: "Spice Rating", value: "spice_rating"},
+        {label: "Sort by Name", value: "name"},
+        {label: "Sort by Price", value: "price"},
+        {label: "Sort by Spice Rating", value: "spice_rating"},
     ];
 
     function toggleFilter(checked: boolean) {

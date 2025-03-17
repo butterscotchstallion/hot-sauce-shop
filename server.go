@@ -11,7 +11,7 @@ import (
 	"hotsauceshop/routes"
 )
 
-var dbpool *pgxpool.Pool
+var dbPool *pgxpool.Pool
 
 func initDB() {
 	var err error
@@ -20,7 +20,7 @@ func initDB() {
 		log.Fatalf("ERROR: Could not get DB url!")
 	}
 
-	dbpool, err = pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
+	dbPool, err = pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v", err)
 	}
@@ -29,15 +29,15 @@ func initDB() {
 
 func main() {
 	initDB()
-	defer dbpool.Close()
+	defer dbPool.Close()
 
 	r := gin.Default()
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
-	routes.Products(r, dbpool, logger)
-	routes.Tags(r, dbpool)
-	routes.Cart(r, dbpool, logger)
+	routes.Products(r, dbPool, logger)
+	routes.Tags(r, dbPool)
+	routes.Cart(r, dbPool, logger)
 
-	err := r.Run("localhost:8080")
+	err := r.Run("localhost:8081")
 	if err != nil {
 		log.Fatalf("Error starting server: %v", err)
 	}
