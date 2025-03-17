@@ -3,7 +3,7 @@ import {Menubar} from 'primereact/menubar';
 import {MenuItem} from 'primereact/menuitem';
 import {Avatar} from 'primereact/avatar';
 import {NavLink} from "react-router";
-import CartMenu from "../Cart/CartMenu.tsx";
+import CartSidebar from "../Cart/CartSidebar.tsx";
 import ProductAutocomplete from "../Products/ProductAutocomplete.tsx";
 
 export default function NavigationMenu(): ReactElement {
@@ -41,7 +41,7 @@ export default function NavigationMenu(): ReactElement {
     const end = (
         <div className="flex align-items-center gap-4 pr-4">
             <ProductAutocomplete/>
-            <CartMenu/>
+            <CartSidebar/>
             <Avatar className="ml-2 cursor-pointer" image="/images/avatars/amyelsner.png" shape="circle"/>
         </div>
     );

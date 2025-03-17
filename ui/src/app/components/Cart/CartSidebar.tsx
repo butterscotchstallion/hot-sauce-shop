@@ -1,5 +1,5 @@
 import * as React from "react";
-import {RefObject, useEffect, useRef} from "react";
+import {RefObject, useEffect, useRef, useState} from "react";
 import {Button} from "primereact/button";
 import {Toast} from "primereact/toast";
 import {RootState} from "../../store.ts";
@@ -7,13 +7,15 @@ import {useDispatch, useSelector} from "react-redux";
 import {ICart} from "./ICart.ts";
 import {cartItemRemoved, IIDQuantityMap, IInitialCartState, setCartItemQuantity} from "./Cart.slice.ts";
 import {Sidebar} from "primereact/sidebar";
-import {DataTable} from "primereact/datatable";
+import {DataTable, DataTableFilterMeta} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Dropdown} from "primereact/dropdown";
 import {addCartItem, deleteCartItem} from "./CartService.ts";
 import {confirmDialog, ConfirmDialog} from "primereact/confirmdialog";
+import {FilterMatchMode} from "primereact/api";
+import {InputText} from "primereact/inputtext";
 
-export default function CartMenu() {
+export default function CartSidebar() {
     const dispatch = useDispatch();
     const [sidebarVisible, setSidebarVisible] = React.useState<boolean>(false);
     const cartState: IInitialCartState = useSelector((state: RootState) => state.cart);
@@ -21,6 +23,11 @@ export default function CartMenu() {
     const toast: RefObject<Toast | null> = useRef<Toast>(null);
     const [cartItemsQuantity, setCartItemsQuantity] = React.useState<number>(0);
     const [cartSubtotal, setCartSubtotal] = React.useState<number>(0);
+    const [filters, setFilters] = useState<DataTableFilterMeta>({
+        global: {value: null, matchMode: FilterMatchMode.CONTAINS},
+        name: {value: null, matchMode: FilterMatchMode.STARTS_WITH},
+    });
+    const [globalFilterValue, setGlobalFilterValue] = useState<string>('');
     let deleteCartItemInventoryId: number = 0;
 
     useEffect(() => {
@@ -149,6 +156,17 @@ export default function CartMenu() {
                          placeholder="Select a City" className="w-full md:w-14rem"/>
     }
 
+    const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value: string = e.target.value;
+        const _filters = {...filters};
+
+        // @ts-expect-error value is known to exist
+        _filters['global'].value = value;
+
+        setFilters(_filters);
+        setGlobalFilterValue(value);
+    };
+
     return (
         <>
             <Button
@@ -168,8 +186,15 @@ export default function CartMenu() {
             >
                 <h2 className="text-2xl font-bold">Cart</h2>
                 <section className="mt-4 cart-table-area">
-                    <DataTable className="w-full" value={cartState.items}>
+                    <InputText value={globalFilterValue} onChange={onGlobalFilterChange}
+                               placeholder="Filter cart items"/>
+                    <DataTable className="w-full"
+                               value={cartState.items}
+                               filters={filters}
+                               globalFilterFields={['name']}>
                         <Column
+                            filterField="name"
+                            filterMatchMode="contains"
                             className="w-[40%] max-w-[80px] whitespace-nowrap overflow-hidden text-ellipsis"
                             field="name"
                             header="Name"></Column>
