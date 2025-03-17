@@ -193,13 +193,15 @@ export default function CartSidebar() {
                                filters={filters}
                                globalFilterFields={['name']}>
                         <Column
+                            sortable
                             filterField="name"
                             filterMatchMode="contains"
                             className="w-[40%] max-w-[80px] whitespace-nowrap overflow-hidden text-ellipsis"
                             field="name"
                             header="Name"></Column>
-                        <Column className="w-[20%]" field="price" header="Price"></Column>
-                        <Column className="w-[5%]" body={quantityColTpl} header="Quantity"></Column>
+                        <Column sortable className="w-[20%]" field="price" header="Price"></Column>
+                        <Column sortable className="w-[5%]" body={quantityColTpl} field="quantity"
+                                header="Quantity"></Column>
                         <Column className="w-[5%]" header="Remove" body={removeCartItemTpl}/>
                     </DataTable>
                 </section>
