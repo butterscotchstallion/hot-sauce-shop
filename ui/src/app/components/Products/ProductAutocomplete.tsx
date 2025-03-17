@@ -32,6 +32,7 @@ export default function ProductAutocomplete() {
     const onSelect = (productName: string) => {
         const slug: string | undefined = nameSlugMap.get(productName);
         if (slug) {
+            setValue('');
             navigate(`/products/${slug}`);
         }
     }
