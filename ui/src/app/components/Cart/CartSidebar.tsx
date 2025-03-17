@@ -1,5 +1,5 @@
 import * as React from "react";
-import {RefObject, useEffect, useRef, useState} from "react";
+import {ReactElement, RefObject, useEffect, useRef, useState} from "react";
 import {Button} from "primereact/button";
 import {Toast} from "primereact/toast";
 import {RootState} from "../../store.ts";
@@ -35,7 +35,6 @@ export default function CartSidebar() {
         setCartItemsQuantity(newTotal)
         const newSubtotal: number = recalculateSubtotal(cartState.items);
         setCartSubtotal(newSubtotal);
-        console.log("Total cart items set to: " + newTotal);
     }, [cartState, idQuantityMap, cartItemsQuantity]);
 
     function calculateCartItemsTotal(cartItems: ICart[]): number {
@@ -147,7 +146,7 @@ export default function CartSidebar() {
         });
     }
 
-    const quantityColTpl = (cartItem: ICart) => {
+    const quantityColTpl = (cartItem: ICart): ReactElement => {
         return <Dropdown value={cartItem.quantity}
                          onChange={(e) => setCartItemQuantityFromMenu(cartItem, e.value)}
                          options={quantityOptions}

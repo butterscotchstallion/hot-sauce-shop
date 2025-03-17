@@ -24,6 +24,7 @@ type InventoryItem struct {
 
 type ProductAutocompleteSuggestion struct {
 	Name string `json:"name"`
+	Slug string `json:"slug"`
 }
 
 func GetInventoryItemsOrderedBySortKey(dbPool *pgxpool.Pool, logger *slog.Logger, limit int, offset int, sort string, searchQuery string) ([]InventoryItem, error) {
@@ -74,7 +75,7 @@ func GetInventoryItemsOrderedBySortKey(dbPool *pgxpool.Pool, logger *slog.Logger
 
 func GetAutocompleteSuggestions(dbPool *pgxpool.Pool, logger *slog.Logger, searchQuery string) ([]ProductAutocompleteSuggestion, error) {
 	const query = `
-		SELECT name
+		SELECT name, slug
 		FROM inventories
 		WHERE name ILIKE '%' || $1 || '%'
 		ORDER BY name
