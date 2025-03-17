@@ -1,10 +1,11 @@
 import {ReactElement} from "react";
-import {Checkbox} from "primereact/checkbox";
+import {Checkbox, CheckboxChangeEvent} from "primereact/checkbox";
 import {IDisplayTag} from "../../pages/ProductListPage.tsx";
+import {ITag} from "../Tag/ITag.ts";
 
 interface IProductFilterListProps {
     tags: IDisplayTag[],
-    toggleFilter: (checked: boolean) => void,
+    toggleFilter: (tag: ITag, checked: boolean) => void,
 }
 
 export default function ProductFilterList(props: IProductFilterListProps): ReactElement {
@@ -15,7 +16,7 @@ export default function ProductFilterList(props: IProductFilterListProps): React
                     <li key={index}>
                         <Checkbox
                             inputId={"filter-" + tag.slug}
-                            onChange={e => props.toggleFilter(!!e.checked)}
+                            onChange={(e: CheckboxChangeEvent) => props.toggleFilter(tag, !!e.checked)}
                             checked={tag.checked}
                         />
                         <label htmlFor={"filter-" + tag.slug}

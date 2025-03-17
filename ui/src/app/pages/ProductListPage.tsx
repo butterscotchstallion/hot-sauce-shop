@@ -38,8 +38,16 @@ export default function ProductListPage(): ReactElement {
         {label: "Sort by Spice Rating", value: "spice_rating"},
     ];
 
-    function toggleFilter(checked: boolean) {
-        console.log(checked);
+    function toggleFilter(tag: ITag, checked: boolean) {
+        const displayTags: IDisplayTag[] = tags;
+        displayTags.map((displayTag: IDisplayTag): IDisplayTag => {
+            if (displayTag.id === tag.id) {
+                displayTag.checked = checked;
+                console.log("Set " + displayTag.name + " to " + checked);
+            }
+            return displayTag;
+        });
+        setTags(displayTags);
     }
 
     const onPageChange = (event: { first: SetStateAction<number>; rows: SetStateAction<number>; }) => {
@@ -102,7 +110,7 @@ export default function ProductListPage(): ReactElement {
                         <Card title="Filters">
                             <ProductFilterList tags={tags} toggleFilter={toggleFilter}/>
                         </Card>
-                    ) : ""}
+                    ) : "Loading tags..."}
                 </menu>
 
                 <section className="w-full">
