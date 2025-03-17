@@ -65,12 +65,12 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 
 		// Validate page/offset
 		perPageInt, perPageErr := strconv.Atoi(perPage)
-		if perPageErr != nil {
+		if perPageErr != nil || perPageInt < 10 || perPageInt > 30 {
 			perPageInt = 10
 		}
 
 		offsetInt, offsetErr := strconv.Atoi(offset)
-		if offsetErr != nil {
+		if offsetErr != nil || offsetInt < 0 || offsetInt > 1000000 {
 			offsetInt = 0
 		}
 
