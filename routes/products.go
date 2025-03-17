@@ -7,12 +7,26 @@ import (
 	"net/http"
 	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"hotsauceshop/lib"
 	_ "hotsauceshop/lib"
 )
+
+func toIntArray(str string) []int {
+	chunks := strings.Split(str, ",")
+	var res []int
+	for _, c := range chunks {
+		i, err := strconv.Atoi(c)
+		if err != nil {
+			continue
+		}
+		res = append(res, i)
+	}
+	return res
+}
 
 func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	r.GET("/api/v1/products/:slug", func(c *gin.Context) {
@@ -40,21 +54,11 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	})
 
 	r.GET("/api/v1/products", func(c *gin.Context) {
-		searchQuery := c.DefaultQuery("q", "")
 		offset := c.DefaultQuery("offset", "0")
 		perPage := c.DefaultQuery("perPage", "10")
+		filterTags := c.DefaultQuery("tags", "")
 
-		// Validate search
-		if len(searchQuery) > 25 {
-			c.JSON(
-				http.StatusBadRequest,
-				gin.H{
-					"status":  "ERROR",
-					"message": "Search query must be less than 25 characters",
-				},
-			)
-			return
-		}
+		tagIds := toIntArray(filterTags)
 
 		// Validate sort
 		sort := c.DefaultQuery("sort", "name")
@@ -81,7 +85,7 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 
 		var res gin.H
 		inventoryResults, err := lib.GetInventoryItemsOrderedBySortKey(
-			dbPool, logger, perPageInt, offsetInt, sort, searchQuery,
+			dbPool, logger, perPageInt, offsetInt, sort, tagIds,
 		)
 		if err != nil {
 			res = gin.H{

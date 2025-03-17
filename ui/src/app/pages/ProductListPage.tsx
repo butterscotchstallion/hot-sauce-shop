@@ -47,11 +47,11 @@ export default function ProductListPage(): ReactElement {
      * @param filters
      */
     const onFiltersChanged = (filters: IDisplayTag[]) => {
-
+        setFilters(filters);
     };
 
     useEffect(() => {
-        const products$: Subscription = getProducts(offset, perPage, productListSortKey).subscribe({
+        const products$: Subscription = getProducts(offset, perPage, productListSortKey, filters).subscribe({
             next: (results: IProductsResults) => {
                 setProducts(results.inventory);
                 setTotalProducts(results.total);
@@ -70,7 +70,7 @@ export default function ProductListPage(): ReactElement {
         return () => {
             products$.unsubscribe();
         }
-    }, [offset, perPage, productListSortKey]);
+    }, [filters, offset, perPage, productListSortKey]);
 
     return (
         <>
@@ -84,7 +84,6 @@ export default function ProductListPage(): ReactElement {
                 <section className="w-full">
                     <section className="flex justify-between mb-4 pr-1">
                         <h2 className="font-bold text-lg mb-4">Products</h2>
-
                         <Dropdown value={productListSortKey}
                                   onChange={(e) => setProductListSortKey(e.value)}
                                   options={productListSortOptions}
@@ -96,7 +95,7 @@ export default function ProductListPage(): ReactElement {
                         <Suspense fallback={<Throbber/>}>
                             <ProductList products={products} toast={toast}/>
 
-                            {products.length > 0 ? (
+                            {products.length > perPage ? (
                                 <div className="card mt-4 mb-4">
                                     <Paginator first={offset}
                                                rows={perPage}
@@ -107,7 +106,7 @@ export default function ProductListPage(): ReactElement {
                             ) : ""}
                         </Suspense>
                     ) : (
-                        <Throbber/>
+                        <>No products found.</>
                     )}
                 </section>
             </div>

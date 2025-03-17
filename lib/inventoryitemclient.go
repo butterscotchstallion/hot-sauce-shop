@@ -27,7 +27,10 @@ type ProductAutocompleteSuggestion struct {
 	Slug string `json:"slug"`
 }
 
-func GetInventoryItemsOrderedBySortKey(dbPool *pgxpool.Pool, logger *slog.Logger, limit int, offset int, sort string, searchQuery string) ([]InventoryItem, error) {
+func GetInventoryItemsOrderedBySortKey(
+	dbPool *pgxpool.Pool, logger *slog.Logger, limit int, offset int, sort string,
+	tagIds []int,
+) ([]InventoryItem, error) {
 	// Sort is validated at endpoint
 	sortClause := fmt.Sprintf("ORDER BY %s\n", sort)
 	offsetClause := fmt.Sprintf("OFFSET %d\n", offset)
@@ -35,27 +38,34 @@ func GetInventoryItemsOrderedBySortKey(dbPool *pgxpool.Pool, logger *slog.Logger
 	if limit > 0 {
 		limitClause = fmt.Sprintf("LIMIT %d\n", limit)
 	}
-	searchClause := ""
-	if searchQuery != "" {
-		searchClause = "WHERE name ILIKE '%$1%'\n"
+
+	// Converted to int in controller area first
+	tagIdsClause := ""
+	tagIdsJoinClause := ""
+	if len(tagIds) > 0 {
+		tagIdsClause = "AND it.tag_id = ANY($1)\n"
+		tagIdsJoinClause = "JOIN inventory_tags it ON i.id = it.inventory_id\n"
 	}
 
 	query := `
-		SELECT id,
-		       name, 
-		       description,
-		       short_description,
-		       slug,
-		       price,
-		       created_at,
-		       updated_at,
-		       spice_rating
-		FROM inventories
-	` + searchClause + sortClause + limitClause + offsetClause
+		SELECT i.id,
+		       i.name, 
+		       i.description,
+		       i.short_description,
+		       i.slug,
+		       i.price,
+		       i.created_at,
+		       i.updated_at,
+		       i.spice_rating
+		FROM inventories i
+	` + tagIdsJoinClause + `
+		WHERE 1=1
+	` + tagIdsClause + sortClause + limitClause + offsetClause
+	logger.Info(query)
 	var rows pgx.Rows
 	var err error
-	if searchClause != "" {
-		rows, err = dbPool.Query(context.Background(), query, searchQuery)
+	if len(tagIdsClause) > 0 {
+		rows, err = dbPool.Query(context.Background(), query, tagIds)
 	} else {
 		rows, err = dbPool.Query(context.Background(), query)
 	}

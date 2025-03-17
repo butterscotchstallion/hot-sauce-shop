@@ -3,10 +3,22 @@ import {Subject} from "rxjs";
 import {IProductsResults} from "./IProductsResults.ts";
 import {IProduct} from "./IProduct.ts";
 import {IAutocompleteSuggestion} from "./IAutocompleteSuggestion.ts";
+import {IDisplayTag} from "../../pages/ProductListPage.tsx";
 
-export function getProducts(offset: number = 0, perPage: number = 10, sort: string = "name"): Subject<IProductsResults> {
+function getFilterTagsURLParameter(filters: IDisplayTag[]): string {
+    if (filters.length > 0) {
+        const tagIds: string = filters.map((filter: IDisplayTag) => filter.id).join(",");
+        return "&tags=" + tagIds
+    } else {
+        return "";
+    }
+}
+
+export function getProducts(offset: number = 0, perPage: number = 10, sort: string = "name", filters: IDisplayTag[]): Subject<IProductsResults> {
     const products$ = new Subject<IProductsResults>();
-    fetch(`${PRODUCTS_URL}?offset=${offset}&perPage=${perPage}&sort=${sort}`).then((res: Response) => {
+    let productsUrl: string = `${PRODUCTS_URL}?offset=${offset}&perPage=${perPage}&sort=${sort}`;
+    productsUrl += getFilterTagsURLParameter(filters);
+    fetch(productsUrl).then((res: Response) => {
         if (res.ok) {
             res.json().then(resp => {
                 products$.next(resp?.results || [])
