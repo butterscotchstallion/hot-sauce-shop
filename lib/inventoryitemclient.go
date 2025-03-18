@@ -61,7 +61,6 @@ func GetInventoryItemsOrderedBySortKey(
 	` + tagIdsJoinClause + `
 		WHERE 1=1
 	` + tagIdsClause + sortClause + limitClause + offsetClause
-	logger.Info(query)
 	var rows pgx.Rows
 	var err error
 	if len(tagIdsClause) > 0 {

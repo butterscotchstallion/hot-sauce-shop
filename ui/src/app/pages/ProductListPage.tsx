@@ -95,7 +95,7 @@ export default function ProductListPage(): ReactElement {
                         <Suspense fallback={<Throbber/>}>
                             <ProductList products={products} toast={toast}/>
 
-                            {products.length > perPage ? (
+                            {products.length >= perPage ? (
                                 <div className="card mt-4 mb-4">
                                     <Paginator first={offset}
                                                rows={perPage}
