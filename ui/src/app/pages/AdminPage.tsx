@@ -2,16 +2,15 @@ import {TabMenu} from "primereact/tabmenu";
 import {ReactElement, useState} from "react";
 import {MenuItem} from "primereact/menuitem";
 import AdminInventoryPage from "./AdminInventoryPage.tsx";
-import AdminAccountPage from "./AdminAccountPage.tsx";
 
 export default function AdminPage() {
     const [activeIndex, setActiveIndex] = useState<number>(0);
     const items: MenuItem[] = [
-        {label: 'Inventory', icon: 'pi pi-home'},
-        {label: 'Account', icon: 'pi pi-chart-line'},
+        {label: 'Products', icon: 'pi pi-home'},
+        {label: 'Users', icon: 'pi pi-chart-line'},
         {label: 'Orders', icon: 'pi pi-gift'},
     ];
-    const adminPages: ReactElement[] = [<AdminInventoryPage/>, <AdminAccountPage/>];
+    const adminPages: ReactElement[] = [<AdminInventoryPage/>];
 
     return (
         <>

@@ -41,7 +41,7 @@ export default function ProductAutocomplete() {
         <AutoComplete value={value}
                       suggestions={items}
                       completeMethod={search}
-                      placeholder="Search"
+                      placeholder="Find a product"
                       onSelect={(e: AutoCompleteSelectEvent) => onSelect(e.value)}
                       onChange={(e: AutoCompleteChangeEvent) => setValue(e.value)}
                       forceSelection/>

@@ -6,6 +6,7 @@ import {useDispatch} from "react-redux";
 import {getCartItems} from "../components/Cart/CartService.ts";
 import {ICart} from "../components/Cart/ICart.ts";
 import {setCartItems, setIdQuantityMap} from "../components/Cart/Cart.slice.ts";
+import {Subscription} from "rxjs";
 
 type Props = {
     children: React.ReactNode
@@ -13,8 +14,9 @@ type Props = {
 
 export default function BaseLayout({children}: Props) {
     const dispatch = useDispatch();
+
     useEffect(() => {
-        const cartItems$ = getCartItems().subscribe({
+        const cartItems$: Subscription = getCartItems().subscribe({
             next: (cartItems: ICart[]) => {
                 dispatch(setCartItems(cartItems));
                 dispatch(setIdQuantityMap(cartItems));
