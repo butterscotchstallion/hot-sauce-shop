@@ -1,6 +1,6 @@
 import {Suspense, useEffect, useState} from "react";
 import Throbber from "../components/Shared/Throbber.tsx";
-import {Params, useParams} from "react-router";
+import {Params, useNavigate, useParams} from "react-router";
 import {getProductDetail} from "../components/Products/ProductService.ts";
 import {IProduct} from "../components/Products/IProduct.ts";
 import {Subscription} from "rxjs";
@@ -14,6 +14,7 @@ export default function ProductDetailPage() {
     const params: Readonly<Params<string>> = useParams();
     const productSlug: string | undefined = params.slug;
     const [product, setProduct] = useState<IProduct>();
+    const navigate = useNavigate();
     const review = {
         id: 1,
         comment: "This is a review",
@@ -44,6 +45,10 @@ export default function ProductDetailPage() {
                 <Suspense fallback={<Throbber/>}>
                     <section className="flex justify-between mb-4">
                         <h1 className="text-xl font-bold">{product.name}</h1>
+
+                        <Button label="Edit" icon="pi pi-pencil" onClick={() => {
+                            navigate("/admin/products/" + product.slug);
+                        }}/>
                     </section>
 
                     <section className="flex gap-10">

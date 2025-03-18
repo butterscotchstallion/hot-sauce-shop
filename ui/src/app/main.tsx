@@ -6,6 +6,7 @@ import App from './App.tsx'
 import {BrowserRouter, Navigate, Route, Routes} from "react-router";
 import Throbber from "./components/Shared/Throbber.tsx";
 import AdminPage from "./pages/AdminPage.tsx";
+import AdminInventoryPage from "./pages/AdminInventoryPage.tsx";
 
 const HomePage = React.lazy(() => import("./pages/HomePage.tsx"));
 const ProductListPage = React.lazy(() => import("./pages/ProductListPage.tsx"));
@@ -20,6 +21,7 @@ createRoot(document.getElementById('root')!).render(
                     <Route path="products" element={<ProductListPage/>}/>
                     <Route path="products/:slug" element={<ProductDetailPage/>}/>
                     <Route path="admin" element={<AdminPage/>}/>
+                    <Route path="admin/products/:slug" element={<AdminInventoryPage/>}/>
                 </Route>
                 <Route path="*" element={<Navigate to="/"/>}/>
             </Routes>

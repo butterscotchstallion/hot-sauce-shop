@@ -2,8 +2,11 @@ import {Menu} from "primereact/menu";
 import {Avatar} from "primereact/avatar";
 import {MenuItem} from "primereact/menuitem";
 import {RefObject, useRef} from "react";
+import {AuthContextProps, useAuth} from "react-oidc-context";
+import {Button} from "primereact/button";
 
 export default function UserAvatarMenu() {
+    const auth: AuthContextProps = useAuth();
     const menu: RefObject<Menu | null> = useRef<Menu>(null);
     const items: MenuItem[] = [
         {
@@ -28,16 +31,33 @@ export default function UserAvatarMenu() {
         }
     ];
 
+    const signInButton = () => {
+        return (
+            <Button
+                onClick={() => void auth.signinRedirect()}
+                label="Sign In"
+                icon="pi pi-lock"/>
+        )
+    }
+
+    const avatarWithMenu = () => {
+        return (
+            <>
+                <Avatar
+                    onClick={(event) => menu?.current?.toggle(event)}
+                    aria-controls="popup_menu_left"
+                    aria-haspopup
+                    className="ml-2 cursor-pointer"
+                    image="/images/avatars/amyelsner.png"
+                    shape="circle"/>
+                <Menu model={items} popup ref={menu} popupAlignment="left"/>
+            </>
+        )
+    }
+
     return (
         <>
-            <Avatar
-                onClick={(event) => menu?.current?.toggle(event)}
-                aria-controls="popup_menu_left"
-                aria-haspopup
-                className="ml-2 cursor-pointer"
-                image="/images/avatars/amyelsner.png"
-                shape="circle"/>
-            <Menu model={items} popup ref={menu} popupAlignment="left"/>
+            {auth.isAuthenticated ? avatarWithMenu() : signInButton()}
         </>
     )
 }

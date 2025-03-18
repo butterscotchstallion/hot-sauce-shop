@@ -1,26 +1,37 @@
-import ProductAutocomplete from "../components/Products/ProductAutocomplete.tsx";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {IProduct} from "../components/Products/IProduct.ts";
 import AdminInventoryItemForm from "../components/Admin/AdminInventoryItemForm.tsx";
+import {Params, useParams} from "react-router";
+import {Subscription} from "rxjs";
+import {getProductDetail} from "../components/Products/ProductService.ts";
 
 export default function AdminInventoryPage() {
-    const newProduct: IProduct = {};
-    const [product, setProduct] = useState<IProduct | null>(newProduct);
+    const [product, setProduct] = useState<IProduct | undefined>();
+    const params: Readonly<Params<string>> = useParams();
+    const productSlug: string | undefined = params.slug;
 
-    function setValue(key: string, value: string) {
-        if (product) {
-            product[key] = value;
+    useEffect(() => {
+        if (productSlug) {
+            const product$: Subscription = getProductDetail(productSlug).subscribe({
+                next: (productDetail: IProduct) => {
+                    setProduct(productDetail);
+                },
+                error: (err) => {
+                    console.error(err);
+                }
+            })
+            return () => {
+                product$.unsubscribe();
+            }
         }
-    }
+    }, [productSlug])
 
     return (
         <>
-            <section className="flex mb-4 gap-4">
-                <ProductAutocomplete/>
-            </section>
+            <h1 className="font-bold text-2xl mb-4">Admin - Edit Product</h1>
 
-            <section className="flex max-w-1/2">
-                <AdminInventoryItemForm/>
+            <section className="flex">
+                <AdminInventoryItemForm product={product}/>
             </section>
         </>
     )

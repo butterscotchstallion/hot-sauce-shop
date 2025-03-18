@@ -7,6 +7,7 @@ import {getCartItems} from "../components/Cart/CartService.ts";
 import {ICart} from "../components/Cart/ICart.ts";
 import {setCartItems, setIdQuantityMap} from "../components/Cart/Cart.slice.ts";
 import {Subscription} from "rxjs";
+import {AuthContextProps, useAuth} from "react-oidc-context";
 
 type Props = {
     children: React.ReactNode
@@ -14,6 +15,7 @@ type Props = {
 
 export default function BaseLayout({children}: Props) {
     const dispatch = useDispatch();
+    const auth: AuthContextProps = useAuth();
 
     useEffect(() => {
         const cartItems$: Subscription = getCartItems().subscribe({
@@ -30,6 +32,21 @@ export default function BaseLayout({children}: Props) {
         }
     }, [dispatch]);
 
+    switch (auth.activeNavigator) {
+        case "signinSilent":
+            return <div>Signing you in...</div>;
+        case "signoutRedirect":
+            return <div>Signing you out...</div>;
+    }
+
+    if (auth.isLoading) {
+        return <div>Loading...</div>;
+    }
+
+    if (auth.error) {
+        return <div>Oops... {auth.error.message}</div>;
+    }
+    
     return (
         <PrimeReactProvider>
             <NavigationMenu/>
