@@ -26,7 +26,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			return
 		}
 
-		usernameAndPasswordVerified, errVerifying := lib.VerifyUsernameAndPassword(
+		verifiedUser, errVerifying := lib.VerifyUsernameAndPassword(
 			dbPool, logger, loginRequest.Username, loginRequest.Password,
 		)
 		if errVerifying != nil {
@@ -38,7 +38,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			return
 		}
 
-		if !usernameAndPasswordVerified {
+		if verifiedUser == (lib.User{}) {
 			c.JSON(http.StatusOK, gin.H{
 				"status":  "ERROR",
 				"message": "Invalid username or password",
@@ -46,9 +46,22 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			return
 		}
 
+		sessionId, err := lib.AddUserSessionId(dbPool, verifiedUser.Id)
+		if err != nil || len(sessionId) == 0 {
+			logger.Error("Error generating sessionId: %v", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": err.Error(),
+			})
+			return
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "OK",
-			"message": "Login successful",
+			"message": "Sign in successful",
+			"results": gin.H{
+				"sessionId": sessionId,
+			},
 		})
 	})
 }

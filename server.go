@@ -37,6 +37,7 @@ func main() {
 	routes.Tags(r, dbPool)
 	routes.Cart(r, dbPool, logger)
 	routes.User(r, dbPool, logger)
+	routes.Session(r, dbPool, logger)
 
 	err := r.Run("localhost:8081")
 	if err != nil {

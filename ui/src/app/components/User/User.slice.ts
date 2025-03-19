@@ -1,11 +1,14 @@
 import {createSlice, Slice} from "@reduxjs/toolkit";
+import {IUser} from "./IUser.ts";
 
 interface IInitialUserState {
     isSignedIn: boolean;
+    user: IUser | null;
 }
 
 const initialState: IInitialUserState = {
-    isSignedIn: false
+    isSignedIn: false,
+    user: null
 }
 
 export const userSlice: Slice = createSlice({
@@ -14,9 +17,12 @@ export const userSlice: Slice = createSlice({
     reducers: {
         setSignedIn: (state, action) => {
             state.isSignedIn = action.payload;
+        },
+        setUser: (state, action) => {
+            state.user = action.payload;
         }
     }
 })
 
-export const {setSignedIn} = userSlice.actions;
+export const {setSignedIn, setUser} = userSlice.actions;
 export default userSlice.reducer;

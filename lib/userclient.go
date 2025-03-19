@@ -20,30 +20,31 @@ type User struct {
 	UpdatedAt      time.Time `json:"updatedAt"`
 }
 
-func VerifyUsernameAndPassword(dbPool *pgxpool.Pool, logger *slog.Logger, username string, password string) (bool, error) {
-	var dbPassword string
-	const query = `SELECT password FROM users WHERE username = $1`
-	err := dbPool.QueryRow(context.Background(), query, username).Scan(&dbPassword)
+func VerifyUsernameAndPassword(dbPool *pgxpool.Pool, logger *slog.Logger, username string, password string) (User, error) {
+	var user User
+	const query = `SELECT id, password FROM users WHERE username = $1`
+	row := dbPool.QueryRow(context.Background(), query, username)
+	err := row.Scan(&user.Id, &user.Password)
 	noRowsReturned := errors.Is(err, pgx.ErrNoRows)
+
+	logger.Info(fmt.Sprintf("Verifying username and password for username: %v", username))
 
 	if noRowsReturned {
 		logger.Error(fmt.Sprintf("No user found with username: %v", username))
-		return false, nil
+		return user, nil
 	}
 
-	// Includes err no rows
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error running user query: %v", err))
-		return false, err
+		return user, err
 	}
 
-	passwordMatch := VerifyPassword(password, dbPassword)
-
+	passwordMatch := VerifyPassword(password, user.Password)
 	if !passwordMatch {
 		logger.Error(fmt.Sprintf("Passwords do not match for username: %v", username))
 	}
 
-	return passwordMatch, nil
+	return user, nil
 }
 
 func UserIdExists(dbPool *pgxpool.Pool, id int) (bool, error) {
@@ -60,23 +61,27 @@ func UserIdExists(dbPool *pgxpool.Pool, id int) (bool, error) {
 	return exists, nil
 }
 
-func IsValidAccountNameAndPassword(username string, password string) bool {
-
-	return true
-}
-
-func GetUserById(dbPool *pgxpool.Pool, id int) (User, error) {
+/*
+GetUserBySessionId
+- Filter non-expired sessions too
+*/
+func GetUserBySessionId(dbPool *pgxpool.Pool, sessionId string) (User, error) {
 	const query = `
 		SELECT 
-		id, 
-		username,
-		password,
-		avatar_filename AS avatarFilename,
-		created_at AS createdAt,
-		updated_at AS updatedAt
-		FROM users WHERE id = @id
+		u.id, 
+		u.username,
+		u.password,
+		u.avatar_filename AS avatarFilename,
+		u.created_at AS createdAt,
+		u.updated_at AS updatedAt
+		FROM users u
+		JOIN user_sessions s ON u.id = s.user_id
+		WHERE 1=1
+		AND s.enabled = true
+		AND s.created_at < NOW() - INTERVAL '30 day'
+		AND s.session_id = $1
 	`
-	row := dbPool.QueryRow(context.Background(), query, id)
+	row := dbPool.QueryRow(context.Background(), query, sessionId)
 	var user User
 	err := row.Scan(&user)
 	if err != nil {

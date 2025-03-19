@@ -7,6 +7,10 @@ import {getCartItems} from "../components/Cart/CartService.ts";
 import {ICart} from "../components/Cart/ICart.ts";
 import {setCartItems, setIdQuantityMap} from "../components/Cart/Cart.slice.ts";
 import {Subscription} from "rxjs";
+import {getUserBySessionId} from "../components/User/UserService.ts";
+import {IUser} from "../components/User/IUser.ts";
+import {setSignedIn, setUser} from "../components/User/User.slice.ts";
+import Cookies from "js-cookie";
 
 type Props = {
     children: React.ReactNode
@@ -16,6 +20,20 @@ export default function BaseLayout({children}: Props) {
     const dispatch = useDispatch();
 
     useEffect(() => {
+        let user$: Subscription | null = null;
+        const sessionId = Cookies.get("sessionId");
+        if (sessionId) {
+            user$ = getUserBySessionId().subscribe({
+                next: (user: IUser) => {
+                    dispatch(setUser(user));
+                    dispatch(setSignedIn(true));
+                    console.info("Set user to " + user.username)
+                },
+                error: (err) => {
+                    console.error(err);
+                }
+            });
+        }
         const cartItems$: Subscription = getCartItems().subscribe({
             next: (cartItems: ICart[]) => {
                 dispatch(setCartItems(cartItems));
@@ -27,6 +45,7 @@ export default function BaseLayout({children}: Props) {
         });
         return () => {
             cartItems$.unsubscribe();
+            user$?.unsubscribe();
         }
     }, [dispatch]);
 
