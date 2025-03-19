@@ -63,7 +63,7 @@ func validateAddCartItemRequest(dbPool *pgxpool.Pool, req AddCartItemRequest) (b
 		return false, itemExistsErr
 	}
 
-	userExists, userExistsErr := UserExists(dbPool, req.UserId)
+	userExists, userExistsErr := UserIdExists(dbPool, req.UserId)
 	if userExistsErr != nil {
 		return false, userExistsErr
 	}

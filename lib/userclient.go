@@ -16,6 +16,37 @@ type User struct {
 	UpdatedAt      time.Time `json:"updatedAt"`
 }
 
+func VerifyUsernameAndPassword(dbPool *pgxpool.Pool, username string, password string) (bool, error) {
+	var user User
+	const query = `SELECT password FROM users WHERE username = $1`
+	err := dbPool.QueryRow(context.Background(), query, username).Scan(&user)
+	// Includes err no rows
+	if err != nil {
+		return false, err
+	}
+	passwordMatch := VerifyPassword(password, user.Password)
+	return passwordMatch, nil
+}
+
+func UserIdExists(dbPool *pgxpool.Pool, id int) (bool, error) {
+	exists := false
+	const query = `
+		SELECT EXISTS (
+			SELECT 1 FROM users WHERE id = $1
+        )
+	`
+	err := dbPool.QueryRow(context.Background(), query, id).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
+func IsValidAccountNameAndPassword(username string, password string) bool {
+
+	return true
+}
+
 func GetUserById(dbPool *pgxpool.Pool, id int) (User, error) {
 	const query = `
 		SELECT 
@@ -34,20 +65,6 @@ func GetUserById(dbPool *pgxpool.Pool, id int) (User, error) {
 		return User{}, err
 	}
 	return user, nil
-}
-
-func UserExists(dbPool *pgxpool.Pool, id int) (bool, error) {
-	exists := false
-	const query = `
-		SELECT EXISTS (
-			SELECT 1 FROM users WHERE id = $1
-        )
-	`
-	err := dbPool.QueryRow(context.Background(), query, id).Scan(&exists)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
 }
 
 /*

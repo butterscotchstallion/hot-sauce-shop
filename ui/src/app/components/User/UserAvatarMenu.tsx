@@ -1,13 +1,14 @@
 import {Menu} from "primereact/menu";
 import {Avatar} from "primereact/avatar";
 import {MenuItem} from "primereact/menuitem";
-import {RefObject, useRef} from "react";
-import {AuthContextProps, useAuth} from "react-oidc-context";
+import {RefObject, useRef, useState} from "react";
 import {Button} from "primereact/button";
+import {UserSignInModal} from "./UserSignInModal.tsx";
 
 export default function UserAvatarMenu() {
-    const auth: AuthContextProps = useAuth();
+    const isAuthenticated = false;
     const menu: RefObject<Menu | null> = useRef<Menu>(null);
+    const [signInModalVisible, setSignInModalVisible] = useState<boolean>(false);
     const items: MenuItem[] = [
         {
             label: "User Menu",
@@ -34,7 +35,7 @@ export default function UserAvatarMenu() {
     const signInButton = () => {
         return (
             <Button
-                onClick={() => void auth.signinRedirect()}
+                onClick={() => setSignInModalVisible(true)}
                 label="Sign In"
                 icon="pi pi-lock"/>
         )
@@ -57,7 +58,8 @@ export default function UserAvatarMenu() {
 
     return (
         <>
-            {auth.isAuthenticated ? avatarWithMenu() : signInButton()}
+            {isAuthenticated ? avatarWithMenu() : signInButton()}
+            <UserSignInModal visible={signInModalVisible} setVisible={setSignInModalVisible}/>
         </>
     )
 }
