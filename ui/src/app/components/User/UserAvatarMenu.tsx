@@ -4,9 +4,11 @@ import {MenuItem} from "primereact/menuitem";
 import {RefObject, useRef, useState} from "react";
 import {Button} from "primereact/button";
 import {UserSignInModal} from "./UserSignInModal.tsx";
+import {useSelector} from "react-redux";
+import {RootState} from "../../store.ts";
 
 export default function UserAvatarMenu() {
-    const isAuthenticated = false;
+    const isSignedIn = useSelector((state: RootState) => state.user.isSignedIn);
     const menu: RefObject<Menu | null> = useRef<Menu>(null);
     const [signInModalVisible, setSignInModalVisible] = useState<boolean>(false);
     const items: MenuItem[] = [
@@ -58,7 +60,7 @@ export default function UserAvatarMenu() {
 
     return (
         <>
-            {isAuthenticated ? avatarWithMenu() : signInButton()}
+            {isSignedIn ? avatarWithMenu() : signInButton()}
             <UserSignInModal visible={signInModalVisible} setVisible={setSignInModalVisible}/>
         </>
     )

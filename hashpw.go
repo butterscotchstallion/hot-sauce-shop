@@ -7,7 +7,7 @@ import (
 	"hotsauceshop/lib"
 )
 
-func main() {
+func hashPw() {
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: hashpw <password>")
 		os.Exit(1)

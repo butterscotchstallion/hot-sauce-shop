@@ -2,8 +2,12 @@ package lib
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"log/slog"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -16,15 +20,29 @@ type User struct {
 	UpdatedAt      time.Time `json:"updatedAt"`
 }
 
-func VerifyUsernameAndPassword(dbPool *pgxpool.Pool, username string, password string) (bool, error) {
-	var user User
+func VerifyUsernameAndPassword(dbPool *pgxpool.Pool, logger *slog.Logger, username string, password string) (bool, error) {
+	var dbPassword string
 	const query = `SELECT password FROM users WHERE username = $1`
-	err := dbPool.QueryRow(context.Background(), query, username).Scan(&user)
+	err := dbPool.QueryRow(context.Background(), query, username).Scan(&dbPassword)
+	noRowsReturned := errors.Is(err, pgx.ErrNoRows)
+
+	if noRowsReturned {
+		logger.Error(fmt.Sprintf("No user found with username: %v", username))
+		return false, nil
+	}
+
 	// Includes err no rows
 	if err != nil {
+		logger.Error(fmt.Sprintf("Error running user query: %v", err))
 		return false, err
 	}
-	passwordMatch := VerifyPassword(password, user.Password)
+
+	passwordMatch := VerifyPassword(password, dbPassword)
+
+	if !passwordMatch {
+		logger.Error(fmt.Sprintf("Passwords do not match for username: %v", username))
+	}
+
 	return passwordMatch, nil
 }
 

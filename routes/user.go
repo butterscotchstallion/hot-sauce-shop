@@ -10,12 +10,11 @@ import (
 )
 
 type LoginRequest struct {
-	username string
-	password string
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
-
 	r.POST("/api/v1/user/sign-in", func(c *gin.Context) {
 		loginRequest := LoginRequest{}
 		if err := c.ShouldBindJSON(&loginRequest); err != nil {
@@ -28,7 +27,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		}
 
 		usernameAndPasswordVerified, errVerifying := lib.VerifyUsernameAndPassword(
-			dbPool, loginRequest.username, loginRequest.password,
+			dbPool, logger, loginRequest.Username, loginRequest.Password,
 		)
 		if errVerifying != nil {
 			logger.Error(errVerifying.Error())

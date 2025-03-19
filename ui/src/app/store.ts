@@ -1,13 +1,13 @@
 import {configureStore} from "@reduxjs/toolkit";
 import cartReducer from "./components/Cart/Cart.slice.ts";
+import userReducer from "./components/User/User.slice.ts";
 
-// @ts-ignore
 export const store = configureStore({
     reducer: {
-        cart: cartReducer
+        cart: cartReducer,
+        user: userReducer,
     }
 });
-
 
 // Get the type of our store variable
 export type AppStore = typeof store

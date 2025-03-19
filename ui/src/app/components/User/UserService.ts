@@ -12,7 +12,11 @@ export function ValidateUsernameAndPassword(username: string, password: string) 
     }).then((res: Response) => {
         if (res.ok) {
             res.json().then(resp => {
-                validate$.next(resp?.status === "OK");
+                if (resp?.status === "OK") {
+                    validate$.next(true);
+                } else {
+                    validate$.error(resp?.message || "Unknown error");
+                }
             });
         } else {
             validate$.error(res.statusText);
