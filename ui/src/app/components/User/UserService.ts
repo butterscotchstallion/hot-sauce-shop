@@ -15,11 +15,10 @@ function setSessionCookie(sessionId: string) {
     });
 }
 
-/*
-function removeSessionCookie() {
+
+export function removeSessionCookie() {
     Cookies.remove("sessionId");
 }
-*/
 
 export function getUserBySessionId(): Subject<IUser> {
     const user$ = new Subject<IUser>();

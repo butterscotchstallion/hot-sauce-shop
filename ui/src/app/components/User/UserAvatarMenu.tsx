@@ -4,11 +4,15 @@ import {MenuItem} from "primereact/menuitem";
 import {RefObject, useRef, useState} from "react";
 import {Button} from "primereact/button";
 import {UserSignInModal} from "./UserSignInModal.tsx";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../store.ts";
 import {IUser} from "./IUser.ts";
+import {confirmDialog} from "primereact/confirmdialog";
+import {removeSessionCookie} from "./UserService.ts";
+import {setSignedOut} from "./User.slice.ts";
 
 export default function UserAvatarMenu() {
+    const dispatch = useDispatch();
     const isSignedIn = useSelector((state: RootState) => state.user.isSignedIn);
     const user: IUser | null = useSelector((state: RootState) => state.user.user);
     const menu: RefObject<Menu | null> = useRef<Menu>(null);
@@ -30,7 +34,20 @@ export default function UserAvatarMenu() {
                 {
                     label: 'Sign Out',
                     icon: 'pi pi-sign-out',
-                    url: '/sign-out'
+                    command: () => {
+                        confirmDialog({
+                            header: "Sign Out",
+                            message: 'Are you sure you want to sign out?',
+                            icon: 'pi pi-exclamation-triangle',
+                            defaultFocus: 'accept',
+                            accept: () => {
+                                removeSessionCookie();
+                                dispatch(setSignedOut(null));
+                            },
+                            reject: () => {
+                            }
+                        });
+                    }
                 }
             ]
         }
