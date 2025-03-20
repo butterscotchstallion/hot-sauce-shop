@@ -1,10 +1,13 @@
 import {SESSION_URL, USER_URL} from "../Shared/Api.ts";
-import {Subject, Subscription} from "rxjs";
+import {Subject} from "rxjs";
 import Cookies from "js-cookie";
 import {IUser} from "./IUser.ts";
-import {setSignedIn, setUser} from "./User.slice.ts";
-import {Dispatch, UnknownAction} from "@reduxjs/toolkit";
-import {useDispatch} from "react-redux";
+
+export interface ISignInResponse {
+    user: IUser;
+    sessionId: string;
+    error?: string;
+}
 
 function setSessionCookie(sessionId: string) {
     Cookies.set("sessionId", sessionId, {
@@ -12,22 +15,11 @@ function setSessionCookie(sessionId: string) {
     });
 }
 
+/*
 function removeSessionCookie() {
     Cookies.remove("sessionId");
 }
-
-export function getUserBySessionIdAndStore(dispatch: Dispatch<UnknownAction>): Subscription {
-    return getUserBySessionId().subscribe({
-        next: (user: IUser) => {
-            dispatch(setUser(user));
-            dispatch(setSignedIn(true));
-            console.info("Set user to " + user.username)
-        },
-        error: (err) => {
-            console.error("Error getting session from DB: " + err);
-        }
-    });
-}
+*/
 
 export function getUserBySessionId(): Subject<IUser> {
     const user$ = new Subject<IUser>();
@@ -51,9 +43,8 @@ export function getUserBySessionId(): Subject<IUser> {
     return user$;
 }
 
-export function ValidateUsernameAndPassword(username: string, password: string) {
-    const validate$ = new Subject<boolean>();
-    const dispatch = useDispatch();
+export function ValidateUsernameAndPassword(username: string, password: string): Subject<ISignInResponse> {
+    const validate$ = new Subject<ISignInResponse>();
     fetch(`${USER_URL}/sign-in`, {
         method: 'POST',
         body: JSON.stringify({
@@ -66,22 +57,26 @@ export function ValidateUsernameAndPassword(username: string, password: string) 
                 if (resp?.status === "OK") {
                     if (resp?.results?.sessionId && resp?.results?.user) {
                         setSessionCookie(resp?.results?.sessionId);
-                        dispatch(setUser(resp?.results?.user));
-                        dispatch(setSignedIn(true));
-                        validate$.next(true);
+                        validate$.next(resp.results);
                     } else {
                         console.error("No session id returned from server");
                         validate$.error("Error signing in");
                     }
                 } else {
-                    validate$.error(resp?.message || "Unknown error");
+                    validate$.error({
+                        error: resp?.message || "Unknown error"
+                    });
                 }
             });
         } else {
-            validate$.error(res.statusText);
+            validate$.error({
+                error: res.statusText
+            });
         }
     }).catch((err) => {
-        validate$.error(err);
+        validate$.error({
+            error: err
+        });
     });
     return validate$;
 }

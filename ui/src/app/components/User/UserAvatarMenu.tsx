@@ -6,12 +6,11 @@ import {Button} from "primereact/button";
 import {UserSignInModal} from "./UserSignInModal.tsx";
 import {useSelector} from "react-redux";
 import {RootState} from "../../store.ts";
+import {IUser} from "./IUser.ts";
 
 export default function UserAvatarMenu() {
     const isSignedIn = useSelector((state: RootState) => state.user.isSignedIn);
-    const user = useSelector((state: RootState) => {
-        return state.user.user
-    });
+    const user: IUser | null = useSelector((state: RootState) => state.user.user);
     const menu: RefObject<Menu | null> = useRef<Menu>(null);
     const [signInModalVisible, setSignInModalVisible] = useState<boolean>(false);
     const items: MenuItem[] = [

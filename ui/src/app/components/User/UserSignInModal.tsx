@@ -3,9 +3,9 @@ import {InputText} from "primereact/inputtext";
 import * as React from "react";
 import {ChangeEvent, RefObject, useRef, useState} from "react";
 import {Button} from "primereact/button";
-import {ValidateUsernameAndPassword} from "./UserService.ts";
+import {ISignInResponse, ValidateUsernameAndPassword} from "./UserService.ts";
 import {useDispatch} from "react-redux";
-import {setSignedIn} from "./User.slice.ts";
+import {setSignedIn, setUser} from "./User.slice.ts";
 import {Messages} from "primereact/messages";
 
 interface IUserSignInModalProps {
@@ -24,12 +24,12 @@ export function UserSignInModal(props: IUserSignInModalProps) {
         setIsSigningIn(true);
         setSignInButtonLabel("Signing In...");
         ValidateUsernameAndPassword(username, password).subscribe({
-            next: () => {
-                setIsSigningIn(false);
+            next: (results: ISignInResponse) => {
                 setSignInButtonLabel("Sign In");
                 props.setVisible(false);
+                dispatch(setUser(results.user));
                 dispatch(setSignedIn(true));
-                console.log("Signed in");
+                console.log("Signed in as " + results.user.username);
             },
             error: (err) => {
                 showSignInMessage(err);
