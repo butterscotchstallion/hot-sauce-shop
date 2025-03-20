@@ -2,6 +2,7 @@ import {InputText} from "primereact/inputtext";
 import {IProduct} from "../Products/IProduct.ts";
 import {ReactElement, useEffect, useState} from "react";
 import {InputTextarea} from "primereact/inputtextarea";
+import SpiceRating from "../Products/SpiceRating.tsx";
 
 interface IAdminInventoryItemFormProps {
     product: IProduct | undefined;
@@ -12,6 +13,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
     const [productPrice, setProductPrice] = useState<number>(0);
     const [productShortDescription, setProductShortDescription] = useState<string>("");
     const [productDescription, setProductDescription] = useState<string>("");
+    const [spiceRating, setSpiceRating] = useState<number>(3);
 
     useEffect(() => {
         if (props.product) {
@@ -19,6 +21,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
             setProductPrice(props.product.price);
             setProductShortDescription(props.product.shortDescription);
             setProductDescription(props.product.description);
+            setSpiceRating(props.product.spiceRating);
         }
     }, [props.product]);
 
@@ -26,43 +29,48 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
         <>
             <section className="flex flex-col gap-4 w-full">
                 <section className="flex w-full">
-                    <div className="flex gap-10">
-                        <div>
+                    <div className="flex w-1/2 justify-between gap-10">
+                        <div className="w-full">
                             <label className="mb-2 block" htmlFor="name">Name</label>
                             <InputText value={productName} onChange={(e) => {
                                 setProductName(e.target.value)
                             }}/>
                         </div>
 
-                        <div>
-                            <label className="mb-2 block" htmlFor="shortDescription">Short Description</label>
-                            <InputTextarea rows={5} cols={30} value={productShortDescription} onChange={(e) => {
-                                setProductShortDescription(e.target.value)
-                            }}/>
+                        <div className="w-full">
+                            <label className="mb-2 block">Spice Rating</label>
+                            <SpiceRating rating={spiceRating} readOnly={false}/>
                         </div>
                     </div>
                 </section>
 
                 <section className="flex w-full">
                     <div className="flex gap-10">
-
-
-                        <div>
+                        <div className="w-full">
                             <label className="mb-2 block" htmlFor="price">Price</label>
                             <InputText value={productPrice.toString()} onChange={(e) => {
                                 setProductPrice(Number(e.target.value))
                             }}/>
                         </div>
+                    </div>
+                </section>
 
-                        <div>
-                            <label className="mb-2 block" htmlFor="description">Description</label>
-                            <InputTextarea rows={5} cols={30} value={productDescription} onChange={(e) => {
-                                setProductDescription(e.target.value)
-                            }}/>
-                        </div>
+                <section className="w-1/2 flex justify-between">
+                    <div>
+                        <label className="mb-2 block" htmlFor="shortDescription">Short Description</label>
+                        <InputTextarea rows={5} cols={30} value={productShortDescription} onChange={(e) => {
+                            setProductShortDescription(e.target.value)
+                        }}/>
+                    </div>
+                    <div>
+                        <label className="mb-2 block" htmlFor="description">Description</label>
+                        <InputTextarea rows={5} cols={30} value={productDescription} onChange={(e) => {
+                            setProductDescription(e.target.value)
+                        }}/>
                     </div>
                 </section>
             </section>
+
         </>
     )
 }
