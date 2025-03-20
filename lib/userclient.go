@@ -12,19 +12,21 @@ import (
 )
 
 type User struct {
-	Id             int       `json:"id"`
-	Username       string    `json:"username"`
-	Password       string    `json:"-"`
-	AvatarFilename string    `json:"avatarFilename"`
-	CreatedAt      time.Time `json:"createdAt"`
-	UpdatedAt      time.Time `json:"updatedAt"`
+	Id             int        `json:"id"`
+	Username       string     `json:"username"`
+	Password       string     `json:"-"`
+	AvatarFilename string     `json:"avatarFilename"`
+	CreatedAt      *time.Time `json:"createdAt"`
+	UpdatedAt      *time.Time `json:"updatedAt"`
 }
 
-func VerifyUsernameAndPassword(dbPool *pgxpool.Pool, logger *slog.Logger, username string, password string) (User, error) {
-	var user User
-	const query = `SELECT id, password FROM users WHERE username = $1`
-	row := dbPool.QueryRow(context.Background(), query, username)
-	err := row.Scan(&user.Id, &user.Password)
+func VerifyUsernameAndPasswordAndReturnUser(dbPool *pgxpool.Pool, logger *slog.Logger, username string, password string) (User, error) {
+	const query = `SELECT * FROM users WHERE username = $1`
+	row, err := dbPool.Query(context.Background(), query, username)
+	if err != nil {
+		return User{}, err
+	}
+	user, collectUserErr := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[User])
 	noRowsReturned := errors.Is(err, pgx.ErrNoRows)
 
 	logger.Info(fmt.Sprintf("Verifying username and password for username: %v", username))
@@ -34,8 +36,8 @@ func VerifyUsernameAndPassword(dbPool *pgxpool.Pool, logger *slog.Logger, userna
 		return user, nil
 	}
 
-	if err != nil {
-		logger.Error(fmt.Sprintf("Error running user query: %v", err))
+	if collectUserErr != nil {
+		logger.Error(fmt.Sprintf("Error collecting user row: %v", collectUserErr))
 		return user, err
 	}
 
@@ -65,7 +67,7 @@ func UserIdExists(dbPool *pgxpool.Pool, id int) (bool, error) {
 GetUserBySessionId
 - Filter non-expired sessions too
 */
-func GetUserBySessionId(dbPool *pgxpool.Pool, sessionId string) (User, error) {
+func GetUserBySessionId(dbPool *pgxpool.Pool, logger *slog.Logger, sessionId string) (User, error) {
 	const query = `
 		SELECT 
 		u.id, 
@@ -78,13 +80,17 @@ func GetUserBySessionId(dbPool *pgxpool.Pool, sessionId string) (User, error) {
 		JOIN user_sessions s ON u.id = s.user_id
 		WHERE 1=1
 		AND s.enabled = true
-		AND s.created_at < NOW() - INTERVAL '30 day'
+		AND s.created_at > NOW() - INTERVAL '30 day'
 		AND s.session_id = $1
 	`
-	row := dbPool.QueryRow(context.Background(), query, sessionId)
-	var user User
-	err := row.Scan(&user)
+	row, err := dbPool.Query(context.Background(), query, sessionId)
 	if err != nil {
+		logger.Error(fmt.Sprintf("Error running session query: %v", err))
+		return User{}, err
+	}
+	user, collectRowsErr := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[User])
+	if collectRowsErr != nil {
+		logger.Error(fmt.Sprintf("GetUserBySessionId: error collecting user: %v", collectRowsErr))
 		return User{}, err
 	}
 	return user, nil

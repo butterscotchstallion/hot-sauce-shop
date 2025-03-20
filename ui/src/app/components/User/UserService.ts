@@ -1,7 +1,10 @@
 import {SESSION_URL, USER_URL} from "../Shared/Api.ts";
-import {Subject} from "rxjs";
+import {Subject, Subscription} from "rxjs";
 import Cookies from "js-cookie";
 import {IUser} from "./IUser.ts";
+import {setSignedIn, setUser} from "./User.slice.ts";
+import {Dispatch, UnknownAction} from "@reduxjs/toolkit";
+import {useDispatch} from "react-redux";
 
 function setSessionCookie(sessionId: string) {
     Cookies.set("sessionId", sessionId, {
@@ -9,9 +12,28 @@ function setSessionCookie(sessionId: string) {
     });
 }
 
+function removeSessionCookie() {
+    Cookies.remove("sessionId");
+}
+
+export function getUserBySessionIdAndStore(dispatch: Dispatch<UnknownAction>): Subscription {
+    return getUserBySessionId().subscribe({
+        next: (user: IUser) => {
+            dispatch(setUser(user));
+            dispatch(setSignedIn(true));
+            console.info("Set user to " + user.username)
+        },
+        error: (err) => {
+            console.error("Error getting session from DB: " + err);
+        }
+    });
+}
+
 export function getUserBySessionId(): Subject<IUser> {
     const user$ = new Subject<IUser>();
-    fetch(`${SESSION_URL}`).then((res: Response) => {
+    fetch(`${SESSION_URL}`, {
+        credentials: 'include'
+    }).then((res: Response) => {
         if (res.ok) {
             res.json().then(resp => {
                 if (resp?.status === "OK") {
@@ -31,6 +53,7 @@ export function getUserBySessionId(): Subject<IUser> {
 
 export function ValidateUsernameAndPassword(username: string, password: string) {
     const validate$ = new Subject<boolean>();
+    const dispatch = useDispatch();
     fetch(`${USER_URL}/sign-in`, {
         method: 'POST',
         body: JSON.stringify({
@@ -41,8 +64,10 @@ export function ValidateUsernameAndPassword(username: string, password: string) 
         if (res.ok) {
             res.json().then(resp => {
                 if (resp?.status === "OK") {
-                    if (resp?.results?.sessionId) {
+                    if (resp?.results?.sessionId && resp?.results?.user) {
                         setSessionCookie(resp?.results?.sessionId);
+                        dispatch(setUser(resp?.results?.user));
+                        dispatch(setSignedIn(true));
                         validate$.next(true);
                     } else {
                         console.error("No session id returned from server");

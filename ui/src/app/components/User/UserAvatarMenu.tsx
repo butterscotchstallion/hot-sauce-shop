@@ -9,12 +9,14 @@ import {RootState} from "../../store.ts";
 
 export default function UserAvatarMenu() {
     const isSignedIn = useSelector((state: RootState) => state.user.isSignedIn);
-    const user = useSelector((state: RootState) => state.user);
+    const user = useSelector((state: RootState) => {
+        return state.user.user
+    });
     const menu: RefObject<Menu | null> = useRef<Menu>(null);
     const [signInModalVisible, setSignInModalVisible] = useState<boolean>(false);
     const items: MenuItem[] = [
         {
-            label: user ? "Signed in as " + user.username : "User menu",
+            label: user ? user.username : "User menu",
             items: [
                 {
                     label: 'Admin',

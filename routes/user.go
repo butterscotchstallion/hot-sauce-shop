@@ -26,7 +26,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			return
 		}
 
-		verifiedUser, errVerifying := lib.VerifyUsernameAndPassword(
+		verifiedUser, errVerifying := lib.VerifyUsernameAndPasswordAndReturnUser(
 			dbPool, logger, loginRequest.Username, loginRequest.Password,
 		)
 		if errVerifying != nil {
@@ -61,6 +61,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			"message": "Sign in successful",
 			"results": gin.H{
 				"sessionId": sessionId,
+				"user":      verifiedUser,
 			},
 		})
 	})
