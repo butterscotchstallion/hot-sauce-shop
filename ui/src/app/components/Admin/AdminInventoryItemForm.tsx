@@ -24,40 +24,44 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
 
     return (
         <>
-            <section className="flex flex-row w-full">
-                <div className="flex flex-col gap-4">
-                    <div>
-                        <label className="mb-2 block" htmlFor="name">Name</label>
-                        <InputText value={productName} onChange={(e) => {
-                            setProductName(e.target.value)
-                        }}/>
-                    </div>
+            <section className="flex flex-col gap-4 w-full">
+                <section className="flex w-full">
+                    <div className="flex gap-10">
+                        <div>
+                            <label className="mb-2 block" htmlFor="name">Name</label>
+                            <InputText value={productName} onChange={(e) => {
+                                setProductName(e.target.value)
+                            }}/>
+                        </div>
 
-                    <div>
-                        <label className="mb-2 block" htmlFor="price">Price</label>
-                        <InputText value={productPrice.toString()} onChange={(e) => {
-                            setProductPrice(Number(e.target.value))
-                        }}/>
+                        <div>
+                            <label className="mb-2 block" htmlFor="shortDescription">Short Description</label>
+                            <InputTextarea rows={5} cols={30} value={productShortDescription} onChange={(e) => {
+                                setProductShortDescription(e.target.value)
+                            }}/>
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <section className="flex">
-                <div className="flex gap-4">
-                    <div>
-                        <label className="mb-2 block" htmlFor="shortDescription">Short Description</label>
-                        <InputTextarea rows={5} cols={30} value={productShortDescription} onChange={(e) => {
-                            setProductShortDescription(e.target.value)
-                        }}/>
-                    </div>
+                <section className="flex w-full">
+                    <div className="flex gap-10">
 
-                    <div>
-                        <label className="mb-2 block" htmlFor="description">Description</label>
-                        <InputTextarea rows={5} cols={30} value={productDescription} onChange={(e) => {
-                            setProductDescription(e.target.value)
-                        }}/>
+
+                        <div>
+                            <label className="mb-2 block" htmlFor="price">Price</label>
+                            <InputText value={productPrice.toString()} onChange={(e) => {
+                                setProductPrice(Number(e.target.value))
+                            }}/>
+                        </div>
+
+                        <div>
+                            <label className="mb-2 block" htmlFor="description">Description</label>
+                            <InputTextarea rows={5} cols={30} value={productDescription} onChange={(e) => {
+                                setProductDescription(e.target.value)
+                            }}/>
+                        </div>
                     </div>
-                </div>
+                </section>
             </section>
         </>
     )
