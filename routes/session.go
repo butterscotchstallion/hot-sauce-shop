@@ -13,8 +13,6 @@ func Session(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	r.GET("/api/v1/session", func(c *gin.Context) {
 		sessionIdCookieValue, err := c.Cookie("sessionId")
 
-		logger.Info("sessionId from cookie: %v", sessionIdCookieValue)
-
 		if err != nil || sessionIdCookieValue == "" {
 			c.JSON(http.StatusOK, gin.H{
 				"status":  "ERROR",
@@ -22,8 +20,6 @@ func Session(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			})
 			return
 		}
-
-		logger.Info("Fetching session info for %v", sessionIdCookieValue)
 
 		user, getUserErr := lib.GetUserBySessionId(dbPool, logger, sessionIdCookieValue)
 

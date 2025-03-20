@@ -28,8 +28,6 @@ export default function AdminInventoryPage() {
 
     return (
         <>
-            <h1 className="font-bold text-2xl mb-4">Admin - Edit Product</h1>
-
             <section className="flex">
                 <AdminInventoryItemForm product={product}/>
             </section>

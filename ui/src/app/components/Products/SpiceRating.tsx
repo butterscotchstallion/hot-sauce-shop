@@ -5,6 +5,7 @@ import {Nullable} from "primereact/ts-helpers";
 interface ISpiceRatingProps {
     rating: number;
     readOnly?: boolean;
+    onChange?: (value: number) => void;
 }
 
 export default function SpiceRating(props: ISpiceRatingProps) {
@@ -13,6 +14,9 @@ export default function SpiceRating(props: ISpiceRatingProps) {
     const updateRating = (value: Nullable<number>) => {
         if (value && !props.readOnly) {
             setRating(value);
+            if (props.onChange) {
+                props.onChange(value);
+            }
         }
     }
 
