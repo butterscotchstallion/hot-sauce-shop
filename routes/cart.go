@@ -10,13 +10,16 @@ import (
 	"hotsauceshop/lib"
 )
 
-const USER_ID = 1
-
 func Cart(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	r.GET("/api/v1/cart", func(c *gin.Context) {
 		var res gin.H
 
-		cartItems, err := lib.GetCartItems(dbPool)
+		userId, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
+		if userSessionErr != nil || userId == 0 {
+			return
+		}
+
+		cartItems, err := lib.GetCartItems(dbPool, userId)
 		if err != nil {
 			res = gin.H{
 				"status":  "ERROR",
@@ -51,6 +54,11 @@ func Cart(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			return
 		}
 
+		userId, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
+		if userSessionErr != nil || userId == 0 {
+			return
+		}
+
 		// Create cart item
 		err := lib.UpdateCart(dbPool, logger, newCart)
 		if err != nil {
@@ -77,13 +85,8 @@ func Cart(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			return
 		}
 
-		userId, err := lib.GetUserIdFromSession(c, dbPool, logger)
+		userId, err := GetUserIdFromSessionOrError(c, dbPool, logger)
 		if err != nil || userId == 0 {
-			logger.Error(err.Error())
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status":  "ERROR",
-				"message": err.Error(),
-			})
 			return
 		}
 

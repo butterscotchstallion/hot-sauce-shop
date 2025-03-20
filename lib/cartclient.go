@@ -33,14 +33,15 @@ type DeleteCartItemRequest struct {
 	InventoryItemId int `json:"inventoryItemId"`
 }
 
-func GetCartItems(dbPool *pgxpool.Pool) ([]CartItem, error) {
+func GetCartItems(dbPool *pgxpool.Pool, userId int) ([]CartItem, error) {
 	const query = `
 		SELECT ci.*, i.price, i.name 
 		FROM cart_items ci
 		JOIN inventories i ON ci.inventory_item_id = i.id
+		WHERE ci.user_id = $1
 		ORDER BY ci.updated_at, ci.created_at DESC
 	`
-	rows, err := dbPool.Query(context.Background(), query)
+	rows, err := dbPool.Query(context.Background(), query, userId)
 	if err != nil {
 		return nil, err
 	}

@@ -14,6 +14,22 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+func GetUserIdFromSessionOrError(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (int, error) {
+	userId, err := lib.GetUserIdFromSession(c, dbPool, logger)
+	if err != nil || userId == 0 {
+		if err != nil {
+			logger.Error(err.Error())
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"status":  "ERROR",
+				"message": err.Error(),
+			})
+			return 0, err
+		}
+		return 0, nil
+	}
+	return userId, nil
+}
+
 func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	r.POST("/api/v1/user/sign-in", func(c *gin.Context) {
 		loginRequest := LoginRequest{}

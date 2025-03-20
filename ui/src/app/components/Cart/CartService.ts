@@ -6,7 +6,9 @@ import {IDeleteCartItemRequest} from "./IDeleteCartItemRequest.ts";
 
 export function getCartItems(): Subject<ICart[]> {
     const cartItems$ = new Subject<ICart[]>();
-    fetch(CART_URL).then((res: Response) => {
+    fetch(CART_URL, {
+        credentials: 'include',
+    }).then((res: Response) => {
         if (res.ok) {
             res.json().then(resp => {
                 cartItems$.next(resp?.results.cartItems || null)
