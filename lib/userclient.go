@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -96,10 +97,22 @@ func GetUserBySessionId(dbPool *pgxpool.Pool, logger *slog.Logger, sessionId str
 	return user, nil
 }
 
-/*
-GetUserIdFromSession
-Placeholder until user system is implemented
-*/
-func GetUserIdFromSession() int {
-	return 1
+func GetUserIdFromSession(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (int, error) {
+	sessionIdCookieValue, err := c.Cookie("sessionId")
+
+	logger.Info("sessionId from cookie: %v", sessionIdCookieValue)
+
+	if err != nil || sessionIdCookieValue == "" {
+		return 0, err
+	}
+
+	logger.Info("Fetching session info for %v", sessionIdCookieValue)
+
+	user, getUserErr := GetUserBySessionId(dbPool, logger, sessionIdCookieValue)
+
+	if getUserErr != nil || user == (User{}) {
+		return 0, getUserErr
+	}
+
+	return user.Id, nil
 }

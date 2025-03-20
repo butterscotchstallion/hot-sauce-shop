@@ -32,6 +32,7 @@ export function addCartItem(addCartItemRequest: IAddCartItemRequest): Subject<bo
     fetch(CART_URL, {
         method: 'POST',
         body: JSON.stringify(addCartItemRequest),
+        credentials: 'include',
         headers: {
             'Content-Type': 'application/json'
         }
@@ -58,6 +59,7 @@ export function deleteCartItem(deleteCartItemRequest: IDeleteCartItemRequest): S
     fetch(CART_URL, {
         method: 'DELETE',
         body: JSON.stringify(deleteCartItemRequest),
+        credentials: 'include',
         headers: {
             'Content-Type': 'application/json'
         }

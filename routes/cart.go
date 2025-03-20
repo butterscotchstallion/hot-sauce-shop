@@ -77,7 +77,16 @@ func Cart(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			return
 		}
 
-		userId := lib.GetUserIdFromSession()
+		userId, err := lib.GetUserIdFromSession(c, dbPool, logger)
+		if err != nil || userId == 0 {
+			logger.Error(err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": err.Error(),
+			})
+			return
+		}
+
 		deleteErr := lib.DeleteCartItem(dbPool, deleteRequest.InventoryItemId, userId)
 		if deleteErr != nil {
 			logger.Error(deleteErr.Error())
