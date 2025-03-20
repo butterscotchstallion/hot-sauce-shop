@@ -15,8 +15,8 @@ interface IUserSignInModalProps {
 
 export function UserSignInModal(props: IUserSignInModalProps) {
     const dispatch = useDispatch();
-    const [username, setUsername] = useState<string>("test");
-    const [password, setPassword] = useState<string>("test");
+    const [username, setUsername] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
     const [isSigningIn, setIsSigningIn] = useState<boolean>(false);
     const msgs: RefObject<Messages | null> = useRef<Messages>(null);
     const [signInButtonLabel, setSignInButtonLabel] = useState<string>("Sign In");
