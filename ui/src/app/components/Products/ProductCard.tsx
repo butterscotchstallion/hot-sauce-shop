@@ -67,7 +67,7 @@ export default function ProductCard(props: IProductCardProps) {
                     <p className="pb-4">{props.product.shortDescription}</p>
 
                     <section className="mb-4">
-                        <SpiceRating rating={props.product.spiceRating}/>
+                        <SpiceRating rating={props.product.spiceRating} readOnly={true}/>
                     </section>
                 </NavLink>
 

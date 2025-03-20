@@ -19,7 +19,7 @@ export default function ProductDetailPage() {
         id: 1,
         comment: "This is a review",
         rating: 5,
-        name: "John Doe",
+        name: "Jane Doe",
         title: "Great product",
     }
     useEffect(() => {
