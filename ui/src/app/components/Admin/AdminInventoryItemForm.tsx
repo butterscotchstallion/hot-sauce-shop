@@ -1,25 +1,22 @@
 import {InputText} from "primereact/inputtext";
 import {IProduct} from "../Products/IProduct.ts";
-import {ReactElement, useEffect, useState} from "react";
+import {FormEvent, ReactElement, useEffect, useState} from "react";
 import {InputTextarea} from "primereact/inputtextarea";
 import SpiceRating from "../Products/SpiceRating.tsx";
 import {Button} from "primereact/button";
 import {Card} from "primereact/card";
 import {NavigateFunction, useNavigate} from "react-router";
-import {Controller, SubmitHandler, useForm} from "react-hook-form";
 import {ProductSchema} from "../Products/ProductSchema.ts";
-import {zodResolver} from "@hookform/resolvers/zod";
+// ZodError is used in an exception not but detected for some reason
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import {z, ZodError, ZodIssue} from "zod";
 
 interface IAdminInventoryItemFormProps {
     product: IProduct | undefined;
 }
 
-type IAdminInventoryItemFormInput = {
-    name: string
-    price: number
-    shortDescription: string
-    description: string
-    spiceRating: number
+interface IFormErrata {
+    [key: string]: string
 }
 
 export default function AdminInventoryItemForm(props: IAdminInventoryItemFormProps): ReactElement {
@@ -30,15 +27,44 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
     const [spiceRating, setSpiceRating] = useState<number>(3);
     const [productSlug, setProductSlug] = useState<string>("");
     const navigate: NavigateFunction = useNavigate();
-    const {
-        handleSubmit,
-        control,
-        formState: {errors},
-    } = useForm<IAdminInventoryItemFormInput>({
-        resolver: zodResolver(ProductSchema),
-    });
-    const onSubmit: SubmitHandler<IAdminInventoryItemFormInput> = (data: IAdminInventoryItemFormInput) => {
-        console.log(data)
+    const defaultErrata: IFormErrata = {
+        name: '',
+        description: '',
+        shortDescription: '',
+        price: '',
+        spiceRating: ''
+    };
+    const [formErrata, setFormErrata] = useState<IFormErrata>(defaultErrata);
+    const resetErrata = () => {
+        setFormErrata(defaultErrata);
+    }
+    const validate = () => {
+        try {
+            ProductSchema.parse({
+                name: productName,
+                price: productPrice,
+                shortDescription: productShortDescription,
+                description: productDescription,
+                spiceRating: spiceRating,
+                slug: productSlug,
+            });
+            resetErrata();
+
+            console.log("Form is valid");
+        } catch (err: ZodError | unknown) {
+            //console.error(err);
+            if (err instanceof z.ZodError) {
+                const newErrata: IFormErrata = {...formErrata};
+                err.issues.forEach((issue: ZodIssue) => {
+                    newErrata[issue.path[0]] = issue.message;
+                });
+                setFormErrata(newErrata);
+            }
+        }
+    }
+    const onSubmit = (event: FormEvent<HTMLElement>) => {
+        event.preventDefault();
+        validate();
     }
 
     useEffect(() => {
@@ -62,7 +88,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
 
     return (
         <>
-            <form onSubmit={handleSubmit(onSubmit)} className="w-full m-0 p-0">
+            <form onSubmit={onSubmit} className="w-full m-0 p-0">
                 <section className="flex flex-col gap-4 w-full">
                     <section className="flex w-full justify-between">
                         <h1 className="font-bold text-2xl mb-4">Editing {productName}</h1>
@@ -81,23 +107,15 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                                 <div className="flex w-1/2 justify-between gap-10">
                                     <div className="w-full mb-4">
                                         <label className="mb-2 block" htmlFor="name">Name</label>
-                                        <Controller
-                                            name="name"
-                                            control={control}
-                                            render={({field}) => {
-                                                return <>
-                                                    <InputText
-                                                        className="w-full"
-                                                        {...field}
-                                                        value={productName}
-                                                        invalid={!!errors.name?.message}
-                                                        onChange={(e) => {
-                                                            setProductName(e.target.value)
-                                                        }}/>
-                                                </>
+                                        <InputText
+                                            className="w-full"
+                                            value={productName}
+                                            invalid={!!formErrata.name}
+                                            onChange={(e) => {
+                                                setProductName(e.target.value)
                                             }}
                                         />
-                                        <p>{errors.name && errors.name.message}</p>
+                                        <p className="text-red-500 pt-2">{formErrata.name}</p>
                                     </div>
 
                                     <div className="w-full">
@@ -115,9 +133,13 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                                 <div className="flex gap-10">
                                     <div className="w-full mb-4">
                                         <label className="mb-2 block" htmlFor="price">Price</label>
-                                        <InputText type="number" value={productPrice.toString()} onChange={(e) => {
-                                            setProductPrice(Number(e.target.value))
-                                        }}/>
+                                        <InputText
+                                            type="number"
+                                            value={productPrice.toString()}
+                                            onChange={(e) => {
+                                                setProductPrice(Number(e.target.value))
+                                            }}/>
+                                        <p className="text-red-500 pt-2">{formErrata.price}</p>
                                     </div>
                                 </div>
                             </section>
@@ -128,12 +150,14 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                                     <InputTextarea rows={5} cols={30} value={productShortDescription} onChange={(e) => {
                                         setProductShortDescription(e.target.value)
                                     }}/>
+                                    <p className="text-red-500 pt-2">{formErrata.shortDescription}</p>
                                 </div>
                                 <div>
                                     <label className="mb-2 block" htmlFor="description">Description</label>
                                     <InputTextarea rows={5} cols={30} value={productDescription} onChange={(e) => {
                                         setProductDescription(e.target.value)
                                     }}/>
+                                    <p className="text-red-500 pt-2">{formErrata.description}</p>
                                 </div>
                             </section>
                         </Card>

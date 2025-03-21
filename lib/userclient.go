@@ -100,13 +100,9 @@ func GetUserBySessionId(dbPool *pgxpool.Pool, logger *slog.Logger, sessionId str
 func GetUserIdFromSession(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (int, error) {
 	sessionIdCookieValue, err := c.Cookie("sessionId")
 
-	logger.Info("sessionId from cookie: %v", sessionIdCookieValue)
-
 	if err != nil || sessionIdCookieValue == "" {
 		return 0, err
 	}
-
-	logger.Info("Fetching session info for %v", sessionIdCookieValue)
 
 	user, getUserErr := GetUserBySessionId(dbPool, logger, sessionIdCookieValue)
 
