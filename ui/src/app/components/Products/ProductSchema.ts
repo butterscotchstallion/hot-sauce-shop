@@ -6,4 +6,4 @@ export const ProductSchema = z.object({
     description: z.string().min(3, {message: "Description must be at least 3 characters"}).max(1000000),
     shortDescription: z.string().min(3, {message: "Short description must be at least 3 characters"}).max(1000),
     spiceRating: z.number().min(1).max(5),
-})
+});

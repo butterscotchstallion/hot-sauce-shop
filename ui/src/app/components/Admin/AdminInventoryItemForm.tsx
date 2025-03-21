@@ -1,6 +1,6 @@
 import {InputText} from "primereact/inputtext";
 import {IProduct} from "../Products/IProduct.ts";
-import {FormEvent, ReactElement, useEffect, useState} from "react";
+import {FormEvent, ReactElement, RefObject, useEffect, useRef, useState} from "react";
 import {InputTextarea} from "primereact/inputtextarea";
 import SpiceRating from "../Products/SpiceRating.tsx";
 import {Button} from "primereact/button";
@@ -10,6 +10,8 @@ import {ProductSchema} from "../Products/ProductSchema.ts";
 // ZodError is used in an exception not but detected for some reason
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {z, ZodError, ZodIssue} from "zod";
+import {updateItem} from "../Products/ProductService.ts";
+import {Toast} from "primereact/toast";
 
 interface IAdminInventoryItemFormProps {
     product: IProduct | undefined;
@@ -20,6 +22,7 @@ interface IFormErrata {
 }
 
 export default function AdminInventoryItemForm(props: IAdminInventoryItemFormProps): ReactElement {
+    const toast: RefObject<Toast | null> = useRef<Toast>(null);
     const [productName, setProductName] = useState<string>("");
     const [productPrice, setProductPrice] = useState<number>(0);
     const [productShortDescription, setProductShortDescription] = useState<string>("");
@@ -38,7 +41,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
     const resetErrata = () => {
         setFormErrata(defaultErrata);
     }
-    const validate = () => {
+    const validate = (): boolean => {
         try {
             ProductSchema.parse({
                 name: productName,
@@ -51,6 +54,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
             resetErrata();
 
             console.log("Form is valid");
+            return true;
         } catch (err: ZodError | unknown) {
             //console.error(err);
             if (err instanceof z.ZodError) {
@@ -60,11 +64,48 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                 });
                 setFormErrata(newErrata);
             }
+            return false;
         }
     }
+
     const onSubmit = (event: FormEvent<HTMLElement>) => {
         event.preventDefault();
-        validate();
+        const valid: boolean = validate();
+
+        if (valid) {
+            const product: IProduct = {
+                id: props.product?.id,
+                slug: productSlug,
+                name: productName,
+                description: productDescription,
+                shortDescription: productShortDescription,
+                price: productPrice,
+                spiceRating: spiceRating,
+            }
+            updateItem(product).subscribe({
+                next: () => {
+                    if (toast.current) {
+                        toast?.current.show({
+                            severity: 'success',
+                            summary: 'Success',
+                            detail: 'Product updated successfully',
+                            life: 3000,
+                        })
+                    }
+                },
+                error: (err) => {
+                    console.log(err);
+                    if (toast.current) {
+                        toast?.current.show({
+                            severity: 'error',
+                            summary: 'Error',
+                            detail: 'Error updating product: ' + err + '.',
+                            life: 3000,
+                        })
+                    }
+                }
+            });
+        }
     }
 
     useEffect(() => {
@@ -179,6 +220,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                     </section>
                 </section>
             </form>
+            <Toast ref={toast}/>
         </>
     )
 }
