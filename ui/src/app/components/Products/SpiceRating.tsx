@@ -22,7 +22,7 @@ export default function SpiceRating(props: ISpiceRatingProps) {
 
     return (
         <Rating value={rating}
-                readOnly={props.readOnly}
+                readOnly={props.readOnly === undefined ? true : props.readOnly}
                 cancel={false}
                 title={`Spice Rating: ${props.rating}/5`}
                 onChange={(e: RatingChangeEvent) => updateRating(e.value)}
