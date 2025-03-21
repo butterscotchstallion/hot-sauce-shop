@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@hookform/resolvers": "^4.1.3",
     "@reduxjs/toolkit": "^2.6.1",
     "@tailwindcss/vite": "^4.0.9",
     "@types/react-redux": "^7.1.34",
@@ -17,9 +18,11 @@
     "primereact": "^10.9.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hook-form": "^7.54.2",
     "react-redux": "^9.2.0",
     "react-router": "^7.3.0",
-    "tailwindcss": "^4.0.9"
+    "tailwindcss": "^4.0.9",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

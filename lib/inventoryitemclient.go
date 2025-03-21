@@ -27,6 +27,40 @@ type ProductAutocompleteSuggestion struct {
 	Slug string `json:"slug"`
 }
 
+func AddOrUpdateInventoryItem(dbPool *pgxpool.Pool, logger *slog.Logger, inventoryItem InventoryItem) (int, error) {
+	const query = `
+		INSERT INTO inventories (
+			name,
+			description,
+			short_description,
+			slug,
+			price,
+			spice_rating
+		)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		ON CONFLICT (slug) DO UPDATE SET 
+		name = $1, description = $2, short_description = $3,
+		slug = $4, price = $5, spice_rating = $6, updated_at = NOW()
+		RETURNING id
+	`
+	var id int
+	err := dbPool.QueryRow(
+		context.Background(),
+		query,
+		inventoryItem.Name,
+		inventoryItem.Description,
+		inventoryItem.ShortDescription,
+		inventoryItem.Slug,
+		inventoryItem.Price,
+		inventoryItem.SpiceRating,
+	).Scan(&id)
+	if err != nil {
+		logger.Error(fmt.Sprintf("AddOrUpdateInventoryItem: Error adding/updating inventory item: %v", err))
+		return 0, err
+	}
+	return id, nil
+}
+
 func GetInventoryItemsOrderedBySortKey(
 	dbPool *pgxpool.Pool, logger *slog.Logger, limit int, offset int, sort string,
 	tagIds []int,

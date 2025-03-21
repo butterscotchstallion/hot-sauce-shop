@@ -21,7 +21,7 @@ export const userSlice: Slice = createSlice({
         setUser: (state, action) => {
             state.user = action.payload;
         },
-        setSignedOut: (state, action) => {
+        setSignedOut: (state, _) => {
             state.user = null;
             state.isSignedIn = false;
         }

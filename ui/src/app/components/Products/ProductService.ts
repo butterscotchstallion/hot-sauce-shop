@@ -59,3 +59,51 @@ export function getProductAutocompleteSuggestions(query: string): Subject<IAutoc
     });
     return autocomplete$;
 }
+
+export function updateItem(product: IProduct): Subject<boolean> {
+    const updateItem$ = new Subject<boolean>();
+    fetch(`${PRODUCTS_URL}/${product.slug}`, {
+        method: 'PUT',
+        body: JSON.stringify(product),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                if (resp?.status === "OK") {
+                    updateItem$.next(true);
+                } else {
+                    updateItem$.error(resp?.message || "Unknown error");
+                }
+            });
+        } else {
+            updateItem$.error(res.statusText);
+        }
+    }).catch((err) => {
+        updateItem$.error(err);
+    })
+    return updateItem$;
+}
+
+export function addItem(product: IProduct): Subject<boolean> {
+    const addItem$ = new Subject<boolean>();
+    fetch(PRODUCTS_URL, {
+        method: 'POST',
+        body: JSON.stringify(product),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                if (resp?.status === "OK") {
+                    addItem$.next(true);
+                } else {
+                    addItem$.error(resp?.message || "Unknown error");
+                }
+            });
+        }
+    });
+    return addItem$;
+}

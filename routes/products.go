@@ -10,10 +10,21 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/gosimple/slug"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"hotsauceshop/lib"
-	_ "hotsauceshop/lib"
 )
+
+type InventoryItemUpdateRequest struct {
+	Name             string  `json:"name" validate:"required,min=3,max=255"`
+	Slug             string  `json:"slug" validate:"required,min=3,max=255"`
+	Price            float32 `json:"price" validate:"required,min=0.01,max=999999.99"`
+	SpiceRating      int     `json:"spiceRating" validate:"required,min=1,max=5"`
+	TagIds           []int   `json:"tags"`
+	Description      string  `json:"description" validate:"required,min=3,max=1000000"`
+	ShortDescription string  `json:"shortDescription" validate:"required,min=3,max=1000"`
+}
 
 func toIntArray(str string) []int {
 	chunks := strings.Split(str, ",")
@@ -134,6 +145,73 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			"status": "OK",
 			"results": gin.H{
 				"suggestions": suggestions,
+			},
+		})
+	})
+
+	r.PUT("/api/v1/products/:slug", func(c *gin.Context) {
+		itemUpdateRequest := InventoryItemUpdateRequest{}
+		if err := c.ShouldBindJSON(&itemUpdateRequest); err != nil {
+			logger.Error(err.Error())
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "ERROR",
+				"message": "Malformed request body.",
+			})
+			return
+		}
+
+		validate := validator.New(validator.WithRequiredStructEnabled())
+		err := validate.Struct(itemUpdateRequest)
+		if err != nil {
+			logger.Error(err.Error())
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "ERROR",
+				"message": fmt.Sprintf("Validation failed: %v", err),
+			})
+			return
+		}
+
+		urlSlug := c.Param("slug")
+		item, itemErr := lib.GetInventoryItemBySlug(dbPool, urlSlug)
+		if itemErr != nil {
+			logger.Error(itemErr.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": "Error fetching inventory item.",
+			})
+			return
+		}
+
+		if item == (lib.InventoryItem{}) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"status":  "ERROR",
+				"message": "Inventory item not found.",
+			})
+			return
+		}
+
+		item.Name = itemUpdateRequest.Name
+		item.Price = itemUpdateRequest.Price
+		item.SpiceRating = itemUpdateRequest.SpiceRating
+		item.Description = itemUpdateRequest.Description
+		item.ShortDescription = itemUpdateRequest.ShortDescription
+		item.Slug = slug.Make(itemUpdateRequest.Name)
+
+		itemId, addUpdateItemErr := lib.AddOrUpdateInventoryItem(dbPool, logger, item)
+		if addUpdateItemErr != nil {
+			logger.Error(addUpdateItemErr.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": "Error updating inventory item.",
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "OK",
+			"message": "Inventory item updated.",
+			"results": gin.H{
+				"inventoryItemId": itemId,
 			},
 		})
 	})
