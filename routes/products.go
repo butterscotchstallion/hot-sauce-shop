@@ -41,7 +41,7 @@ func toIntArray(str string) []int {
 
 func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	r.GET("/api/v1/products/:slug", func(c *gin.Context) {
-		urlSlug := c.Param("urlSslug")
+		urlSlug := c.Param("slug")
 		var res gin.H
 		if len(urlSlug) > 0 {
 			product, err := lib.GetInventoryItemBySlug(dbPool, urlSlug)

@@ -162,8 +162,13 @@ func GetInventoryItemBySlug(dbPool *pgxpool.Pool, slug string) (InventoryItem, e
 		return inventoryItem, err
 	}
 	inventoryItems, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[InventoryItem])
+
 	if collectRowsErr != nil {
-		return inventoryItems[0], collectRowsErr
+		return inventoryItem, collectRowsErr
+	}
+
+	if len(inventoryItems) == 0 {
+		return inventoryItem, fmt.Errorf("inventory item not found")
 	}
 
 	return inventoryItems[0], nil
