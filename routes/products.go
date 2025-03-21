@@ -41,10 +41,10 @@ func toIntArray(str string) []int {
 
 func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	r.GET("/api/v1/products/:slug", func(c *gin.Context) {
-		slug := c.Param("slug")
+		urlSlug := c.Param("urlSslug")
 		var res gin.H
-		if len(slug) > 0 {
-			product, err := lib.GetInventoryItemBySlug(dbPool, slug)
+		if len(urlSlug) > 0 {
+			product, err := lib.GetInventoryItemBySlug(dbPool, urlSlug)
 			if err != nil {
 				logger.Error(fmt.Sprintf("Error fetching product: %v", err))
 				res = gin.H{
