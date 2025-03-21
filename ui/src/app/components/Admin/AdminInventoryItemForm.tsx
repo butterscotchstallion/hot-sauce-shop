@@ -112,7 +112,8 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                                             value={productName}
                                             invalid={!!formErrata.name}
                                             onChange={(e) => {
-                                                setProductName(e.target.value)
+                                                setProductName(e.target.value);
+                                                validate();
                                             }}
                                         />
                                         <p className="text-red-500 pt-2">{formErrata.name}</p>
@@ -135,9 +136,11 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                                         <label className="mb-2 block" htmlFor="price">Price</label>
                                         <InputText
                                             type="number"
+                                            invalid={!!formErrata.price}
                                             value={productPrice.toString()}
                                             onChange={(e) => {
-                                                setProductPrice(Number(e.target.value))
+                                                setProductPrice(Number(e.target.value));
+                                                validate();
                                             }}/>
                                         <p className="text-red-500 pt-2">{formErrata.price}</p>
                                     </div>
@@ -147,16 +150,28 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                             <section className="w-1/2 flex justify-between">
                                 <div>
                                     <label className="mb-2 block" htmlFor="shortDescription">Short Description</label>
-                                    <InputTextarea rows={5} cols={30} value={productShortDescription} onChange={(e) => {
-                                        setProductShortDescription(e.target.value)
-                                    }}/>
+                                    <InputTextarea
+                                        invalid={!!formErrata.shortDescription}
+                                        rows={5}
+                                        cols={30}
+                                        value={productShortDescription}
+                                        onChange={(e) => {
+                                            setProductShortDescription(e.target.value);
+                                            validate();
+                                        }}/>
                                     <p className="text-red-500 pt-2">{formErrata.shortDescription}</p>
                                 </div>
                                 <div>
                                     <label className="mb-2 block" htmlFor="description">Description</label>
-                                    <InputTextarea rows={5} cols={30} value={productDescription} onChange={(e) => {
-                                        setProductDescription(e.target.value)
-                                    }}/>
+                                    <InputTextarea
+                                        invalid={!!formErrata.description}
+                                        rows={5}
+                                        cols={30}
+                                        value={productDescription}
+                                        onChange={(e) => {
+                                            setProductDescription(e.target.value);
+                                            validate();
+                                        }}/>
                                     <p className="text-red-500 pt-2">{formErrata.description}</p>
                                 </div>
                             </section>
