@@ -53,7 +53,6 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
             });
             resetErrata();
 
-            console.log("Form is valid");
             return true;
         } catch (err: ZodError | unknown) {
             //console.error(err);
