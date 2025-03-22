@@ -2,6 +2,7 @@ package routes
 
 import (
 	"log/slog"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -13,10 +14,18 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func WS(r *gin.Engine, logger *slog.Logger) {
+func WS(r *gin.Engine, wsConn *websocket.Conn, logger *slog.Logger) {
 	r.GET("/ws", func(c *gin.Context) {
-		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+		var err error
+		upgrader.CheckOrigin = func(r *http.Request) bool {
+			if c.Request.Header.Get("Origin") != "http://localhost:5173" {
+				return false
+			}
+			return true
+		}
+		wsConn, err = upgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
+			logger.Error(err.Error())
 			return
 		}
 		defer func(conn *websocket.Conn) {
@@ -24,10 +33,11 @@ func WS(r *gin.Engine, logger *slog.Logger) {
 			if err != nil {
 				logger.Error(err.Error())
 			}
-		}(conn)
+		}(wsConn)
 		for {
-			err := conn.WriteMessage(websocket.TextMessage, []byte("Hello, WebSocket!"))
+			err := wsConn.WriteMessage(websocket.TextMessage, []byte("Hello, WebSocket!"))
 			if err != nil {
+				logger.Error(err.Error())
 				return
 			}
 			time.Sleep(time.Second)

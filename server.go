@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"hotsauceshop/routes"
 )
@@ -33,12 +34,13 @@ func main() {
 
 	r := gin.Default()
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	var wsConn *websocket.Conn
+	routes.WS(r, wsConn, logger)
 	routes.Products(r, dbPool, logger)
 	routes.Tags(r, dbPool)
 	routes.Cart(r, dbPool, logger)
 	routes.User(r, dbPool, logger)
 	routes.Session(r, dbPool, logger)
-	routes.WS(r, logger)
 
 	err := r.Run("localhost:8081")
 	if err != nil {
