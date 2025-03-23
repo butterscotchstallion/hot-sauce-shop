@@ -126,6 +126,10 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
         }
     }
 
+    const goToNewProductPage = () => {
+        navigate('/admin/add-product');
+    }
+
     return (
         <>
             <form onSubmit={onSubmit} className="w-full m-0 p-0">

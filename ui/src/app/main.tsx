@@ -22,6 +22,7 @@ createRoot(document.getElementById('root')!).render(
                     <Route path="products/:slug" element={<ProductDetailPage/>}/>
                     <Route path="admin" element={<AdminPage/>}/>
                     <Route path="admin/products/:slug" element={<AdminInventoryPage/>}/>
+                    <Route path="admin/add-product" element={<AdminInventoryPage/>}/>
                 </Route>
                 <Route path="*" element={<Navigate to="/"/>}/>
             </Routes>
