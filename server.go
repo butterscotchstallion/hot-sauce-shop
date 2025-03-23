@@ -36,14 +36,25 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 	var wsConn *websocket.Conn
 	routes.WS(r, wsConn, logger)
-	routes.Products(r, dbPool, logger)
+	routes.Products(r, dbPool, wsConn, logger)
 	routes.Tags(r, dbPool)
 	routes.Cart(r, dbPool, logger)
 	routes.User(r, dbPool, logger)
 	routes.Session(r, dbPool, logger)
 
+	defer func(conn *websocket.Conn) {
+		err := conn.Close()
+		if err != nil {
+			logger.Error(err.Error())
+		}
+	}(wsConn)
+
 	err := r.Run("localhost:8081")
 	if err != nil {
 		log.Fatalf("Error starting server: %v", err)
 	}
+}
+
+func setUpEventBus() {
+
 }

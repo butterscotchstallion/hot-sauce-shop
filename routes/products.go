@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/gorilla/websocket"
 	"github.com/gosimple/slug"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"hotsauceshop/lib"
@@ -39,7 +40,7 @@ func toIntArray(str string) []int {
 	return res
 }
 
-func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
+func Products(r *gin.Engine, dbPool *pgxpool.Pool, wsConn *websocket.Conn, logger *slog.Logger) {
 	r.GET("/api/v1/products/:slug", func(c *gin.Context) {
 		urlSlug := c.Param("slug")
 		var res gin.H
@@ -205,6 +206,20 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 				"message": "Error updating inventory item.",
 			})
 			return
+		}
+
+		if wsConn != nil {
+			wsNotificationErr := wsConn.WriteJSON(gin.H{
+				"type": "inventory_item_updated",
+				"data": gin.H{
+					"inventoryItemId": itemId,
+				},
+			})
+			if wsNotificationErr != nil {
+				logger.Error(wsNotificationErr.Error())
+			}
+		} else {
+			logger.Error("Websocket connection is nil")
 		}
 
 		c.JSON(http.StatusOK, gin.H{

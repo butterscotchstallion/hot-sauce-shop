@@ -5,7 +5,9 @@ import {Button} from "primereact/button";
 export function WS() {
     const [socketUrl] = useState('ws://localhost:8081/ws');
     const [messageHistory, setMessageHistory] = useState<MessageEvent<never>[]>([]);
-    const {sendMessage, lastMessage, readyState} = useWebSocket(socketUrl);
+    const {sendMessage, lastMessage, readyState} = useWebSocket(socketUrl, {
+        shouldReconnect: () => true,
+    });
     const handleClickSendMessage = useCallback(() => sendMessage('Hello'), [sendMessage]);
     const connectionStatus: string = {
         [ReadyState.CONNECTING]: 'Connecting',

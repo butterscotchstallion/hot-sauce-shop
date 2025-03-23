@@ -3,7 +3,6 @@ package routes
 import (
 	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -28,19 +27,20 @@ func WS(r *gin.Engine, wsConn *websocket.Conn, logger *slog.Logger) {
 			logger.Error(err.Error())
 			return
 		}
-		defer func(conn *websocket.Conn) {
-			err := conn.Close()
-			if err != nil {
-				logger.Error(err.Error())
-			}
-		}(wsConn)
-		for {
-			err := wsConn.WriteMessage(websocket.TextMessage, []byte("Hello, WebSocket!"))
-			if err != nil {
-				logger.Error(err.Error())
-				return
-			}
-			time.Sleep(time.Second)
+
+		err = wsConn.WriteMessage(websocket.TextMessage, []byte("Hello, WebSocket!"))
+		if err != nil {
+			logger.Error(err.Error())
+			return
 		}
+		/*
+			for {
+				err := wsConn.WriteMessage(websocket.TextMessage, []byte("Hello, WebSocket!"))
+				if err != nil {
+					logger.Error(err.Error())
+					return
+				}
+				time.Sleep(time.Second)
+			}*/
 	})
 }

@@ -132,7 +132,12 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                 <section className="flex flex-col gap-4 w-full">
                     <section className="flex w-full justify-between">
                         <h1 className="font-bold text-2xl mb-4">Editing {productName}</h1>
-                        <div className="flex justify-end w-[300px] gap-4">
+                        <div className="flex justify-end w-[500px] gap-4">
+                            <Button type="button"
+                                    label="Add Product"
+                                    icon="pi pi-plus"
+                                    severity="info"
+                                    onClick={() => goToNewProductPage()}/>
                             <Button type="button"
                                     label="View Product"
                                     icon="pi pi-eye"
