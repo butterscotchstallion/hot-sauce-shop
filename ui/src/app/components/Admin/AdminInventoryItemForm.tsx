@@ -74,7 +74,6 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
 
         if (valid) {
             const product: IProduct = {
-                id: props.product?.id,
                 slug: productSlug,
                 name: productName,
                 description: productDescription,
@@ -82,7 +81,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                 price: productPrice,
                 spiceRating: spiceRating,
             }
-            addOrUpdateItem(product).subscribe({
+            addOrUpdateItem(product, props.isNewProduct).subscribe({
                 next: () => {
                     if (toast.current) {
                         toast?.current.show({

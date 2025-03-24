@@ -18,7 +18,6 @@ import (
 
 type InventoryItemUpdateRequest struct {
 	Name             string  `json:"name" validate:"required,min=3,max=255"`
-	Slug             string  `json:"slug" validate:"required,min=3,max=255"`
 	Price            float32 `json:"price" validate:"required,min=0.01,max=999999.99"`
 	SpiceRating      int     `json:"spiceRating" validate:"required,min=1,max=5"`
 	TagIds           []int   `json:"tags"`
@@ -39,14 +38,14 @@ func toIntArray(str string) []int {
 	return res
 }
 
-func validateInventoryItemAddOrUpdateRequest(c *gin.Context, logger *slog.Logger, itemUpdateRequest InventoryItemUpdateRequest) error {
+func validateInventoryItemAddOrUpdateRequest(c *gin.Context, logger *slog.Logger, itemUpdateRequest InventoryItemUpdateRequest) (InventoryItemUpdateRequest, error) {
 	if err := c.ShouldBindJSON(&itemUpdateRequest); err != nil {
 		logger.Error(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "ERROR",
 			"message": "Malformed request body.",
 		})
-		return err
+		return itemUpdateRequest, err
 	}
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
@@ -57,10 +56,10 @@ func validateInventoryItemAddOrUpdateRequest(c *gin.Context, logger *slog.Logger
 			"status":  "ERROR",
 			"message": fmt.Sprintf("Validation failed: %v", err),
 		})
-		return err
+		return itemUpdateRequest, err
 	}
 
-	return nil
+	return itemUpdateRequest, nil
 }
 
 func saveInventoryItem(dbPool *pgxpool.Pool, logger *slog.Logger, itemUpdateRequest InventoryItemUpdateRequest) (int, error) {
@@ -71,6 +70,8 @@ func saveInventoryItem(dbPool *pgxpool.Pool, logger *slog.Logger, itemUpdateRequ
 	item.Description = itemUpdateRequest.Description
 	item.ShortDescription = itemUpdateRequest.ShortDescription
 	item.Slug = slug.Make(itemUpdateRequest.Name)
+
+	logger.Info(fmt.Sprintf("Saving inventory item: %+v", item))
 
 	itemId, addUpdateItemErr := lib.AddOrUpdateInventoryItem(dbPool, logger, item)
 	if addUpdateItemErr != nil {
@@ -193,7 +194,7 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 
 	r.POST("/api/v1/products", func(c *gin.Context) {
 		itemUpdateRequest := InventoryItemUpdateRequest{}
-		validationErr := validateInventoryItemAddOrUpdateRequest(c, logger, itemUpdateRequest)
+		itemUpdateRequest, validationErr := validateInventoryItemAddOrUpdateRequest(c, logger, itemUpdateRequest)
 		// Error responses handled in above func
 		if validationErr != nil {
 			return
@@ -219,7 +220,7 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 
 	r.PUT("/api/v1/products/:slug", func(c *gin.Context) {
 		itemUpdateRequest := InventoryItemUpdateRequest{}
-		validationErr := validateInventoryItemAddOrUpdateRequest(c, logger, itemUpdateRequest)
+		itemUpdateRequest, validationErr := validateInventoryItemAddOrUpdateRequest(c, logger, itemUpdateRequest)
 		if validationErr != nil {
 			return
 		}

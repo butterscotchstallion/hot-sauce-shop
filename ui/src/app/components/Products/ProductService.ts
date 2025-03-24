@@ -60,10 +60,10 @@ export function getProductAutocompleteSuggestions(query: string): Subject<IAutoc
     return autocomplete$;
 }
 
-export function addOrUpdateItem(product: IProduct): Subject<boolean> {
+export function addOrUpdateItem(product: IProduct, isNewProduct: boolean): Subject<boolean> {
     const updateItem$ = new Subject<boolean>();
     fetch(`${PRODUCTS_URL}/${product.slug}`, {
-        method: 'PUT',
+        method: isNewProduct ? 'POST' : 'PUT',
         body: JSON.stringify(product),
         headers: {
             'Content-Type': 'application/json'
