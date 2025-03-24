@@ -47,7 +47,7 @@ export default function ProductDetailPage() {
                         <h1 className="text-xl font-bold">{product.name}</h1>
 
                         <Button label="Edit" icon="pi pi-pencil" onClick={() => {
-                            navigate("/admin/products/" + product.slug);
+                            navigate("/admin/products/edit/" + product.slug);
                         }}/>
                     </section>
 

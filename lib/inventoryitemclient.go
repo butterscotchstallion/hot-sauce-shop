@@ -38,7 +38,7 @@ func AddOrUpdateInventoryItem(dbPool *pgxpool.Pool, logger *slog.Logger, invento
 			spice_rating
 		)
 		VALUES ($1, $2, $3, $4, $5, $6)
-		ON CONFLICT (slug) DO UPDATE SET 
+		ON CONFLICT (name) DO UPDATE SET 
 		name = $1, description = $2, short_description = $3,
 		slug = $4, price = $5, spice_rating = $6, updated_at = NOW()
 		RETURNING id

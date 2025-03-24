@@ -10,11 +10,12 @@ import {ProductSchema} from "../Products/ProductSchema.ts";
 // ZodError is used in an exception not but detected for some reason
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {z, ZodError, ZodIssue} from "zod";
-import {updateItem} from "../Products/ProductService.ts";
+import {addOrUpdateItem} from "../Products/ProductService.ts";
 import {Toast} from "primereact/toast";
 
 interface IAdminInventoryItemFormProps {
     product: IProduct | undefined;
+    isNewProduct: boolean;
 }
 
 interface IFormErrata {
@@ -81,13 +82,13 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                 price: productPrice,
                 spiceRating: spiceRating,
             }
-            updateItem(product).subscribe({
+            addOrUpdateItem(product).subscribe({
                 next: () => {
                     if (toast.current) {
                         toast?.current.show({
                             severity: 'success',
                             summary: 'Success',
-                            detail: 'Product updated successfully',
+                            detail: 'Product saved successfully',
                             life: 3000,
                         })
                     }
@@ -98,7 +99,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                         toast?.current.show({
                             severity: 'error',
                             summary: 'Error',
-                            detail: 'Error updating product: ' + err + '.',
+                            detail: 'Error saving product: ' + err + '.',
                             life: 3000,
                         })
                     }
@@ -108,7 +109,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
     }
 
     useEffect(() => {
-        if (props.product) {
+        if (!props.isNewProduct && props.product) {
             setProductName(props.product.name);
             setProductPrice(props.product.price);
             setProductShortDescription(props.product.shortDescription);
@@ -116,7 +117,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
             setSpiceRating(props.product.spiceRating);
             setProductSlug(props.product.slug);
         }
-    }, [props.product]);
+    }, [props.isNewProduct, props.product]);
 
     const goToProductPage = () => {
         if (productSlug) {
@@ -135,7 +136,9 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
             <form onSubmit={onSubmit} className="w-full m-0 p-0">
                 <section className="flex flex-col gap-4 w-full">
                     <section className="flex w-full justify-between">
-                        <h1 className="font-bold text-2xl mb-4">Editing {productName}</h1>
+                        <h1 className="font-bold text-2xl mb-4">
+                            Editing {isNewProduct ? "New Product" : `Editing ${productName}`}
+                        </h1>
                         <div className="flex justify-end w-[500px] gap-4">
                             <Button type="button"
                                     label="Add Product"

@@ -5,7 +5,11 @@ import {Params, useParams} from "react-router";
 import {Subscription} from "rxjs";
 import {getProductDetail} from "../components/Products/ProductService.ts";
 
-export default function AdminInventoryPage() {
+export interface IAdminInventoryPageProps {
+    isNewProduct: boolean;
+}
+
+export default function AdminInventoryPage(props: IAdminInventoryPageProps) {
     const [product, setProduct] = useState<IProduct | undefined>();
     const params: Readonly<Params<string>> = useParams();
     const productSlug: string | undefined = params.slug;
@@ -19,7 +23,7 @@ export default function AdminInventoryPage() {
                 error: (err) => {
                     console.error(err);
                 }
-            })
+            });
             return () => {
                 product$.unsubscribe();
             }
@@ -29,7 +33,7 @@ export default function AdminInventoryPage() {
     return (
         <>
             <section className="flex">
-                <AdminInventoryItemForm product={product}/>
+                <AdminInventoryItemForm isNewProduct={props.isNewProduct} product={product}/>
             </section>
         </>
     )

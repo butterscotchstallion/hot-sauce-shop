@@ -21,8 +21,8 @@ createRoot(document.getElementById('root')!).render(
                     <Route path="products" element={<ProductListPage/>}/>
                     <Route path="products/:slug" element={<ProductDetailPage/>}/>
                     <Route path="admin" element={<AdminPage/>}/>
-                    <Route path="admin/products/:slug" element={<AdminInventoryPage/>}/>
-                    <Route path="admin/add-product" element={<AdminInventoryPage/>}/>
+                    <Route path="admin/products/edit/:slug" element={<AdminInventoryPage isNewProduct={false}/>}/>
+                    <Route path="admin/products/add" element={<AdminInventoryPage isNewProduct={true}/>}/>
                 </Route>
                 <Route path="*" element={<Navigate to="/"/>}/>
             </Routes>
