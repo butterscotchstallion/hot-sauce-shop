@@ -36,7 +36,7 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 	var wsConn *websocket.Conn
 	routes.WS(r, wsConn, logger)
-	routes.Products(r, dbPool, wsConn, logger)
+	routes.Products(r, dbPool, logger)
 	routes.Tags(r, dbPool)
 	routes.Cart(r, dbPool, logger)
 	routes.User(r, dbPool, logger)

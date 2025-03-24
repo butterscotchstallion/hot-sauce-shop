@@ -116,6 +116,14 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
             setProductDescription(props.product.description);
             setSpiceRating(props.product.spiceRating);
             setProductSlug(props.product.slug);
+        } else {
+            setProductName('');
+            setProductPrice(9.99);
+            setProductShortDescription('');
+            setProductDescription('');
+            setSpiceRating(3);
+            setProductSlug('');
+            resetErrata();
         }
     }, [props.isNewProduct, props.product]);
 
@@ -128,7 +136,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
     }
 
     const goToNewProductPage = () => {
-        navigate('/admin/add-product');
+        navigate('/admin/products/add');
     }
 
     return (
@@ -137,7 +145,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                 <section className="flex flex-col gap-4 w-full">
                     <section className="flex w-full justify-between">
                         <h1 className="font-bold text-2xl mb-4">
-                            Editing {isNewProduct ? "New Product" : `Editing ${productName}`}
+                            Editing {props.isNewProduct ? "New Product" : productName}
                         </h1>
                         <div className="flex justify-end w-[500px] gap-4">
                             <Button type="button"

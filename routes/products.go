@@ -11,7 +11,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/gorilla/websocket"
 	"github.com/gosimple/slug"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"hotsauceshop/lib"
@@ -40,7 +39,49 @@ func toIntArray(str string) []int {
 	return res
 }
 
-func Products(r *gin.Engine, dbPool *pgxpool.Pool, wsConn *websocket.Conn, logger *slog.Logger) {
+func validateInventoryItemAddOrUpdateRequest(c *gin.Context, logger *slog.Logger, itemUpdateRequest InventoryItemUpdateRequest) error {
+	if err := c.ShouldBindJSON(&itemUpdateRequest); err != nil {
+		logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "ERROR",
+			"message": "Malformed request body.",
+		})
+		return err
+	}
+
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	err := validate.Struct(itemUpdateRequest)
+	if err != nil {
+		logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "ERROR",
+			"message": fmt.Sprintf("Validation failed: %v", err),
+		})
+		return err
+	}
+
+	return nil
+}
+
+func saveInventoryItem(dbPool *pgxpool.Pool, logger *slog.Logger, itemUpdateRequest InventoryItemUpdateRequest) (int, error) {
+	var item lib.InventoryItem
+	item.Name = itemUpdateRequest.Name
+	item.Price = itemUpdateRequest.Price
+	item.SpiceRating = itemUpdateRequest.SpiceRating
+	item.Description = itemUpdateRequest.Description
+	item.ShortDescription = itemUpdateRequest.ShortDescription
+	item.Slug = slug.Make(itemUpdateRequest.Name)
+
+	itemId, addUpdateItemErr := lib.AddOrUpdateInventoryItem(dbPool, logger, item)
+	if addUpdateItemErr != nil {
+		logger.Error(addUpdateItemErr.Error())
+		return 0, addUpdateItemErr
+	}
+
+	return itemId, nil
+}
+
+func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	r.GET("/api/v1/products/:slug", func(c *gin.Context) {
 		urlSlug := c.Param("slug")
 		var res gin.H
@@ -150,25 +191,36 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, wsConn *websocket.Conn, logge
 		})
 	})
 
-	r.PUT("/api/v1/products/:slug", func(c *gin.Context) {
+	r.POST("/api/v1/products", func(c *gin.Context) {
 		itemUpdateRequest := InventoryItemUpdateRequest{}
-		if err := c.ShouldBindJSON(&itemUpdateRequest); err != nil {
-			logger.Error(err.Error())
-			c.JSON(http.StatusBadRequest, gin.H{
+		validationErr := validateInventoryItemAddOrUpdateRequest(c, logger, itemUpdateRequest)
+		// Error responses handled in above func
+		if validationErr != nil {
+			return
+		}
+
+		itemId, saveItemErr := saveInventoryItem(dbPool, logger, itemUpdateRequest)
+		if saveItemErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",
-				"message": "Malformed request body.",
+				"message": "Error updating inventory item.",
 			})
 			return
 		}
 
-		validate := validator.New(validator.WithRequiredStructEnabled())
-		err := validate.Struct(itemUpdateRequest)
-		if err != nil {
-			logger.Error(err.Error())
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  "ERROR",
-				"message": fmt.Sprintf("Validation failed: %v", err),
-			})
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "OK",
+			"message": fmt.Sprintf("Inventory item #%v added", itemId),
+			"results": gin.H{
+				"inventoryItemId": itemId,
+			},
+		})
+	})
+
+	r.PUT("/api/v1/products/:slug", func(c *gin.Context) {
+		itemUpdateRequest := InventoryItemUpdateRequest{}
+		validationErr := validateInventoryItemAddOrUpdateRequest(c, logger, itemUpdateRequest)
+		if validationErr != nil {
 			return
 		}
 
@@ -191,16 +243,8 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, wsConn *websocket.Conn, logge
 			return
 		}
 
-		item.Name = itemUpdateRequest.Name
-		item.Price = itemUpdateRequest.Price
-		item.SpiceRating = itemUpdateRequest.SpiceRating
-		item.Description = itemUpdateRequest.Description
-		item.ShortDescription = itemUpdateRequest.ShortDescription
-		item.Slug = slug.Make(itemUpdateRequest.Name)
-
-		itemId, addUpdateItemErr := lib.AddOrUpdateInventoryItem(dbPool, logger, item)
-		if addUpdateItemErr != nil {
-			logger.Error(addUpdateItemErr.Error())
+		itemId, saveItemErr := saveInventoryItem(dbPool, logger, itemUpdateRequest)
+		if saveItemErr != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",
 				"message": "Error updating inventory item.",
@@ -208,19 +252,7 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, wsConn *websocket.Conn, logge
 			return
 		}
 
-		if wsConn != nil {
-			wsNotificationErr := wsConn.WriteJSON(gin.H{
-				"type": "inventory_item_updated",
-				"data": gin.H{
-					"inventoryItemId": itemId,
-				},
-			})
-			if wsNotificationErr != nil {
-				logger.Error(wsNotificationErr.Error())
-			}
-		} else {
-			logger.Error("Websocket connection is nil")
-		}
+		// TODO: add websocket event for item updates here
 
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "OK",
@@ -229,13 +261,5 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, wsConn *websocket.Conn, logge
 				"inventoryItemId": itemId,
 			},
 		})
-	})
-
-	r.POST("/api/v1/products", func(c *gin.Context) {
-		/*
-			inventory, err := client.Inventory.Create().
-			SetName("yummy hot sauce").
-			Save(c)
-		*/
 	})
 }
