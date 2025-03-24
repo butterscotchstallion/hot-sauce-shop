@@ -116,7 +116,7 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 
 		// Validate sort
 		sort := c.DefaultQuery("sort", "name")
-		sorts := []string{"name", "price", "spice_rating"}
+		sorts := []string{"name", "price", "spice_rating", "created_at"}
 		if !slices.Contains(sorts, sort) {
 			sort = "name"
 		}

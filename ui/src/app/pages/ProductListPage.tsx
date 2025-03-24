@@ -34,6 +34,7 @@ export default function ProductListPage(): ReactElement {
         {label: "Sort by Name", value: "name"},
         {label: "Sort by Price", value: "price"},
         {label: "Sort by Spice Rating", value: "spice_rating"},
+        {label: "Sort by Date Added", value: "created_at"},
     ];
     const [filters, setFilters] = useState<IDisplayTag[]>([]);
 
