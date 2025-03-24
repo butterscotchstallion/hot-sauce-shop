@@ -5,8 +5,8 @@ import './index.css'
 import App from './App.tsx'
 import {BrowserRouter, Navigate, Route, Routes} from "react-router";
 import Throbber from "./components/Shared/Throbber.tsx";
-import AdminPage from "./pages/AdminPage.tsx";
-import AdminInventoryPage from "./pages/AdminInventoryPage.tsx";
+import AdminPage from "./pages/Admin/AdminPage.tsx";
+import AdminInventoryPage from "./pages/Admin/AdminInventoryPage.tsx";
 
 const HomePage = React.lazy(() => import("./pages/HomePage.tsx"));
 const ProductListPage = React.lazy(() => import("./pages/ProductListPage.tsx"));

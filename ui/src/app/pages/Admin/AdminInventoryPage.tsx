@@ -1,9 +1,9 @@
 import {useEffect, useState} from "react";
-import {IProduct} from "../components/Products/IProduct.ts";
-import AdminInventoryItemForm from "../components/Admin/AdminInventoryItemForm.tsx";
+import {IProduct} from "../../components/Products/IProduct.ts";
+import AdminInventoryItemForm from "../../components/Admin/AdminInventoryItemForm.tsx";
 import {Params, useParams} from "react-router";
 import {Subscription} from "rxjs";
-import {getProductDetail} from "../components/Products/ProductService.ts";
+import {getProductDetail} from "../../components/Products/ProductService.ts";
 
 export interface IAdminInventoryPageProps {
     isNewProduct: boolean;
