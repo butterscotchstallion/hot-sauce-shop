@@ -10,6 +10,15 @@ import {IUser} from "./IUser.ts";
 import {confirmDialog} from "primereact/confirmdialog";
 import {removeSessionCookie} from "./UserService.ts";
 import {setSignedOut} from "./User.slice.ts";
+import {Badge} from "primereact/badge";
+import {NavLink} from "react-router";
+
+interface IUserAvatarMenuItem extends MenuItem {
+    url: string;
+    badge: string;
+    shortcut: string;
+    label: string;
+}
 
 export default function UserAvatarMenu() {
     const dispatch = useDispatch();
@@ -17,6 +26,21 @@ export default function UserAvatarMenu() {
     const user: IUser | null = useSelector((state: RootState) => state.user.user);
     const menu: RefObject<Menu | null> = useRef<Menu>(null);
     const [signInModalVisible, setSignInModalVisible] = useState<boolean>(false);
+    const itemRenderer = (item: IUserAvatarMenuItem) => (
+        <div className='p-menuitem-content'>
+            <NavLink
+                to={item.url}
+                className="flex align-items-center p-menuitem-link"
+                onClick={(event) => menu?.current?.toggle(event)}
+            >
+                <span className={item.icon}/>
+                <span className="mx-2">{item.label}</span>
+                {item.badge && <Badge className="ml-auto" value={item.badge}/>}
+                {item.shortcut && <span
+                    className="ml-auto border-1 surface-border border-round surface-100 text-xs p-1">{item.shortcut}</span>}
+            </NavLink>
+        </div>
+    );
     const items: MenuItem[] = [
         {
             label: user ? user.username : "User menu",
@@ -24,12 +48,14 @@ export default function UserAvatarMenu() {
                 {
                     label: 'Admin',
                     icon: 'pi pi-lock',
-                    url: '/admin'
+                    url: '/admin',
+                    template: itemRenderer
                 },
                 {
                     label: 'Account Settings',
                     icon: 'pi pi-user',
-                    url: '/account'
+                    url: '/account',
+                    template: itemRenderer
                 },
                 {
                     label: 'Sign Out',
