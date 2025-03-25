@@ -4,6 +4,7 @@ import {getUsers} from "../../components/User/UserService.ts";
 import Throbber from "../../components/Shared/Throbber.tsx";
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
+import {NavLink} from "react-router";
 
 export function AdminUserListPage() {
     const [users, setUsers] = useState<IUser[]>([]);
@@ -28,12 +29,15 @@ export function AdminUserListPage() {
     const updatedDateTemplate = (rowData: IUser, _) => {
         return new Date(rowData.updatedAt).toLocaleDateString();
     }
+    const userTemplate = (rowData: IUser, _) => {
+        return <NavLink to={`/admin/users/${rowData.slug}`}>{rowData.username}</NavLink>
+    }
 
     const usersTable: ReactElement = (
-        <DataTable value={users} className="w-full">
-            <Column field="username" header="Name"></Column>
-            <Column field="createdAt" header="Created" body={createdDateTemplate}></Column>
-            <Column field="updatedAt" header="Updated" body={updatedDateTemplate}></Column>
+        <DataTable value={users} className="w-full" stripedRows>
+            <Column field="username" header="Name" sortable body={userTemplate}></Column>
+            <Column field="createdAt" header="Created" body={createdDateTemplate} sortable></Column>
+            <Column field="updatedAt" header="Updated" body={updatedDateTemplate} sortable></Column>
         </DataTable>
     )
 

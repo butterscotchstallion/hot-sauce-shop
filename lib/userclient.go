@@ -14,6 +14,7 @@ import (
 
 type User struct {
 	Id             int        `json:"id"`
+	Slug           string     `json:"slug"`
 	Username       string     `json:"username"`
 	Password       string     `json:"-"`
 	AvatarFilename string     `json:"avatarFilename"`
@@ -23,13 +24,7 @@ type User struct {
 
 func GetUsers(dbPool *pgxpool.Pool, logger *slog.Logger) ([]User, error) {
 	const query = `
-		SELECT 
-		u.id,
-		u.username,
-		u.password,
-		u.avatar_filename AS avatarFilename,
-		u.created_at AS createdAt,
-		u.updated_at AS updatedAt
+		SELECT *
 		FROM users u
 		ORDER BY u.username
 	`
@@ -98,6 +93,7 @@ func GetUserBySessionId(dbPool *pgxpool.Pool, logger *slog.Logger, sessionId str
 	const query = `
 		SELECT 
 		u.id, 
+		u.slug,
 		u.username,
 		u.password,
 		u.avatar_filename AS avatarFilename,
