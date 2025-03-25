@@ -4,7 +4,7 @@ export interface IAdminUserPageProps {
     isNewUser: boolean;
 }
 
-export function AdminUserPage(props: IAdminUserPageProps) {
+export function AdminUserDetailPage(props: IAdminUserPageProps) {
     return (
         <>
             <section className="flex">

@@ -31,6 +31,25 @@ func GetUserIdFromSessionOrError(c *gin.Context, dbPool *pgxpool.Pool, logger *s
 }
 
 func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
+	// TODO: limit this to admins when RBAC system is complete
+	r.GET("/api/v1/user", func(c *gin.Context) {
+		users, err := lib.GetUsers(dbPool, logger)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "OK",
+			"results": gin.H{
+				"users": users,
+			},
+		})
+	})
+
 	r.POST("/api/v1/user/sign-in", func(c *gin.Context) {
 		loginRequest := LoginRequest{}
 		if err := c.ShouldBindJSON(&loginRequest); err != nil {

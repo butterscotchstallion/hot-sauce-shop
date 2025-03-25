@@ -20,6 +20,24 @@ export function removeSessionCookie() {
     Cookies.remove("sessionId");
 }
 
+export function getUsers(): Subject<IUser[]> {
+    const users$ = new Subject<IUser[]>();
+    fetch(`${USER_URL}`, {
+        credentials: 'include'
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                users$.next(resp?.results?.users || null);
+            });
+        } else {
+            users$.error(res.statusText);
+        }
+    }).catch((err) => {
+        users$.error(err);
+    });
+    return users$;
+}
+
 export function getUserBySessionId(): Subject<IUser> {
     const user$ = new Subject<IUser>();
     fetch(`${SESSION_URL}`, {

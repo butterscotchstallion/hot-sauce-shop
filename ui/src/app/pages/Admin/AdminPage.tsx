@@ -1,6 +1,7 @@
 import {TabMenu} from "primereact/tabmenu";
 import {ReactElement, useState} from "react";
 import {MenuItem} from "primereact/menuitem";
+import {AdminUserListPage} from "./AdminUserListPage.tsx";
 
 export default function AdminPage() {
     const [activeIndex, setActiveIndex] = useState<number>(0);
@@ -8,7 +9,7 @@ export default function AdminPage() {
         {label: 'Users', icon: 'pi pi-chart-line'},
         {label: 'Orders', icon: 'pi pi-gift'},
     ];
-    const adminPages: ReactElement[] = [];
+    const adminPages: ReactElement[] = [<AdminUserListPage/>];
 
     return (
         <>

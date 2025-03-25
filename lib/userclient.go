@@ -21,6 +21,32 @@ type User struct {
 	UpdatedAt      *time.Time `json:"updatedAt"`
 }
 
+func GetUsers(dbPool *pgxpool.Pool, logger *slog.Logger) ([]User, error) {
+	const query = `
+		SELECT 
+		u.id,
+		u.username,
+		u.password,
+		u.avatar_filename AS avatarFilename,
+		u.created_at AS createdAt,
+		u.updated_at AS updatedAt
+		FROM users u
+		ORDER BY u.username
+	`
+	var users []User
+	row, err := dbPool.Query(context.Background(), query)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Error running GetUsers query: %v", err))
+		return users, err
+	}
+	users, collectRowsErr := pgx.CollectRows(row, pgx.RowToStructByName[User])
+	if collectRowsErr != nil {
+		logger.Error(fmt.Sprintf("GetUsers: error collecting users: %v", collectRowsErr))
+		return users, err
+	}
+	return users, nil
+}
+
 func VerifyUsernameAndPasswordAndReturnUser(dbPool *pgxpool.Pool, logger *slog.Logger, username string, password string) (User, error) {
 	const query = `SELECT * FROM users WHERE username = $1`
 	row, err := dbPool.Query(context.Background(), query, username)
