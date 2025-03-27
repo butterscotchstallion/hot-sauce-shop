@@ -134,3 +134,30 @@ func GetUserIdFromSession(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Log
 
 	return user.Id, nil
 }
+
+func GetUserBySlug(dbPool *pgxpool.Pool, logger *slog.Logger, slug string) (User, error) {
+	const query = `
+		SELECT 
+		u.id, 
+		u.slug,
+		u.username,
+		u.password,
+		u.avatar_filename AS avatarFilename,
+		u.created_at AS createdAt,
+		u.updated_at AS updatedAt
+		FROM users u
+		WHERE 1=1
+		AND u.slug = $1
+	`
+	row, err := dbPool.Query(context.Background(), query, slug)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Error running getUserBySlug query: %v", err))
+		return User{}, err
+	}
+	user, collectRowsErr := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[User])
+	if collectRowsErr != nil {
+		logger.Error(fmt.Sprintf("getUserBySlug: error collecting user: %v", collectRowsErr))
+		return User{}, err
+	}
+	return user, nil
+}

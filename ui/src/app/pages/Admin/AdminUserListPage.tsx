@@ -30,7 +30,7 @@ export function AdminUserListPage() {
         return new Date(rowData.updatedAt).toLocaleDateString();
     }
     const userTemplate = (rowData: IUser, _) => {
-        return <NavLink to={`/admin/users/${rowData.slug}`}>{rowData.username}</NavLink>
+        return <NavLink to={`/admin/users/edit/${rowData.slug}`}>{rowData.username}</NavLink>
     }
 
     const usersTable: ReactElement = (

@@ -20,7 +20,7 @@ export default function AdminPage() {
                 activeIndex={activeIndex}
                 onTabChange={(e) => setActiveIndex(e.index)}
             />
-            <div className="flex pt-4">
+            <div className="">
                 {adminPages[activeIndex]}
             </div>
         </>
