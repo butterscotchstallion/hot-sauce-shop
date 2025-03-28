@@ -4,7 +4,7 @@ import {IUser} from "../../components/User/IUser.ts";
 import {Params, useParams} from "react-router";
 import {getUserBySlug} from "../../components/User/AdminService.ts";
 import {Subscription} from "rxjs";
-import {Toast} from "primereact/toast";
+import {Messages} from "primereact/messages";
 
 export interface IAdminUserPageProps {
     isNewUser: boolean;
@@ -14,16 +14,34 @@ export function AdminUserDetailPage(props: IAdminUserPageProps) {
     const [user, setUser] = useState<IUser | null>(null);
     const params: Readonly<Params<string>> = useParams();
     const userSlug: string | undefined = params?.slug;
-    const toast: RefObject<Toast | null> = useRef<Toast | null>(null);
+    const msgs: RefObject<Messages | null> = useRef(null);
+
+    const showErrorUserNotFound = () => {
+        if (msgs.current) {
+            msgs.current.clear();
+            msgs.current.show([
+                {
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'There was a problem loading the user.',
+                    sticky: true,
+                    closable: false
+                }
+            ]);
+        }
+    };
 
     useEffect(() => {
         let user$: Subscription;
         if (userSlug) {
-            user$ = getUserBySlug(userSlug).subscribe((user: IUser) => setUser(user));
+            user$ = getUserBySlug(userSlug).subscribe({
+                next: (user: IUser) => setUser(user),
+                error: () => {
+                    showErrorUserNotFound();
+                }
+            });
         } else {
-            if (toast.current) {
-                toast.current.show({severity: 'error', summary: 'Error', detail: 'User not found'});
-            }
+            showErrorUserNotFound();
         }
         return () => {
             user$.unsubscribe();
@@ -35,8 +53,7 @@ export function AdminUserDetailPage(props: IAdminUserPageProps) {
             <section className="flex">
                 <AdminUserForm isNewUser={props.isNewUser} user={user}/>
             </section>
-
-            <Toast ref={toast}/>
+            <Messages ref={msgs}/>
         </>
     )
 }

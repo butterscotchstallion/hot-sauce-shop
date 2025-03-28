@@ -4,7 +4,9 @@ import {ADMIN_USER_DETAIL_URL} from "../Shared/Api.ts";
 
 export function getUserBySlug(slug: string): Subject<IUser> {
     const user$ = new Subject<IUser>();
-    fetch(`${ADMIN_USER_DETAIL_URL}/${slug}`).then((response: Response) => {
+    fetch(`${ADMIN_USER_DETAIL_URL}/${slug}`, {
+        credentials: 'include'
+    }).then((response: Response) => {
         if (response.ok) {
             response.json().then((results) => {
                 if (results.status !== "OK") {
