@@ -9,7 +9,7 @@ export function getUserBySlug(slug: string): Subject<IUser> {
     }).then((response: Response) => {
         if (response.ok) {
             response.json().then((results) => {
-                if (results.status !== "OK") {
+                if (results.status === "OK") {
                     user$.next(results.user);
                 } else {
                     user$.error(results.message);

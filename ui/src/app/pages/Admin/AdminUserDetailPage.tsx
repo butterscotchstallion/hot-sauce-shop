@@ -1,4 +1,4 @@
-import {AdminUserForm} from "../../components/Admin/AdminUserForm.tsx";
+import {AdminUserDetail} from "../../components/Admin/AdminUserDetail.tsx";
 import {RefObject, useEffect, useRef, useState} from "react";
 import {IUser} from "../../components/User/IUser.ts";
 import {Params, useParams} from "react-router";
@@ -36,9 +36,7 @@ export function AdminUserDetailPage(props: IAdminUserPageProps) {
         if (userSlug) {
             user$ = getUserBySlug(userSlug).subscribe({
                 next: (user: IUser) => setUser(user),
-                error: () => {
-                    showErrorUserNotFound();
-                }
+                error: () => showErrorUserNotFound()
             });
         } else {
             showErrorUserNotFound();
@@ -51,7 +49,7 @@ export function AdminUserDetailPage(props: IAdminUserPageProps) {
     return (
         <>
             <section className="flex">
-                <AdminUserForm isNewUser={props.isNewUser} user={user}/>
+                <AdminUserDetail isNewUser={props.isNewUser} user={user}/>
             </section>
             <Messages ref={msgs}/>
         </>

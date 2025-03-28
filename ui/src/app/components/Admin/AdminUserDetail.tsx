@@ -5,10 +5,11 @@ export interface IAdminUserFormProps {
     user: IUser | null;
 }
 
-export function AdminUserForm(props: IAdminUserFormProps) {
+export function AdminUserDetail(props: IAdminUserFormProps) {
 
     return (
         <>
+            <h1 className="text-2xl font-bold">{props.user.username}</h1>
         </>
     )
 }

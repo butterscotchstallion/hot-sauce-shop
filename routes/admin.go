@@ -11,9 +11,10 @@ import (
 
 func Admin(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	// TODO: implement RBAC checks for all routes here
-	r.GET("/api/v1/admin/users/:slug", func(c *gin.Context) {
+	r.GET("/api/v1/admin/user/:slug", func(c *gin.Context) {
 		userSlug := c.Param("slug")
 		if userSlug == "" {
+			logger.Error("User slug is required")
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status":  "ERROR",
 				"message": "User slug is required",
@@ -24,6 +25,7 @@ func Admin(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		// TODO: refactor these checks into a func so we can reuse it
 		sessionIdCookieValue, cookieErr := c.Cookie("sessionId")
 		if cookieErr != nil || sessionIdCookieValue == "" {
+			logger.Error("No session ID found")
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status":  "ERROR",
 				"message": "No session ID found",
