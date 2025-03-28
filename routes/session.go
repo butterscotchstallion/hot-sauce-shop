@@ -25,17 +25,27 @@ func Session(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 
 		if getUserErr != nil || user == (lib.User{}) {
 			logger.Error("Error fetching user: %v", getUserErr)
-			c.JSON(http.StatusOK, gin.H{
+			c.JSON(http.StatusNotFound, gin.H{
 				"status":  "ERROR",
 				"message": "No user found for session ID",
 			})
 			return
 		}
 
+		roles, rolesErr := lib.GetRolesByUserId(dbPool, logger, user.Id)
+		if rolesErr != nil {
+			logger.Error("Error fetching roles: %v", rolesErr.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": rolesErr.Error(),
+			})
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"status": "OK",
 			"results": gin.H{
-				"user": user,
+				"user":  user,
+				"roles": roles,
 			},
 		})
 	})

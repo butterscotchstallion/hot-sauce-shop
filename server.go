@@ -41,6 +41,7 @@ func main() {
 	routes.Cart(r, dbPool, logger)
 	routes.User(r, dbPool, logger)
 	routes.Session(r, dbPool, logger)
+	routes.Admin(r, dbPool, logger)
 
 	defer func(conn *websocket.Conn) {
 		err := conn.Close()

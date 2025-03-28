@@ -23,16 +23,15 @@ export function AdminUserListPage() {
             }
         });
     }, []);
-    const createdDateTemplate = (rowData: IUser, _) => {
+    const createdDateTemplate = (rowData: IUser) => {
         return new Date(rowData.createdAt).toLocaleDateString();
     }
-    const updatedDateTemplate = (rowData: IUser, _) => {
+    const updatedDateTemplate = (rowData: IUser) => {
         return new Date(rowData.updatedAt).toLocaleDateString();
     }
-    const userTemplate = (rowData: IUser, _) => {
+    const userTemplate = (rowData: IUser) => {
         return <NavLink to={`/admin/users/edit/${rowData.slug}`}>{rowData.username}</NavLink>
     }
-
     const usersTable: ReactElement = (
         <DataTable value={users} className="w-full" stripedRows>
             <Column field="username" header="Name" sortable body={userTemplate}></Column>
