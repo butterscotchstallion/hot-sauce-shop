@@ -46,11 +46,13 @@ export function AdminUserDetailPage(props: IAdminUserPageProps) {
         }
     }, [userSlug]);
 
+    const adminUserDetail = (
+        user ? <AdminUserDetail user={user} isNewUser={props.isNewUser}/> : ''
+    )
+
     return (
         <>
-            <section className="flex">
-                <AdminUserDetail isNewUser={props.isNewUser} user={user}/>
-            </section>
+            {adminUserDetail}
             <Messages ref={msgs}/>
         </>
     )
