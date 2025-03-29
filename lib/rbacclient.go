@@ -25,7 +25,7 @@ type Permission struct {
 
 func GetRolesByUserId(dbPool *pgxpool.Pool, logger *slog.Logger, userId int) ([]Role, error) {
 	const query = `
-		SELECT r.id, r.name, r.created_at, r.slug  
+		SELECT r.id, r.name, r.created_at, r.slug
 		FROM roles r
 		LEFT JOIN user_roles ur ON ur.role_id = r.id
 		WHERE ur.user_id = $1

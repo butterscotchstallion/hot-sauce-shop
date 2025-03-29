@@ -41,6 +41,7 @@ export function AdminUserDetailPage(props: IAdminUserPageProps) {
         } else {
             showErrorUserNotFound();
         }
+
         return () => {
             user$.unsubscribe();
         }

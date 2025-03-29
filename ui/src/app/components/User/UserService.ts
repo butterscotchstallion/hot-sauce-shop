@@ -2,6 +2,7 @@ import {SESSION_URL, USER_URL} from "../Shared/Api.ts";
 import {Subject} from "rxjs";
 import Cookies from "js-cookie";
 import {IUser} from "./IUser.ts";
+import {IUserDetails} from "./IUserDetails.ts";
 
 export interface ISignInResponse {
     user: IUser;
@@ -38,15 +39,18 @@ export function getUsers(): Subject<IUser[]> {
     return users$;
 }
 
-export function getUserBySessionId(): Subject<IUser> {
-    const user$ = new Subject<IUser>();
+export function getUserDetailsBySessionId(): Subject<IUserDetails> {
+    const user$ = new Subject<IUserDetails>();
     fetch(`${SESSION_URL}`, {
         credentials: 'include'
     }).then((res: Response) => {
         if (res.ok) {
             res.json().then(resp => {
                 if (resp?.status === "OK") {
-                    user$.next(resp?.results?.user || null);
+                    user$.next({
+                        user: resp?.results.user,
+                        roles: resp.results.roles
+                    });
                 } else {
                     user$.error(resp?.message || "Unknown error");
                 }

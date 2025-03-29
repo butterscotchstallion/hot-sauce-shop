@@ -1,5 +1,9 @@
 import {IUser} from "../User/IUser.ts";
-import {useEffect} from "react";
+import {useSelector} from "react-redux";
+import {RootState} from "../../store.ts";
+import {IUserRole} from "../User/IUserRole.ts";
+import {ReactElement} from "react";
+import {Tag} from "primereact/tag";
 
 export interface IAdminUserFormProps {
     isNewUser: boolean;
@@ -7,14 +11,10 @@ export interface IAdminUserFormProps {
 }
 
 export function AdminUserDetail(props: IAdminUserFormProps) {
-    const roleNameList: string[] = [];
-
-    useEffect(() => {
-        
-    }, [])
-
-    const roleList = (
-
+    const userRoles: IUserRole[] = useSelector((state: RootState) => state.user.roles);
+    const userRoleNameList: string[] = userRoles.map((role: IUserRole) => role.name);
+    const userRoleList: ReactElement[] = (
+        userRoleNameList.map((roleName: string) => <Tag severity="info" value={roleName}></Tag>)
     )
     return (
         <>
@@ -29,8 +29,13 @@ export function AdminUserDetail(props: IAdminUserFormProps) {
                 </aside>
                 <div className={"w-2/3"}>
                     <ul>
-                        <li><strong>Created</strong> {new Date(props.user.createdAt).toLocaleDateString()}</li>
-                        <li><strong>Roles</strong> {roleList}</li>
+                        <li className="mb-2">
+                            <strong
+                                className="pr-2">Created</strong> {new Date(props.user.createdAt).toLocaleDateString()}
+                        </li>
+                        <li>
+                            <strong className="pr-2">Roles</strong> {userRoleList || 'No roles set'}
+                        </li>
                     </ul>
                 </div>
             </section>

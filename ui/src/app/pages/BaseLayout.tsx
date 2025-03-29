@@ -8,9 +8,9 @@ import {ICart} from "../components/Cart/ICart.ts";
 import {setCartItems, setIdQuantityMap} from "../components/Cart/Cart.slice.ts";
 import {Subscription} from "rxjs";
 import Cookies from "js-cookie";
-import {getUserBySessionId} from "../components/User/UserService.ts";
-import {IUser} from "../components/User/IUser.ts";
-import {setSignedIn, setUser} from "../components/User/User.slice.ts";
+import {getUserDetailsBySessionId} from "../components/User/UserService.ts";
+import {setSignedIn, setUser, setUserRoles} from "../components/User/User.slice.ts";
+import {IUserDetails} from "../components/User/IUserDetails.ts";
 
 type Props = {
     children: React.ReactNode
@@ -22,9 +22,10 @@ export default function BaseLayout({children}: Props) {
         let user$: Subscription | null = null;
         const sessionId: string | undefined = Cookies.get("sessionId");
         if (sessionId) {
-            user$ = getUserBySessionId().subscribe({
-                next: (user: IUser) => {
-                    dispatch(setUser(user));
+            user$ = getUserDetailsBySessionId().subscribe({
+                next: (userDetails: IUserDetails) => {
+                    dispatch(setUser(userDetails.user));
+                    dispatch(setUserRoles(userDetails.roles));
                     dispatch(setSignedIn(true));
                 },
                 error: () => {
