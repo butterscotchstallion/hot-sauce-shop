@@ -5,6 +5,7 @@ import {Params, useParams} from "react-router";
 import {getUserBySlug} from "../../components/User/AdminService.ts";
 import {Subscription} from "rxjs";
 import {Messages} from "primereact/messages";
+import {AdminBreadcrumbs} from "../../components/Admin/AdminBreadcrumbs.tsx";
 
 export interface IAdminUserPageProps {
     isNewUser: boolean;
@@ -53,6 +54,10 @@ export function AdminUserDetailPage(props: IAdminUserPageProps) {
 
     return (
         <>
+            <section className="mb-2">
+                <AdminBreadcrumbs icon={"pi pi-user"} label="User Detail"/>
+            </section>
+
             {adminUserDetail}
             <Messages ref={msgs}/>
         </>
