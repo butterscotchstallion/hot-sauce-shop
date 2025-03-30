@@ -7,6 +7,7 @@ import {PickList} from "primereact/picklist";
 import {Card} from "primereact/card";
 import {getRoleList} from "./AdminService.ts";
 import {Subscription} from "rxjs";
+import {Button} from "primereact/button";
 
 export interface IAdminUserFormProps {
     isNewUser: boolean;
@@ -15,7 +16,6 @@ export interface IAdminUserFormProps {
 
 export function AdminUserDetail(props: IAdminUserFormProps) {
     const userRoles: IUserRole[] = useSelector((state: RootState) => state.user.roles);
-    console.log(userRoles);
     const [sourceRoles, setSourceRoles] = useState<IUserRole[]>([]);
     const [targetRoles, setTargetRoles] = useState<IUserRole[]>(userRoles);
     const userAvatar: ReactElement = (
@@ -55,9 +55,17 @@ export function AdminUserDetail(props: IAdminUserFormProps) {
         }
     }, []);
 
+    const save = () => {
+
+    }
+
     return (
         <>
-            <h1 className="text-2xl font-bold w-full mb-4">{props.user.username}</h1>
+            <section className="flex justify-between mb-4">
+                <h1 className="text-2xl font-bold w-full mb-4">{props.user.username}</h1>
+
+                <Button onClick={() => save()} label="Save" icon="pi pi-save"></Button>
+            </section>
 
             <section className="flex gap-4 w-full">
                 {userAvatar}

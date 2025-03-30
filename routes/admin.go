@@ -9,6 +9,11 @@ import (
 	"hotsauceshop/lib"
 )
 
+type AdminUpdateUserRequest struct {
+	User  lib.User   `json:"user"`
+	Roles []lib.Role `json:"roles"`
+}
+
 func IsSignedInAndUserExists(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (int, error) {
 	sessionIdCookieValue, err := c.Cookie("sessionId")
 	if err != nil || sessionIdCookieValue == "" {
@@ -56,7 +61,78 @@ func IsUserAdmin(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (boo
 	return false, nil
 }
 
+func getRoleIdsFromRoles(roles []lib.Role) []int {
+	var roleIds []int
+	for _, role := range roles {
+		roleIds = append(roleIds, role.Id)
+	}
+	return roleIds
+}
+
 func Admin(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
+	r.PUT("/api/v1/admin/user/:slug", func(c *gin.Context) {
+		userSlug := c.Param("slug")
+
+		if userSlug == "" {
+			logger.Error("User slug is required")
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "ERROR",
+				"message": "User slug is required",
+			})
+			return
+		}
+
+		var adminUserUpdateRequest AdminUpdateUserRequest
+		if err := c.ShouldBindJSON(&adminUserUpdateRequest); err != nil {
+			logger.Error(err.Error())
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "ERROR",
+				"message": err.Error(),
+			})
+			return
+		}
+
+		isUserAdmin, isUserAdminErr := IsUserAdmin(c, dbPool, logger)
+		if isUserAdminErr != nil {
+			logger.Error("Error checking if user is admin: %v", isUserAdminErr)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": isUserAdminErr.Error(),
+			})
+			return
+		}
+
+		if !isUserAdmin {
+			logger.Error("User is not an admin")
+			c.JSON(http.StatusForbidden, gin.H{
+				"status":  "ERROR",
+				"message": "User is not an admin",
+			})
+			return
+		}
+
+		// Update user info
+		// Update user roles
+		_, updateErr := lib.UpdateUserRoles(
+			dbPool,
+			logger,
+			adminUserUpdateRequest.User.Id,
+			getRoleIdsFromRoles(adminUserUpdateRequest.Roles),
+		)
+		if updateErr != nil {
+			logger.Error("Error updating user roles: %v", updateErr)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": updateErr.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "OK",
+		})
+	})
+
 	r.GET("/api/v1/admin/roles", func(c *gin.Context) {
 		isUserAdmin, isUserAdminErr := IsUserAdmin(c, dbPool, logger)
 		if isUserAdminErr != nil {
