@@ -14,22 +14,25 @@ export function AdminUserDetail(props: IAdminUserFormProps) {
     const userRoles: IUserRole[] = useSelector((state: RootState) => state.user.roles);
     const userRoleNameList: string[] = userRoles.map((role: IUserRole) => role.name);
     const userRoleList: ReactElement[] = (
-        userRoleNameList.map((roleName: string) => <Tag severity="info" value={roleName}></Tag>)
+        userRoleNameList.map((roleName: string) => <Tag className='mr-2' key={roleName} severity="info"
+                                                        value={roleName}></Tag>)
     )
     const userAvatar: ReactElement = (
-        props.user.avatarFilename ? <img
-            width={'250px'}
-            src={`/images/avatars/${props.user.avatarFilename}`}
-            alt={props.user.username}/> : <></>
+        props.user.avatarFilename ? <>
+            <aside className={"w-[250px]"}>
+                <img
+                    width={'250px'}
+                    src={`/images/avatars/${props.user.avatarFilename}`}
+                    alt={props.user.username}/>
+            </aside>
+        </> : <></>
     )
     return (
         <>
             <h1 className="text-2xl font-bold w-full mb-4">{props.user.username}</h1>
 
             <section className="flex gap-4 w-full">
-                <aside className={"w-[250px]"}>
-                    {userAvatar}
-                </aside>
+                {userAvatar}
                 <div className={"w-2/3"}>
                     <ul>
                         <li className="mb-2">

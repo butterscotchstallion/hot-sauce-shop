@@ -1,10 +1,13 @@
 INSERT INTO roles(name, slug) VALUES('Admin', 'admin');
 INSERT INTO roles(name, slug) VALUES('User Admin', 'user-admin');
+INSERT INTO roles(name, slug) VALUES('Reviewer', 'reviewer');
 
 INSERT INTO user_permissions(name, slug) VALUES('Create User', 'create-user');
 INSERT INTO user_permissions(name, slug) VALUES('Read User', 'read-user');
 INSERT INTO user_permissions(name, slug) VALUES('Update User', 'update-user');
 INSERT INTO user_permissions(name, slug) VALUES('Delete User', 'create-user');
+
+INSERT INTO user_permissions(name, slug) VALUES('Create Review', 'create-review');
 
 -- Associate permissions with role
 
@@ -20,3 +23,6 @@ INSERT INTO roles_permissions(role_id, permission_id) VALUES(2, 1);
 INSERT INTO roles_permissions(role_id, permission_id) VALUES(2, 2);
 INSERT INTO roles_permissions(role_id, permission_id) VALUES(2, 3);
 INSERT INTO roles_permissions(role_id, permission_id) VALUES(2, 4);
+
+-- Reviewer
+INSERT INTO roles_permissions(role_id, permission_id) VALUES(3, 5);
