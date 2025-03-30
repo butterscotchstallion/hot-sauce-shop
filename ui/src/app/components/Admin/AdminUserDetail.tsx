@@ -2,8 +2,11 @@ import {IUser} from "../User/IUser.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../store.ts";
 import {IUserRole} from "../User/IUserRole.ts";
-import {ReactElement} from "react";
-import {Tag} from "primereact/tag";
+import {ReactElement, useEffect, useState} from "react";
+import {PickList} from "primereact/picklist";
+import {Card} from "primereact/card";
+import {getRoleList} from "./AdminService.ts";
+import {Subscription} from "rxjs";
 
 export interface IAdminUserFormProps {
     isNewUser: boolean;
@@ -12,11 +15,9 @@ export interface IAdminUserFormProps {
 
 export function AdminUserDetail(props: IAdminUserFormProps) {
     const userRoles: IUserRole[] = useSelector((state: RootState) => state.user.roles);
-    const userRoleNameList: string[] = userRoles.map((role: IUserRole) => role.name);
-    const userRoleList: ReactElement[] = (
-        userRoleNameList.map((roleName: string) => <Tag className='mr-2' key={roleName} severity="info"
-                                                        value={roleName}></Tag>)
-    )
+    console.log(userRoles);
+    const [sourceRoles, setSourceRoles] = useState<IUserRole[]>([]);
+    const [targetRoles, setTargetRoles] = useState<IUserRole[]>(userRoles);
     const userAvatar: ReactElement = (
         props.user.avatarFilename ? <>
             <aside className={"w-[250px]"}>
@@ -27,6 +28,33 @@ export function AdminUserDetail(props: IAdminUserFormProps) {
             </aside>
         </> : <></>
     )
+    const onChange = (event) => {
+        setSourceRoles(event.source);
+        setTargetRoles(event.target);
+    };
+
+    const itemTemplate = (role: IUserRole) => {
+        return (
+            <div className="flex flex-wrap p-2 align-items-center gap-3">
+                <div className="flex-1 flex flex-column gap-2">
+                    <span className="font-bold">{role.name}</span>
+                </div>
+            </div>
+        );
+    };
+
+    useEffect(() => {
+        const roles$: Subscription = getRoleList().subscribe({
+            next: (roles: IUserRole[]) => setSourceRoles(roles),
+            error: (err) => {
+                console.error(err);
+            }
+        });
+        return () => {
+            roles$.unsubscribe();
+        }
+    }, []);
+
     return (
         <>
             <h1 className="text-2xl font-bold w-full mb-4">{props.user.username}</h1>
@@ -40,7 +68,18 @@ export function AdminUserDetail(props: IAdminUserFormProps) {
                                 className="pr-2">Created</strong> {new Date(props.user.createdAt).toLocaleDateString()}
                         </li>
                         <li>
-                            <strong className="pr-2">Roles</strong> {userRoleList || 'No roles set'}
+                            <Card title="User Roles">
+                                <PickList dataKey="id"
+                                          source={sourceRoles}
+                                          target={targetRoles}
+                                          onChange={onChange}
+                                          itemTemplate={itemTemplate}
+                                          breakpoint="1280px"
+                                          sourceHeader="Available"
+                                          targetHeader="Selected"
+                                          sourceStyle={{height: '8rem'}}
+                                          targetStyle={{height: '8rem'}}/>
+                            </Card>
                         </li>
                     </ul>
                 </div>

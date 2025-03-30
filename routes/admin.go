@@ -57,24 +57,13 @@ func IsUserAdmin(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (boo
 }
 
 func Admin(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
-	// TODO: implement RBAC checks for all routes here
 	r.GET("/api/v1/admin/roles", func(c *gin.Context) {
-		roles, err := lib.GetRoleList(dbPool, logger)
-		if err != nil {
-			logger.Error("Error fetching roles: %v", err.Error())
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status":  "ERROR",
-				"message": err.Error(),
-			})
-			return
-		}
-
 		isUserAdmin, isUserAdminErr := IsUserAdmin(c, dbPool, logger)
 		if isUserAdminErr != nil {
 			logger.Error("Error checking if user is admin: %v", isUserAdminErr)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",
-				"message": err.Error(),
+				"message": isUserAdminErr.Error(),
 			})
 			return
 		}
@@ -84,6 +73,16 @@ func Admin(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			c.JSON(http.StatusForbidden, gin.H{
 				"status":  "ERROR",
 				"message": "User is not an admin",
+			})
+			return
+		}
+
+		roles, roleErr := lib.GetRoleList(dbPool, logger)
+		if roleErr != nil {
+			logger.Error("Error fetching roles: %v", roleErr.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": roleErr.Error(),
 			})
 			return
 		}
