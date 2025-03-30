@@ -3,6 +3,11 @@ import {Subject} from "rxjs";
 import Cookies from "js-cookie";
 import {IUser} from "./IUser.ts";
 import {IUserDetails} from "./IUserDetails.ts";
+import {IUserRole} from "./IUserRole.ts";
+
+export enum UserRole {
+    USER_ADMIN = "User Admin"
+}
 
 export interface ISignInResponse {
     user: IUser;
@@ -19,6 +24,19 @@ function setSessionCookie(sessionId: string) {
 
 export function removeSessionCookie() {
     Cookies.remove("sessionId");
+}
+
+export function userHasRole(role: UserRole, roles: IUserRole[]): boolean {
+    roles.forEach((userRole: IUserRole) => {
+        if (userRole.name === role) {
+            return true;
+        }
+    });
+    return false;
+}
+
+export function isUserAdmin(roles: IUserRole[]): boolean {
+    return userHasRole(UserRole.USER_ADMIN, roles);
 }
 
 export function getUsers(): Subject<IUser[]> {
