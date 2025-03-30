@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -87,7 +88,7 @@ func Admin(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			logger.Error(err.Error())
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status":  "ERROR",
-				"message": err.Error(),
+				"message": fmt.Sprintf("Update request malformed: %v", err.Error()),
 			})
 			return
 		}

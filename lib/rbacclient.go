@@ -59,6 +59,7 @@ func GetRoleList(dbPool *pgxpool.Pool, logger *slog.Logger) ([]Role, error) {
 	const query = `
 		SELECT r.id, r.name, r.created_at, r.slug
 		FROM roles r
+		ORDER BY r.name
 	`
 	rows, err := dbPool.Query(context.Background(), query)
 	defer rows.Close()

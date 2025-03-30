@@ -2,12 +2,13 @@ import {IUser} from "../User/IUser.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../store.ts";
 import {IUserRole} from "../User/IUserRole.ts";
-import {ReactElement, useEffect, useState} from "react";
+import {ReactElement, RefObject, useEffect, useRef, useState} from "react";
 import {PickList} from "primereact/picklist";
 import {Card} from "primereact/card";
-import {getRoleList} from "./AdminService.ts";
+import {getRoleList, updateUser} from "./AdminService.ts";
 import {Subscription} from "rxjs";
 import {Button} from "primereact/button";
+import {Toast} from "primereact/toast";
 
 export interface IAdminUserFormProps {
     isNewUser: boolean;
@@ -15,9 +16,10 @@ export interface IAdminUserFormProps {
 }
 
 export function AdminUserDetail(props: IAdminUserFormProps) {
+    const toast: RefObject<Toast | null> = useRef<Toast>(null);
     const userRoles: IUserRole[] = useSelector((state: RootState) => state.user.roles);
     const [sourceRoles, setSourceRoles] = useState<IUserRole[]>([]);
-    const [targetRoles, setTargetRoles] = useState<IUserRole[]>(userRoles);
+    const [targetRoles, setTargetRoles] = useState<IUserRole[]>([]);
     const userAvatar: ReactElement = (
         props.user.avatarFilename ? <>
             <aside className={"w-[250px]"}>
@@ -44,6 +46,7 @@ export function AdminUserDetail(props: IAdminUserFormProps) {
     };
 
     useEffect(() => {
+        setTargetRoles(userRoles);
         const roles$: Subscription = getRoleList().subscribe({
             next: (roles: IUserRole[]) => setSourceRoles(roles),
             error: (err) => {
@@ -56,7 +59,28 @@ export function AdminUserDetail(props: IAdminUserFormProps) {
     }, []);
 
     const save = () => {
-
+        updateUser(props.user, targetRoles).subscribe({
+            next: () => {
+                if (toast.current) {
+                    toast.current.show({
+                        severity: 'success',
+                        summary: 'Success',
+                        detail: 'User saved successfully',
+                        life: 3000,
+                    })
+                }
+            },
+            error: (err) => {
+                if (toast.current) {
+                    toast.current.show({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error saving user: ' + err,
+                        life: 3000,
+                    })
+                }
+            }
+        });
     }
 
     return (
@@ -84,14 +108,13 @@ export function AdminUserDetail(props: IAdminUserFormProps) {
                                           itemTemplate={itemTemplate}
                                           breakpoint="1280px"
                                           sourceHeader="Available"
-                                          targetHeader="Selected"
-                                          sourceStyle={{height: '8rem'}}
-                                          targetStyle={{height: '8rem'}}/>
+                                          targetHeader="Selected"/>
                             </Card>
                         </li>
                     </ul>
                 </div>
             </section>
+            <Toast ref={toast}/>
         </>
     )
 }
