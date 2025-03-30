@@ -6,3 +6,4 @@ export const PRODUCT_AUTOCOMPLETE_URL: string = BASE_API_URL + '/products/autoco
 export const USER_URL: string = BASE_API_URL + '/user';
 export const SESSION_URL: string = BASE_API_URL + '/session';
 export const ADMIN_USER_DETAIL_URL: string = BASE_API_URL + '/admin/user';
+export const ADMIN_USER_ROLE_LIST: string = BASE_API_URL + '/admin/roles';

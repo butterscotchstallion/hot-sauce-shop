@@ -11,6 +11,22 @@ import (
 
 func Admin(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	// TODO: implement RBAC checks for all routes here
+	r.GET("/api/v1/admin/roles", func(c *gin.Context) {
+		roles, err := lib.GetRoleList(dbPool, logger)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "OK",
+			"roles":  roles,
+		})
+	})
+
 	r.GET("/api/v1/admin/user/:slug", func(c *gin.Context) {
 		userSlug := c.Param("slug")
 		if userSlug == "" {
