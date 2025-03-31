@@ -93,7 +93,7 @@ export function AdminUserDetail(props: IAdminUserFormProps) {
     return (
         <>
             <section className="flex justify-between mb-4">
-                <h1 className="text-2xl font-bold w-full mb-4">{props.user.username}</h1>
+                <h1 className="text-2xl font-bold w-full">{props.user.username}</h1>
 
                 <Button onClick={() => save()} label="Save" icon="pi pi-save"></Button>
             </section>
