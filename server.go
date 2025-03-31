@@ -36,11 +36,11 @@ func main() {
 
 	r := gin.Default()
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
-	store := persistence.NewInMemoryStore(time.Second)
+	store := persistence.NewInMemoryStore(time.Minute * 15)
 	var wsConn *websocket.Conn
 	routes.WS(r, wsConn, logger)
 	routes.Products(r, dbPool, logger, store)
-	routes.Tags(r, dbPool)
+	routes.Tags(r, dbPool, store)
 	routes.Cart(r, dbPool, logger)
 	routes.User(r, dbPool, logger)
 	routes.Session(r, dbPool, logger)
