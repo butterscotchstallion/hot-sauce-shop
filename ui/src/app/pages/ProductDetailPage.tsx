@@ -9,6 +9,7 @@ import {Button} from "primereact/button";
 import SpiceRating from "../components/Products/SpiceRating.tsx";
 import ReviewCard from "../components/Reviews/ReviewCard.tsx";
 import {Card} from "primereact/card";
+import {IProductDetail} from "../components/Products/IProductDetail.ts";
 
 export default function ProductDetailPage() {
     const params: Readonly<Params<string>> = useParams();
@@ -25,8 +26,8 @@ export default function ProductDetailPage() {
     useEffect(() => {
         if (productSlug) {
             const product$: Subscription = getProductDetail(productSlug).subscribe({
-                next: (productDetail: IProduct) => {
-                    setProduct(productDetail);
+                next: (productDetail: IProductDetail) => {
+                    setProduct(productDetail.product);
                 },
                 error: (err) => {
                     console.error(err);
