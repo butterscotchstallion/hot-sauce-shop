@@ -8,4 +8,5 @@ export interface IProduct {
     createdAt?: Date;
     updatedAt?: Date;
     spiceRating: number;
+    tagIds?: number[];
 }

@@ -205,6 +205,7 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 		})
 	})
 
+	// TODO: add product admin role check here
 	r.POST("/api/v1/products", func(c *gin.Context) {
 		itemUpdateRequest := InventoryItemUpdateRequest{}
 		itemUpdateRequest, validationErr := validateInventoryItemAddOrUpdateRequest(c, logger, itemUpdateRequest)
@@ -220,6 +221,11 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 				"message": "Error updating inventory item.",
 			})
 			return
+		}
+
+		_, tagUpdateErr := lib.UpdateInventoryItemTags(dbPool, logger, itemId, itemUpdateRequest.TagIds)
+		if tagUpdateErr != nil {
+			logger.Error(fmt.Sprintf("Error updating product tags: %v", tagUpdateErr.Error()))
 		}
 
 		c.JSON(http.StatusOK, gin.H{

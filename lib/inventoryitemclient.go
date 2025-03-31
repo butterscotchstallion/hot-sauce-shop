@@ -117,6 +117,34 @@ func GetInventoryItemsOrderedBySortKey(
 	return inventoryItems, err
 }
 
+func DeleteInventoryItemTags(dbPool *pgxpool.Pool, logger *slog.Logger, inventoryItemId int, tagIds []int) (bool, error) {
+	const query = `DELETE FROM inventory_tags WHERE inventory_id = $1 AND tag_id = ANY($2)`
+	_, err := dbPool.Exec(context.Background(), query, inventoryItemId, tagIds)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Error deleting inventory item tags: %v", err))
+		return false, err
+	}
+	return true, nil
+}
+
+func UpdateInventoryItemTags(dbPool *pgxpool.Pool, logger *slog.Logger, inventoryItemId int, tagIds []int) (bool, error) {
+	_, deleteErr := DeleteInventoryItemTags(dbPool, logger, inventoryItemId, tagIds)
+	if deleteErr != nil {
+		return false, deleteErr
+	}
+	for _, tagId := range tagIds {
+		const query = `INSERT INTO inventory_tags (inventory_id, tag_id) VALUES ($1, $2)`
+		_, insertTagsErr := dbPool.Exec(context.Background(), query, inventoryItemId, tagId)
+		if insertTagsErr != nil {
+			return false, insertTagsErr
+		}
+	}
+
+	logger.Info("Updated inventory item tags: %v", tagIds)
+
+	return true, nil
+}
+
 func GetAutocompleteSuggestions(dbPool *pgxpool.Pool, logger *slog.Logger, searchQuery string) ([]ProductAutocompleteSuggestion, error) {
 	const query = `
 		SELECT name, slug

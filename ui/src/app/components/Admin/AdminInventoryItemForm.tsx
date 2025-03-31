@@ -12,7 +12,7 @@ import {ProductSchema} from "../Products/ProductSchema.ts";
 import {z, ZodError, ZodIssue} from "zod";
 import {addOrUpdateItem} from "../Products/ProductService.ts";
 import {Toast} from "primereact/toast";
-import {MultiSelect} from "primereact/multiselect";
+import {MultiSelect, MultiSelectChangeEvent} from "primereact/multiselect";
 import {ITag} from "../Tag/ITag.ts";
 
 interface IAdminInventoryItemFormProps {
@@ -84,6 +84,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                 shortDescription: productShortDescription,
                 price: productPrice,
                 spiceRating: spiceRating,
+                tagIds: productTags.map((tag: ITag) => tag.id),
             }
             addOrUpdateItem(product, props.isNewProduct).subscribe({
                 next: () => {
@@ -249,7 +250,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                                 <section className="right-col w-full">
                                     <h3 className="text-1xl font-bold mb-4">Tags</h3>
                                     <MultiSelect value={productTags}
-                                                 onChange={(e) => setProductTags(e.value)}
+                                                 onChange={(e: MultiSelectChangeEvent) => setProductTags(e.value)}
                                                  options={props.availableTags}
                                                  optionLabel="name"
                                                  display="chip"
