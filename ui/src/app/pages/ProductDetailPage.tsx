@@ -10,11 +10,14 @@ import SpiceRating from "../components/Products/SpiceRating.tsx";
 import ReviewCard from "../components/Reviews/ReviewCard.tsx";
 import {Card} from "primereact/card";
 import {IProductDetail} from "../components/Products/IProductDetail.ts";
+import {ITag} from "../components/Tag/ITag.ts";
+import {Tag} from "primereact/tag";
 
 export default function ProductDetailPage() {
     const params: Readonly<Params<string>> = useParams();
     const productSlug: string | undefined = params.slug;
     const [product, setProduct] = useState<IProduct>();
+    const [productTags, setProductTags] = useState<ITag[]>([])
     const navigate = useNavigate();
     const review = {
         id: 1,
@@ -23,11 +26,16 @@ export default function ProductDetailPage() {
         name: "Jane Doe",
         title: "Great product",
     }
+    const productTagList = productTags.map((tag: ITag) => {
+        return <Tag key={tag.id} severity="info" value={tag.name} className="mr-2"></Tag>
+    });
+
     useEffect(() => {
         if (productSlug) {
             const product$: Subscription = getProductDetail(productSlug).subscribe({
                 next: (productDetail: IProductDetail) => {
                     setProduct(productDetail.product);
+                    setProductTags(productDetail.tags);
                 },
                 error: (err) => {
                     console.error(err);
@@ -69,6 +77,10 @@ export default function ProductDetailPage() {
                                 <h2 className="font-bold text-lg mb-4">Description</h2>
                                 <Card>
                                     <p>{product.description}</p>
+
+                                    <section className="mt-4">
+                                        {productTagList}
+                                    </section>
                                 </Card>
                             </section>
 
