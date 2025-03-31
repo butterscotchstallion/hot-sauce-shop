@@ -91,25 +91,3 @@ export function addOrUpdateItem(product: IProduct, isNewProduct: boolean): Subje
     })
     return updateItem$;
 }
-
-export function addItem(product: IProduct): Subject<boolean> {
-    const addItem$ = new Subject<boolean>();
-    fetch(PRODUCTS_URL, {
-        method: 'POST',
-        body: JSON.stringify(product),
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    }).then((res: Response) => {
-        if (res.ok) {
-            res.json().then(resp => {
-                if (resp?.status === "OK") {
-                    addItem$.next(true);
-                } else {
-                    addItem$.error(resp?.message || "Unknown error");
-                }
-            });
-        }
-    });
-    return addItem$;
-}

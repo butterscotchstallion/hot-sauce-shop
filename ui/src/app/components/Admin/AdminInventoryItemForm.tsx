@@ -120,6 +120,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
             setProductDescription(props.product.description);
             setSpiceRating(props.product.spiceRating);
             setProductSlug(props.product.slug);
+            setProductTags(props.productTags);
         } else {
             setProductName('');
             setProductPrice(9.99);

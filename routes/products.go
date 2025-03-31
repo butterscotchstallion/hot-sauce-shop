@@ -23,7 +23,7 @@ type InventoryItemUpdateRequest struct {
 	Name             string  `json:"name" validate:"required,min=3,max=255"`
 	Price            float32 `json:"price" validate:"required,min=0.01,max=999999.99"`
 	SpiceRating      int     `json:"spiceRating" validate:"required,min=1,max=5"`
-	TagIds           []int   `json:"tags"`
+	TagIds           []int   `json:"tagIds"`
 	Description      string  `json:"description" validate:"required,min=3,max=1000000"`
 	ShortDescription string  `json:"shortDescription" validate:"required,min=3,max=1000"`
 }
@@ -228,6 +228,8 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 			logger.Error(fmt.Sprintf("Error updating product tags: %v", tagUpdateErr.Error()))
 		}
 
+		logger.Info(fmt.Sprintf("Inventory item tags updated: %v", itemUpdateRequest.TagIds))
+
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "OK",
 			"message": fmt.Sprintf("Inventory item #%v added", itemId),
@@ -270,6 +272,13 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 				"message": "Error updating inventory item.",
 			})
 			return
+		}
+
+		logger.Info(fmt.Sprintf("Update item req: %v", itemUpdateRequest))
+
+		_, tagUpdateErr := lib.UpdateInventoryItemTags(dbPool, logger, itemId, itemUpdateRequest.TagIds)
+		if tagUpdateErr != nil {
+			logger.Error(fmt.Sprintf("Error updating product tags: %v", tagUpdateErr.Error()))
 		}
 
 		// TODO: add websocket event for item updates here

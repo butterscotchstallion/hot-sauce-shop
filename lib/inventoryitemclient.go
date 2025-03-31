@@ -128,6 +128,11 @@ func DeleteInventoryItemTags(dbPool *pgxpool.Pool, logger *slog.Logger, inventor
 }
 
 func UpdateInventoryItemTags(dbPool *pgxpool.Pool, logger *slog.Logger, inventoryItemId int, tagIds []int) (bool, error) {
+	if len(tagIds) == 0 {
+		logger.Info("No tags provided for item, not updating tags")
+		return true, nil
+	}
+
 	_, deleteErr := DeleteInventoryItemTags(dbPool, logger, inventoryItemId, tagIds)
 	if deleteErr != nil {
 		return false, deleteErr
