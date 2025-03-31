@@ -209,6 +209,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                                                     type="number"
                                                     invalid={!!formErrata.price}
                                                     value={productPrice.toString()}
+                                                    step={.01}
                                                     onChange={(e) => {
                                                         setProductPrice(Number(e.target.value));
                                                         validate();

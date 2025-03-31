@@ -145,7 +145,7 @@ func UpdateInventoryItemTags(dbPool *pgxpool.Pool, logger *slog.Logger, inventor
 		}
 	}
 
-	logger.Info("Updated inventory item tags: %v", tagIds)
+	logger.Info(fmt.Sprintf("Updated inventory item tags: %v", tagIds))
 
 	return true, nil
 }
