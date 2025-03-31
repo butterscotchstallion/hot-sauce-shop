@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
+	"github.com/gin-contrib/cache"
+	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"hotsauceshop/lib"
@@ -70,7 +73,7 @@ func getRoleIdsFromRoles(roles []lib.Role) []int {
 	return roleIds
 }
 
-func Admin(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
+func Admin(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *persistence.InMemoryStore) {
 	r.PUT("/api/v1/admin/user/:slug", func(c *gin.Context) {
 		userSlug := c.Param("slug")
 
@@ -134,7 +137,7 @@ func Admin(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		})
 	})
 
-	r.GET("/api/v1/admin/roles", func(c *gin.Context) {
+	r.GET("/api/v1/admin/roles", cache.CachePage(store, time.Minute*15, func(c *gin.Context) {
 		isUserAdmin, isUserAdminErr := IsUserAdmin(c, dbPool, logger)
 		if isUserAdminErr != nil {
 			logger.Error("Error checking if user is admin: %v", isUserAdminErr)
@@ -168,7 +171,7 @@ func Admin(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			"status": "OK",
 			"roles":  roles,
 		})
-	})
+	}))
 
 	r.GET("/api/v1/admin/user/:slug", func(c *gin.Context) {
 		userSlug := c.Param("slug")
