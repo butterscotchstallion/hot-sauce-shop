@@ -22,7 +22,6 @@ function setSessionCookie(sessionId: string) {
     });
 }
 
-
 export function removeSessionCookie() {
     Cookies.remove("sessionId");
 }

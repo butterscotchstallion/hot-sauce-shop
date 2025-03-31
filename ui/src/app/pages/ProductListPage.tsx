@@ -84,7 +84,7 @@ export default function ProductListPage(): ReactElement {
 
                 <section className="w-full">
                     <section className="flex justify-between mb-4 pr-1">
-                        <h2 className="font-bold text-lg mb-4">Products</h2>
+                        <h2 className="font-bold text-lg mb-4" data-testid="page-header">Products</h2>
                         <Dropdown value={productListSortKey}
                                   onChange={(e) => setProductListSortKey(e.value)}
                                   options={productListSortOptions}
