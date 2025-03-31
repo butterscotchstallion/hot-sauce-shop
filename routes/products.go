@@ -99,10 +99,20 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 				}
 				c.JSON(http.StatusInternalServerError, res)
 			} else {
+				tags, tagsErr := lib.GetInventoryItemTags(dbPool, logger, product.Id)
+				if tagsErr != nil {
+					logger.Error(fmt.Sprintf("Error fetching tags: %v", tagsErr))
+					c.JSON(http.StatusInternalServerError, gin.H{
+						"status":  "ERROR",
+						"message": fmt.Sprintf("Error fetching tags: %v", tagsErr),
+					})
+					return
+				}
 				res = gin.H{
 					"status": "OK",
 					"results": gin.H{
 						"product": product,
+						"tags":    tags,
 					},
 				}
 				c.JSON(http.StatusOK, res)

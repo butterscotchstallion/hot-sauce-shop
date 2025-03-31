@@ -12,9 +12,13 @@ import {ProductSchema} from "../Products/ProductSchema.ts";
 import {z, ZodError, ZodIssue} from "zod";
 import {addOrUpdateItem} from "../Products/ProductService.ts";
 import {Toast} from "primereact/toast";
+import {MultiSelect} from "primereact/multiselect";
+import {ITag} from "../Tag/ITag.ts";
 
 interface IAdminInventoryItemFormProps {
     product: IProduct | undefined;
+    productTags: ITag[];
+    availableTags: ITag[];
     isNewProduct: boolean;
 }
 
@@ -26,6 +30,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
     const toast: RefObject<Toast | null> = useRef<Toast>(null);
     const [productName, setProductName] = useState<string>("");
     const [productPrice, setProductPrice] = useState<number>(0);
+    const [productTags, setProductTags] = useState<ITag[]>(props.productTags);
     const [productShortDescription, setProductShortDescription] = useState<string>("");
     const [productDescription, setProductDescription] = useState<string>("");
     const [spiceRating, setSpiceRating] = useState<number>(3);
@@ -56,7 +61,6 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
 
             return true;
         } catch (err: ZodError | unknown) {
-            //console.error(err);
             if (err instanceof z.ZodError) {
                 const newErrata: IFormErrata = {...formErrata};
                 err.issues.forEach((issue: ZodIssue) => {
@@ -243,8 +247,14 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                                     </section>
                                 </section>
                                 <section className="right-col w-full">
-                                    <h3 className="text-1xl font-bold">Tags</h3>
-                                    
+                                    <h3 className="text-1xl font-bold mb-4">Tags</h3>
+                                    <MultiSelect value={productTags}
+                                                 onChange={(e) => setProductTags(e.value)}
+                                                 options={props.availableTags}
+                                                 optionLabel="name"
+                                                 display="chip"
+                                                 placeholder="Select Tags"
+                                                 className="w-full md:w-20rem"/>
                                 </section>
                             </section>
                         </Card>

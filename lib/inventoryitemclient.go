@@ -141,6 +141,27 @@ func GetAutocompleteSuggestions(dbPool *pgxpool.Pool, logger *slog.Logger, searc
 	return suggestions, nil
 }
 
+func GetInventoryItemTags(dbPool *pgxpool.Pool, logger *slog.Logger, inventoryItemId int) ([]Tag, error) {
+	const query = `
+		SELECT t.id, t.name, t.description, t.slug, t.created_at, t.updated_at
+		FROM tags t
+		JOIN inventory_tags it ON it.tag_id = t.id
+		WHERE it.inventory_id = $1
+	`
+	rows, err := dbPool.Query(context.Background(), query, inventoryItemId)
+	defer rows.Close()
+	if err != nil {
+		logger.Error(fmt.Sprintf("Error running inventory item tags query: %v", err))
+		return nil, err
+	}
+	tags, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[Tag])
+	if collectRowsErr != nil {
+		logger.Error(fmt.Sprintf("Error collecting inventory item tags: %v", collectRowsErr))
+		return nil, collectRowsErr
+	}
+	return tags, nil
+}
+
 func GetInventoryItemBySlug(dbPool *pgxpool.Pool, slug string) (InventoryItem, error) {
 	const query = `
 		SELECT

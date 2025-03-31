@@ -4,6 +4,7 @@ import {IProductsResults} from "./IProductsResults.ts";
 import {IProduct} from "./IProduct.ts";
 import {IAutocompleteSuggestion} from "./IAutocompleteSuggestion.ts";
 import {IDisplayTag} from "../../pages/ProductListPage.tsx";
+import {IProductDetail} from "./IProductDetail.ts";
 
 function getFilterTagsURLParameter(filters: IDisplayTag[]): string {
     if (filters.length > 0) {
@@ -34,12 +35,15 @@ export function getProducts(offset: number = 0, perPage: number = 10, sort: stri
     return products$;
 }
 
-export function getProductDetail(slug: string): Subject<IProduct> {
-    const product$ = new Subject<IProduct>();
+export function getProductDetail(slug: string): Subject<IProductDetail> {
+    const product$ = new Subject<IProductDetail>();
     fetch(`${PRODUCTS_URL}/${slug}`).then((res: Response) => {
         if (res.ok) {
             res.json().then(resp => {
-                product$.next(resp?.results.product || null)
+                product$.next({
+                    product: resp.results.product,
+                    tags: resp.results.tags
+                });
             });
         } else {
             product$.error(res.statusText);
