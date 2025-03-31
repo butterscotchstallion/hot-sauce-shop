@@ -5,7 +5,9 @@ import (
 	"log"
 	"log/slog"
 	"os"
+	"time"
 
+	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -34,9 +36,10 @@ func main() {
 
 	r := gin.Default()
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	store := persistence.NewInMemoryStore(time.Second)
 	var wsConn *websocket.Conn
 	routes.WS(r, wsConn, logger)
-	routes.Products(r, dbPool, logger)
+	routes.Products(r, dbPool, logger, store)
 	routes.Tags(r, dbPool)
 	routes.Cart(r, dbPool, logger)
 	routes.User(r, dbPool, logger)

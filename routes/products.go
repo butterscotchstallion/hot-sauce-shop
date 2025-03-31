@@ -8,7 +8,10 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/gin-contrib/cache"
+	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/gosimple/slug"
@@ -82,7 +85,7 @@ func saveInventoryItem(dbPool *pgxpool.Pool, logger *slog.Logger, itemUpdateRequ
 	return itemId, nil
 }
 
-func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
+func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *persistence.InMemoryStore) {
 	r.GET("/api/v1/products/:slug", func(c *gin.Context) {
 		urlSlug := c.Param("slug")
 		var res gin.H
@@ -107,7 +110,7 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		}
 	})
 
-	r.GET("/api/v1/products", func(c *gin.Context) {
+	r.GET("/api/v1/products", cache.CachePage(store, time.Minute, func(c *gin.Context) {
 		offset := c.DefaultQuery("offset", "0")
 		perPage := c.DefaultQuery("perPage", "10")
 		filterTags := c.DefaultQuery("tags", "")
@@ -157,7 +160,7 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			}
 			c.JSON(http.StatusOK, res)
 		}
-	})
+	}))
 
 	r.GET("/api/v1/products/autocomplete", func(c *gin.Context) {
 		searchQuery := c.DefaultQuery("q", "")
