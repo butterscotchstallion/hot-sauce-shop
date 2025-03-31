@@ -86,7 +86,7 @@ func saveInventoryItem(dbPool *pgxpool.Pool, logger *slog.Logger, itemUpdateRequ
 }
 
 func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *persistence.InMemoryStore) {
-	r.GET("/api/v1/products/:slug", func(c *gin.Context) {
+	r.GET("/api/v1/products/:slug", cache.CachePage(store, time.Minute*15, func(c *gin.Context) {
 		urlSlug := c.Param("slug")
 		var res gin.H
 		if len(urlSlug) > 0 {
@@ -108,9 +108,9 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 				c.JSON(http.StatusOK, res)
 			}
 		}
-	})
+	}))
 
-	r.GET("/api/v1/products", cache.CachePage(store, time.Minute, func(c *gin.Context) {
+	r.GET("/api/v1/products", cache.CachePage(store, time.Minute*15, func(c *gin.Context) {
 		offset := c.DefaultQuery("offset", "0")
 		perPage := c.DefaultQuery("perPage", "10")
 		filterTags := c.DefaultQuery("tags", "")
