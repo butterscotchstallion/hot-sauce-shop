@@ -142,6 +142,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
         <>
             <form onSubmit={onSubmit} className="w-full m-0 p-0">
                 <section className="flex flex-col gap-4 w-full">
+                    {/* header */}
                     <section className="flex w-full justify-between">
                         <h1 className="font-bold text-2xl mb-4">
                             Editing {props.isNewProduct ? "New Product" : productName}
@@ -161,79 +162,90 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                         </div>
                     </section>
 
+                    {/* content */}
                     <section className="flex flex-col gap-4 w-full">
                         <Card>
-                            <section className="flex w-full">
-                                <div className="flex w-1/2 justify-between gap-10">
-                                    <div className="w-full mb-4">
-                                        <label className="mb-2 block" htmlFor="name">Name</label>
-                                        <InputText
-                                            className="w-full"
-                                            value={productName}
-                                            invalid={!!formErrata.name}
-                                            onChange={(e) => {
-                                                setProductName(e.target.value);
-                                                validate();
-                                            }}
-                                        />
-                                        <p className="text-red-500 pt-2">{formErrata.name}</p>
-                                    </div>
+                            {/* outer content container */}
+                            <section className="flex w-full gap-4 justify-between">
+                                <section className="left-col">
+                                    <section>
+                                        <div className="flex w-full justify-between gap-10">
+                                            <div className="w-full mb-4">
+                                                <label className="mb-2 block" htmlFor="name">Name</label>
+                                                <InputText
+                                                    className="w-full"
+                                                    value={productName}
+                                                    invalid={!!formErrata.name}
+                                                    onChange={(e) => {
+                                                        setProductName(e.target.value);
+                                                        validate();
+                                                    }}
+                                                />
+                                                <p className="text-red-500 pt-2">{formErrata.name}</p>
+                                            </div>
 
-                                    <div className="w-full">
-                                        <label className="mb-2 block">Spice Rating</label>
-                                        <SpiceRating
-                                            rating={spiceRating}
-                                            readOnly={false}
-                                            onChange={(rating: number) => setSpiceRating(rating)}
-                                        />
-                                    </div>
-                                </div>
-                            </section>
+                                            <div className="w-full">
+                                                <label className="mb-2 block">Spice Rating</label>
+                                                <SpiceRating
+                                                    rating={spiceRating}
+                                                    readOnly={false}
+                                                    onChange={(rating: number) => setSpiceRating(rating)}
+                                                />
+                                            </div>
+                                        </div>
+                                    </section>
 
-                            <section className="flex w-full">
-                                <div className="flex gap-10">
-                                    <div className="w-full mb-4">
-                                        <label className="mb-2 block" htmlFor="price">Price</label>
-                                        <InputText
-                                            type="number"
-                                            invalid={!!formErrata.price}
-                                            value={productPrice.toString()}
-                                            onChange={(e) => {
-                                                setProductPrice(Number(e.target.value));
-                                                validate();
-                                            }}/>
-                                        <p className="text-red-500 pt-2">{formErrata.price}</p>
-                                    </div>
-                                </div>
-                            </section>
+                                    <section className="flex w-full">
+                                        <div className="flex gap-10">
+                                            <div className="w-full mb-4">
+                                                <label className="mb-2 block" htmlFor="price">Price</label>
+                                                <InputText
+                                                    type="number"
+                                                    invalid={!!formErrata.price}
+                                                    value={productPrice.toString()}
+                                                    onChange={(e) => {
+                                                        setProductPrice(Number(e.target.value));
+                                                        validate();
+                                                    }}/>
+                                                <p className="text-red-500 pt-2">{formErrata.price}</p>
+                                            </div>
+                                        </div>
+                                    </section>
 
-                            <section className="w-1/2 flex justify-between">
-                                <div>
-                                    <label className="mb-2 block" htmlFor="shortDescription">Short Description</label>
-                                    <InputTextarea
-                                        invalid={!!formErrata.shortDescription}
-                                        rows={5}
-                                        cols={30}
-                                        value={productShortDescription}
-                                        onChange={(e) => {
-                                            setProductShortDescription(e.target.value);
-                                            validate();
-                                        }}/>
-                                    <p className="text-red-500 pt-2">{formErrata.shortDescription}</p>
-                                </div>
-                                <div>
-                                    <label className="mb-2 block" htmlFor="description">Description</label>
-                                    <InputTextarea
-                                        invalid={!!formErrata.description}
-                                        rows={5}
-                                        cols={30}
-                                        value={productDescription}
-                                        onChange={(e) => {
-                                            setProductDescription(e.target.value);
-                                            validate();
-                                        }}/>
-                                    <p className="text-red-500 pt-2">{formErrata.description}</p>
-                                </div>
+                                    <section className="w-1/2 flex gap-4 justify-between">
+                                        <div>
+                                            <label className="mb-2 block" htmlFor="shortDescription">Short
+                                                Description</label>
+                                            <InputTextarea
+                                                invalid={!!formErrata.shortDescription}
+                                                rows={5}
+                                                cols={30}
+                                                value={productShortDescription}
+                                                onChange={(e) => {
+                                                    setProductShortDescription(e.target.value);
+                                                    validate();
+                                                }}/>
+                                            <p className="text-red-500 pt-2">{formErrata.shortDescription}</p>
+                                        </div>
+                                        <div>
+                                            <label className="mb-2 block" htmlFor="description">Description</label>
+                                            <InputTextarea
+                                                invalid={!!formErrata.description}
+                                                rows={5}
+                                                cols={30}
+                                                value={productDescription}
+                                                onChange={(e) => {
+                                                    setProductDescription(e.target.value);
+                                                    validate();
+                                                }}/>
+                                            <p className="text-red-500 pt-2">{formErrata.description}</p>
+                                        </div>
+                                    </section>
+                                </section>
+                                <section className="right-col w-full">
+                                    <h3 className="text-1xl font-bold">Tags</h3>
+                                    
+                                </section>
                             </section>
                         </Card>
                     </section>
