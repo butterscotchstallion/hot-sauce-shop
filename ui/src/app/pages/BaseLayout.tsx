@@ -20,6 +20,7 @@ export default function BaseLayout({children}: Props) {
     const dispatch = useDispatch();
     useEffect(() => {
         let user$: Subscription | null = null;
+        let cartItems$: Subscription | null = null;
         const sessionId: string | undefined = Cookies.get("sessionId");
         if (sessionId) {
             user$ = getUserDetailsBySessionId().subscribe({
@@ -32,19 +33,19 @@ export default function BaseLayout({children}: Props) {
                     console.error('Error loading user');
                 }
             });
-        }
 
-        const cartItems$: Subscription = getCartItems().subscribe({
-            next: (cartItems: ICart[]) => {
-                dispatch(setCartItems(cartItems));
-                dispatch(setIdQuantityMap(cartItems));
-            },
-            error: () => {
-                console.error('Error loading cart items');
-            }
-        });
+            cartItems$ = getCartItems().subscribe({
+                next: (cartItems: ICart[]) => {
+                    dispatch(setCartItems(cartItems));
+                    dispatch(setIdQuantityMap(cartItems));
+                },
+                error: () => {
+                    console.error('Error loading cart items');
+                }
+            });
+        }
         return () => {
-            cartItems$.unsubscribe();
+            cartItems$?.unsubscribe();
             user$?.unsubscribe();
         }
     }, [dispatch]);

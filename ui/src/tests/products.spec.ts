@@ -5,6 +5,6 @@ test('has products', async ({page}) => {
         await page.goto('/products');
         expect(await page.getByTestId('page-header').textContent()).toBe('Products');
     } catch (_) {
-        await page.screenshot({path: 'tests/screenshots/products-header.png', fullPage: true});
+        await page.screenshot({path: 'tests/screenshots/products-header-error.png', fullPage: true});
     }
 });

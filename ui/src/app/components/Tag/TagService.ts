@@ -8,7 +8,7 @@ export function getTags(): Subject<ITag[]> {
         if (res.ok) {
             res.json().then(resp => tags$.next(resp?.results?.tags || []));
         } else {
-            tags$.error(res.statusText);
+            tags$.error(res.json().then(resp => resp?.message || "Unknown error"));
         }
     }).catch((err) => {
         tags$.error(err);

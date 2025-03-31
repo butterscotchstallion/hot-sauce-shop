@@ -24,9 +24,9 @@ export function getProducts(offset: number = 0, perPage: number = 10, sort: stri
                 products$.next(resp?.results || [])
             });
         } else {
-            products$.error(res.statusText);
+            products$.error(res.json().then(resp => resp?.message || "Unknown error"));
         }
-    }).catch((err) => {
+    }).catch((err: string) => {
         products$.error(err);
     });
     return products$;
