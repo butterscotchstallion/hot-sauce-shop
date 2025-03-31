@@ -19,7 +19,7 @@ export function AdminUserDetail(props: IAdminUserFormProps) {
     const toast: RefObject<Toast | null> = useRef<Toast>(null);
     const userRoles: IUserRole[] = useSelector((state: RootState) => state.user.roles);
     const [sourceRoles, setSourceRoles] = useState<IUserRole[]>([]);
-    const [targetRoles, setTargetRoles] = useState<IUserRole[]>([]);
+    const [targetRoles, setTargetRoles] = useState<IUserRole[]>(userRoles);
     const userAvatar: ReactElement = (
         props.user.avatarFilename ? <>
             <aside className={"w-[250px]"}>
@@ -33,11 +33,12 @@ export function AdminUserDetail(props: IAdminUserFormProps) {
     const onChange = (event) => {
         setSourceRoles(event.source);
         setTargetRoles(event.target);
+        console.log('set target roles: ' + event.target);
     };
 
     const itemTemplate = (role: IUserRole) => {
         return (
-            <div className="flex flex-wrap p-2 align-items-center gap-3">
+            <div className="flex flex-wrap p-1 align-items-center gap-3">
                 <div className="flex-1 flex flex-column gap-2">
                     <span className="font-bold">{role.name}</span>
                 </div>
@@ -46,11 +47,17 @@ export function AdminUserDetail(props: IAdminUserFormProps) {
     };
 
     useEffect(() => {
-        setTargetRoles(userRoles);
         const roles$: Subscription = getRoleList().subscribe({
             next: (roles: IUserRole[]) => setSourceRoles(roles),
-            error: (err) => {
-                console.error(err);
+            error: (err: string) => {
+                if (toast.current) {
+                    toast.current.show({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error loading roles: ' + err,
+                        life: 3000,
+                    })
+                }
             }
         });
         return () => {
@@ -99,19 +106,22 @@ export function AdminUserDetail(props: IAdminUserFormProps) {
                             <strong
                                 className="pr-2">Created</strong> {new Date(props.user.createdAt).toLocaleDateString()}
                         </li>
-                        <li>
-                            <Card title="User Roles">
-                                <PickList dataKey="id"
-                                          source={sourceRoles}
-                                          target={targetRoles}
-                                          onChange={onChange}
-                                          itemTemplate={itemTemplate}
-                                          breakpoint="1280px"
-                                          sourceHeader="Available"
-                                          targetHeader="Selected"/>
-                            </Card>
+                        <li className="mb-2">
+                            <strong
+                                className="pr-2">Last
+                                Updated</strong> {new Date(props.user.updatedAt).toLocaleDateString()}
                         </li>
                     </ul>
+                    <Card title="User Roles">
+                        <PickList dataKey="id"
+                                  source={sourceRoles}
+                                  target={targetRoles}
+                                  onChange={onChange}
+                                  itemTemplate={itemTemplate}
+                                  breakpoint="1280px"
+                                  sourceHeader="Available"
+                                  targetHeader="Current Roles"/>
+                    </Card>
                 </div>
             </section>
             <Toast ref={toast}/>

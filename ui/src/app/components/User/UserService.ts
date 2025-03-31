@@ -6,7 +6,8 @@ import {IUserDetails} from "./IUserDetails.ts";
 import {IUserRole} from "./IUserRole.ts";
 
 export enum UserRole {
-    USER_ADMIN = "User Admin"
+    USER_ADMIN = "User Admin",
+    REVIEWER = "Reviewer",
 }
 
 export interface ISignInResponse {
@@ -33,6 +34,10 @@ export function userHasRole(role: UserRole, roles: IUserRole[]): boolean {
         }
     });
     return false;
+}
+
+export function isReviewer(roles: IUserRole[]): boolean {
+    return userHasRole(UserRole.REVIEWER, roles);
 }
 
 export function isUserAdmin(roles: IUserRole[]): boolean {
