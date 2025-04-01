@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -18,10 +19,10 @@ func GetUserIdFromSessionOrError(c *gin.Context, dbPool *pgxpool.Pool, logger *s
 	userId, err := lib.GetUserIdFromSession(c, dbPool, logger)
 	if err != nil || userId == 0 {
 		if err != nil {
-			logger.Error(err.Error())
+			logger.Error(fmt.Sprintf("GetUserIdFromSessionOrError: %v", err.Error()))
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"status":  "ERROR",
-				"message": err.Error(),
+				"message": "User not signed in",
 			})
 			return 0, err
 		}

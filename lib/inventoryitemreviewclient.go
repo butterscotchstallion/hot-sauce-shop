@@ -19,10 +19,10 @@ type InventoryItemReview struct {
 }
 
 type InventoryItemReviewRequest struct {
-	Title       string `json:"title"`
-	Comment     string `json:"comment"`
-	Rating      int    `json:"rating"`
-	SpiceRating int    `json:"spiceRating"`
+	Title       string `json:"title" validate:"required,min=10,max=255"`
+	Comment     string `json:"comment" validate:"required,min=10,max=1000"`
+	Rating      int    `json:"rating" validate:"required,min=1,max=5"`
+	SpiceRating int    `json:"spiceRating" validate:"required,min=1,max=5"`
 }
 
 func AddInventoryItemReview(dbPool *pgxpool.Pool, req InventoryItemReviewRequest) (bool, error) {

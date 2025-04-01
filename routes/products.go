@@ -205,16 +205,55 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 		})
 	})
 
+	/*
+		- Attempt to parse request JSON
+		- Validate request
+		- Check if item exists
+		- Get user from sessionId
+		- Add review
+	*/
 	r.POST("/api/v1/products/:slug/reviews", func(c *gin.Context) {
+		// Check request JSON
 		var inventoryItemReviewRequest lib.InventoryItemReviewRequest
 		if err := c.ShouldBindJSON(&inventoryItemReviewRequest); err != nil {
-			logger.Error(err.Error())
+			logger.Error(fmt.Sprintf("Malformed review request: %v", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status":  "ERROR",
 				"message": "Malformed request body.",
 			})
 			return
 		}
+
+		// Validate data
+		validate := validator.New(validator.WithRequiredStructEnabled())
+		err := validate.Struct(inventoryItemReviewRequest)
+		if err != nil {
+			logger.Error(err.Error())
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "ERROR",
+				"message": fmt.Sprintf("Validation failed: %v", err),
+			})
+			return
+		}
+
+		// Check if user signed in
+		signedInUser, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
+		if userSessionErr != nil {
+			return
+		}
+
+		// Check if item exists
+		item, itemErr := lib.GetInventoryItemBySlug(dbPool, c.Param("slug"))
+		if itemErr != nil || item == (lib.InventoryItem{}) {
+			logger.Error(fmt.Sprintf("Error fetching inventory item: %v", itemErr.Error()))
+			c.JSON(http.StatusNotFound, gin.H{
+				"status":  "ERROR",
+				"message": "Error fetching inventory item.",
+			})
+			return
+		}
+
+		// Add review
 	})
 
 	// TODO: add product admin role check here
