@@ -237,8 +237,8 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 		}
 
 		// Check if user signed in
-		signedInUser, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
-		if userSessionErr != nil {
+		signedInUserId, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
+		if userSessionErr != nil || signedInUserId == 0 {
 			return
 		}
 
@@ -254,6 +254,20 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 		}
 
 		// Add review
+		_, reviewErr := lib.AddInventoryItemReview(dbPool, item.Id, signedInUserId, inventoryItemReviewRequest)
+		if reviewErr != nil {
+			logger.Error(fmt.Sprintf("Error adding review: %v", reviewErr.Error()))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": "Error adding review.",
+			})
+			return
+		}
+
+		c.JSON(http.StatusCreated, gin.H{
+			"status":  "OK",
+			"message": "Review added.",
+		})
 	})
 
 	// TODO: add product admin role check here

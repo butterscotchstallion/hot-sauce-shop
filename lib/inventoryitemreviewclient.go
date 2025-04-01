@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"context"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -25,6 +26,24 @@ type InventoryItemReviewRequest struct {
 	SpiceRating int    `json:"spiceRating" validate:"required,min=1,max=5"`
 }
 
-func AddInventoryItemReview(dbPool *pgxpool.Pool, req InventoryItemReviewRequest) (bool, error) {
+func AddInventoryItemReview(dbPool *pgxpool.Pool, inventoryItemId int, userId int, req InventoryItemReviewRequest) (bool, error) {
+	const query = `
+		INSERT INTO inventory_item_reviews (
+			title, comment, rating, spice_rating, inventory_item_id, user_id, created_at, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+	`
+	_, insertErr := dbPool.Exec(
+		context.Background(),
+		query,
+		req.Title,
+		req.Comment,
+		req.Rating,
+		req.SpiceRating,
+		inventoryItemId,
+		userId,
+	)
+	if insertErr != nil {
+		return false, insertErr
+	}
 	return true, nil
 }

@@ -12,8 +12,13 @@ import {Card} from "primereact/card";
 import {IProductDetail} from "../components/Products/IProductDetail.ts";
 import {ITag} from "../components/Tag/ITag.ts";
 import {Tag} from "primereact/tag";
+import {IUser} from "../components/User/IUser.ts";
+import {useSelector} from "react-redux";
+import {RootState} from "../store.ts";
+import {ProductReviewForm} from "../components/Products/ProductReviewForm.tsx";
 
 export default function ProductDetailPage() {
+    const user: IUser | null = useSelector((state: RootState) => state.user.user);
     const params: Readonly<Params<string>> = useParams();
     const productSlug: string | undefined = params.slug;
     const [product, setProduct] = useState<IProduct>();
@@ -29,6 +34,10 @@ export default function ProductDetailPage() {
     const productTagList = productTags.map((tag: ITag) => {
         return <Tag key={tag.id} severity="info" value={tag.name} className="mr-2"></Tag>
     });
+
+    const addReviewFormArea = (
+        user ? <ProductReviewForm/> : "Sign in to add a review"
+    )
 
     useEffect(() => {
         if (productSlug) {
@@ -93,6 +102,8 @@ export default function ProductDetailPage() {
 
                             <section className="mt-10">
                                 <h2 className="font-bold text-lg mb-4">Reviews</h2>
+                                {addReviewFormArea}
+
                                 <ReviewCard review={review}/>
                             </section>
                         </div>
