@@ -205,6 +205,18 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 		})
 	})
 
+	r.POST("/api/v1/products/:slug/reviews", func(c *gin.Context) {
+		var inventoryItemReviewRequest lib.InventoryItemReviewRequest
+		if err := c.ShouldBindJSON(&inventoryItemReviewRequest); err != nil {
+			logger.Error(err.Error())
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "ERROR",
+				"message": "Malformed request body.",
+			})
+			return
+		}
+	})
+
 	// TODO: add product admin role check here
 	r.POST("/api/v1/products", func(c *gin.Context) {
 		itemUpdateRequest := InventoryItemUpdateRequest{}
