@@ -2,21 +2,27 @@ package lib
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type InventoryItemReview struct {
-	Id              int       `json:"id"`
-	Title           string    `json:"title"`
-	Comment         string    `json:"comment"`
-	CreatedAt       time.Time `json:"createdAt"`
-	UpdatedAt       time.Time `json:"updatedAt"`
-	Rating          int       `json:"rating"`
-	SpiceRating     int       `json:"spiceRating"`
-	InventoryItemId int       `json:"inventoryItemId"`
-	UserId          int       `json:"userId"`
+	Id                 int       `json:"id"`
+	Title              string    `json:"title"`
+	Comment            string    `json:"comment"`
+	CreatedAt          time.Time `json:"createdAt"`
+	UpdatedAt          time.Time `json:"updatedAt"`
+	Rating             int       `json:"rating"`
+	SpiceRating        int       `json:"spiceRating"`
+	InventoryItemId    int       `json:"inventoryItemId"`
+	UserId             int       `json:"userId"`
+	Username           string    `json:"username"`
+	UserAvatarFilename string    `json:"userAvatarFilename"`
+	UsernameSlug       string    `json:"usernameSlug"`
 }
 
 type InventoryItemReviewRequest struct {
@@ -46,4 +52,41 @@ func AddInventoryItemReview(dbPool *pgxpool.Pool, inventoryItemId int, userId in
 		return false, insertErr
 	}
 	return true, nil
+}
+
+func GetInventoryItemReviewsBySlug(dbPool *pgxpool.Pool, logger *slog.Logger, perPage int, offset int, itemSlug string) ([]InventoryItemReview, error) {
+	const query = `
+			SELECT
+				reviews.id,
+				reviews.rating,
+				reviews.spice_rating,
+				reviews.comment,
+				reviews.created_at,
+				reviews.title,
+				reviews.updated_at,
+				reviews.inventory_item_id,
+				users.id AS userId,
+				users.username,
+				users.avatar_filename AS userAvatarFilename,
+				users.slug AS usernameSlug
+			FROM inventory_item_reviews AS reviews
+			JOIN inventories ON reviews.inventory_item_id = inventories.id
+			JOIN users ON reviews.user_id = users.id
+			WHERE inventories.slug = $1
+			ORDER BY reviews.created_at DESC
+			LIMIT $2
+			OFFSET $3
+		`
+	rows, rowsErr := dbPool.Query(context.Background(), query, itemSlug, perPage, offset)
+	if rowsErr != nil {
+		logger.Error(fmt.Sprintf("Error fetching reviews: %v", rowsErr.Error()))
+		return nil, rowsErr
+	}
+	defer rows.Close()
+	reviews, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[InventoryItemReview])
+	if collectRowsErr != nil {
+		logger.Error(fmt.Sprintf("Error collecting review rows: %v", collectRowsErr.Error()))
+		return nil, collectRowsErr
+	}
+	return reviews, nil
 }

@@ -1,4 +1,4 @@
-import {Suspense, useEffect, useState} from "react";
+import {ReactElement, Suspense, useEffect, useState} from "react";
 import Throbber from "../components/Shared/Throbber.tsx";
 import {Params, useNavigate, useParams} from "react-router";
 import {getProductDetail} from "../components/Products/ProductService.ts";
@@ -7,7 +7,6 @@ import {Subscription} from "rxjs";
 import ProductImage from "../components/Products/ProductImage.tsx";
 import {Button} from "primereact/button";
 import SpiceRating from "../components/Products/SpiceRating.tsx";
-import ReviewCard from "../components/Reviews/ReviewCard.tsx";
 import {Card} from "primereact/card";
 import {IProductDetail} from "../components/Products/IProductDetail.ts";
 import {ITag} from "../components/Tag/ITag.ts";
@@ -16,6 +15,7 @@ import {IUser} from "../components/User/IUser.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../store.ts";
 import {ProductReviewForm} from "../components/Products/ProductReviewForm.tsx";
+import {ProductReviewList} from "../components/Products/ProductReviewList.tsx";
 
 export default function ProductDetailPage() {
     const user: IUser | null = useSelector((state: RootState) => state.user.user);
@@ -35,8 +35,8 @@ export default function ProductDetailPage() {
         return <Tag key={tag.id} severity="info" value={tag.name} className="mr-2"></Tag>
     });
 
-    const addReviewFormArea = (
-        user ? <ProductReviewForm product={product}/> : "Sign in to add a review"
+    const addReviewFormArea: ReactElement = (
+        user && product ? <ProductReviewForm product={product}/> : <>Sign in to add a review</>
     )
 
     useEffect(() => {
@@ -104,7 +104,9 @@ export default function ProductDetailPage() {
                                 <h2 className="font-bold text-lg mb-4">Reviews</h2>
                                 {addReviewFormArea}
 
-                                <ReviewCard review={review}/>
+                                <Suspense fallback={<Throbber/>}>
+                                    <ProductReviewList product={product}/>
+                                </Suspense>
                             </section>
                         </div>
                     </section>

@@ -1,36 +1,64 @@
 import {InputText} from "primereact/inputtext";
 import {InputTextarea} from "primereact/inputtextarea";
 import {Rating, RatingChangeEvent} from "primereact/rating";
-import {useState} from "react";
+import {ChangeEvent, FormEvent, RefObject, useRef, useState} from "react";
 import {Card} from "primereact/card";
 import SpiceRating from "./SpiceRating.tsx";
 import {Button} from "primereact/button";
 import {IProduct} from "./IProduct.ts";
 import {addReview} from "./ProductService.ts";
 import {IReview} from "../Reviews/IReview.ts";
+import {Toast} from "primereact/toast";
 
 interface IProductReviewFormProps {
     product: IProduct;
 }
 
 export function ProductReviewForm(props: IProductReviewFormProps) {
+    const toast: RefObject<Toast | null> = useRef<Toast>(null);
     const [productRating, setProductRating] = useState<number>(0);
     const [spiceRating, setSpiceRating] = useState<number>(0);
     const [reviewTitle, setReviewTitle] = useState<string>("");
     const [reviewComment, setReviewComment] = useState<string>("");
 
-    const onSubmit = () => {
+    const onSubmit = (e: FormEvent<HTMLElement>) => {
+        e.preventDefault();
         const review: IReview = {
             title: reviewTitle,
             rating: productRating,
             spiceRating: spiceRating,
             comment: reviewComment,
-        }
+        };
         addReview(review, props.product.slug).subscribe({
-            next: (success: boolean) => {
-
+            next: () => {
+                if (toast.current) {
+                    toast.current.show({
+                        severity: 'success',
+                        summary: 'Success',
+                        detail: 'Review saved successfully',
+                        life: 3000,
+                    })
+                }
+                resetForm();
+            },
+            error: (err) => {
+                if (toast.current) {
+                    toast.current.show({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error saving review: ' + err,
+                        life: 3000,
+                    })
+                }
             }
-        })
+        });
+    };
+
+    const resetForm = () => {
+        setProductRating(0);
+        setSpiceRating(0);
+        setReviewTitle("");
+        setReviewComment("");
     };
 
     return (
@@ -40,7 +68,17 @@ export function ProductReviewForm(props: IProductReviewFormProps) {
                     <div className="flex flex-col gap-4">
                         <section>
                             <label className="block mb-2" htmlFor="title">Title</label>
-                            <InputText id="title" type="text" required={true} minLength={10} maxLength={255}/>
+                            <InputText
+                                value={reviewTitle}
+                                onChange={(e: ChangeEvent<HTMLInputElement>) => setReviewTitle(e.target.value)}
+                                placeholder="Enter a title for your review"
+                                className="w-full"
+                                id="title"
+                                type="text"
+                                required={true}
+                                minLength={10}
+                                maxLength={255}
+                            />
                         </section>
 
                         <section>
@@ -61,6 +99,10 @@ export function ProductReviewForm(props: IProductReviewFormProps) {
                         <section>
                             <label className="block mb-2" htmlFor="reviewComment">Review</label>
                             <InputTextarea
+                                value={reviewComment}
+                                onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setReviewComment(e.target.value)}
+                                placeholder="Enter your review"
+                                className="w-full"
                                 required={true}
                                 id="reviewComment"
                                 rows={5}
@@ -70,11 +112,16 @@ export function ProductReviewForm(props: IProductReviewFormProps) {
                         </section>
 
                         <section className="mt-4 flex justify-right">
-                            <Button type="submit" icon="pi pi-save" label="Submit Review"/>
+                            <Button
+                                type="submit"
+                                icon="pi pi-save"
+                                label="Submit Review"/>
                         </section>
                     </div>
                 </form>
             </Card>
+
+            <Toast ref={toast}/>
         </>
     )
 }

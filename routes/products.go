@@ -28,6 +28,33 @@ type InventoryItemUpdateRequest struct {
 	ShortDescription string  `json:"shortDescription" validate:"required,min=3,max=1000"`
 }
 
+type PaginationData struct {
+	PerPage int `json:"page"`
+	Offset  int `json:"limit"`
+}
+
+func getValidPaginationData(c *gin.Context) PaginationData {
+	var paginationData PaginationData
+	offset := c.DefaultQuery("offset", "0")
+	perPage := c.DefaultQuery("perPage", "10")
+
+	// Validate page/offset
+	perPageInt, perPageErr := strconv.Atoi(perPage)
+	if perPageErr != nil || perPageInt < 10 || perPageInt > 30 {
+		perPageInt = 10
+	}
+
+	offsetInt, offsetErr := strconv.Atoi(offset)
+	if offsetErr != nil || offsetInt < 0 || offsetInt > 1000000 {
+		offsetInt = 0
+	}
+
+	paginationData.Offset = offsetInt
+	paginationData.PerPage = perPageInt
+
+	return paginationData
+}
+
 func toIntArray(str string) []int {
 	chunks := strings.Split(str, ",")
 	var res []int
@@ -41,7 +68,10 @@ func toIntArray(str string) []int {
 	return res
 }
 
-func validateInventoryItemAddOrUpdateRequest(c *gin.Context, logger *slog.Logger, itemUpdateRequest InventoryItemUpdateRequest) (InventoryItemUpdateRequest, error) {
+func validateInventoryItemAddOrUpdateRequest(
+	c *gin.Context,
+	logger *slog.Logger,
+	itemUpdateRequest InventoryItemUpdateRequest) (InventoryItemUpdateRequest, error) {
 	if err := c.ShouldBindJSON(&itemUpdateRequest); err != nil {
 		logger.Error(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -121,8 +151,7 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 	}))
 
 	r.GET("/api/v1/products", cache.CachePage(store, time.Minute*15, func(c *gin.Context) {
-		offset := c.DefaultQuery("offset", "0")
-		perPage := c.DefaultQuery("perPage", "10")
+		paginationData := getValidPaginationData(c)
 		filterTags := c.DefaultQuery("tags", "")
 
 		tagIds := toIntArray(filterTags)
@@ -134,17 +163,6 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 			sort = "name"
 		}
 
-		// Validate page/offset
-		perPageInt, perPageErr := strconv.Atoi(perPage)
-		if perPageErr != nil || perPageInt < 10 || perPageInt > 30 {
-			perPageInt = 10
-		}
-
-		offsetInt, offsetErr := strconv.Atoi(offset)
-		if offsetErr != nil || offsetInt < 0 || offsetInt > 1000000 {
-			offsetInt = 0
-		}
-
 		total, totalErr := lib.GetTotalInventoryItems(dbPool)
 		if totalErr != nil {
 			log.Printf("Error getting total inventory items: %v", totalErr)
@@ -152,7 +170,7 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 
 		var res gin.H
 		inventoryResults, err := lib.GetInventoryItemsOrderedBySortKey(
-			dbPool, logger, perPageInt, offsetInt, sort, tagIds,
+			dbPool, logger, paginationData.PerPage, paginationData.Offset, sort, tagIds,
 		)
 		if err != nil {
 			res = gin.H{
@@ -267,6 +285,31 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 		c.JSON(http.StatusCreated, gin.H{
 			"status":  "OK",
 			"message": "Review added.",
+		})
+	})
+
+	r.GET("/api/v1/products/:slug/reviews", func(c *gin.Context) {
+		paginationData := getValidPaginationData(c)
+		itemSlug := c.Param("slug")
+		reviews, reviewsErr := lib.GetInventoryItemReviewsBySlug(
+			dbPool,
+			logger,
+			paginationData.PerPage,
+			paginationData.Offset,
+			itemSlug,
+		)
+		if reviewsErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": fmt.Sprintf("Error fetching reviews: %v", reviewsErr.Error()),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"status": "OK",
+			"results": gin.H{
+				"reviews": reviews,
+			},
 		})
 	})
 

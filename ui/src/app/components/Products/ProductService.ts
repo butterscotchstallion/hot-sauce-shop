@@ -100,7 +100,8 @@ export function addReview(review: IReview, productSlug: string): Subject<boolean
         body: JSON.stringify(review),
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        credentials: 'include'
     }).then((res: Response) => {
         if (res.ok) {
             res.json().then(resp => {
@@ -117,6 +118,26 @@ export function addReview(review: IReview, productSlug: string): Subject<boolean
         review$.error(err);
     });
     return review$;
+}
+
+export function getProductReviews(productSlug: string): Subject<IReview[]> {
+    const reviews$ = new Subject<IReview[]>();
+    fetch(`${PRODUCTS_URL}/${productSlug}/reviews`).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                if (resp?.status === "OK") {
+                    reviews$.next(resp?.results?.reviews || [])
+                } else {
+                    reviews$.error(resp?.message || "Unknown error");
+                }
+            });
+        } else {
+            reviews$.error(res.statusText);
+        }
+    }).catch((err) => {
+        reviews$.error(err);
+    });
+    return reviews$;
 }
 
 export function deleteProduct(slug: string): Subject<boolean> {

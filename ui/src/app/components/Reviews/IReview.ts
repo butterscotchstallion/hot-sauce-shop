@@ -1,8 +1,12 @@
 export interface IReview {
-    id: number;
-    name: string;
+    id: string;
     title: string;
     comment: string;
     rating: number;
     spiceRating: number;
+    inventoryItemId: number;
+    userId: number;
+    username: string;
+    userAvatarFilename: string;
+    usernameSlug: string;
 }
