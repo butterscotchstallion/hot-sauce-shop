@@ -1,7 +1,7 @@
 import {ReactElement, Suspense, useEffect, useState} from "react";
 import Throbber from "../components/Shared/Throbber.tsx";
 import {Params, useNavigate, useParams} from "react-router";
-import {getProductDetail} from "../components/Products/ProductService.ts";
+import {getProductDetail, getProductReviews} from "../components/Products/ProductService.ts";
 import {IProduct} from "../components/Products/IProduct.ts";
 import {Subscription} from "rxjs";
 import ProductImage from "../components/Products/ProductImage.tsx";
@@ -16,6 +16,7 @@ import {useSelector} from "react-redux";
 import {RootState} from "../store.ts";
 import {ProductReviewForm} from "../components/Products/ProductReviewForm.tsx";
 import {ProductReviewList} from "../components/Products/ProductReviewList.tsx";
+import {IReview} from "../components/Reviews/IReview.ts";
 
 export default function ProductDetailPage() {
     const user: IUser | null = useSelector((state: RootState) => state.user.user);
@@ -24,23 +25,32 @@ export default function ProductDetailPage() {
     const [product, setProduct] = useState<IProduct>();
     const [productTags, setProductTags] = useState<ITag[]>([])
     const navigate = useNavigate();
-    const review = {
-        id: 1,
-        comment: "This is a review",
-        rating: 5,
-        name: "Jane Doe",
-        title: "Great product",
-    }
+    const [reviews, setReviews] = useState<IReview[]>([]);
     const productTagList = productTags.map((tag: ITag) => {
         return <Tag key={tag.id} severity="info" value={tag.name} className="mr-2"></Tag>
     });
 
+    const reviewSubmittedCallback = () => {
+
+    }
     const addReviewFormArea: ReactElement = (
-        user && product ? <ProductReviewForm product={product}/> : <>Sign in to add a review</>
+        user && product ?
+            <ProductReviewForm reviewSubmittedCallback={reviewSubmittedCallback} product={product}/>
+            : <>Sign in to add a review</>
     )
+    const loadReviews = (): Subscription | undefined => {
+        if (productSlug) {
+            console.log('loading reviews for product: ' + productSlug);
+            return getProductReviews(productSlug).subscribe({
+                next: (reviews: IReview[]) => setReviews(reviews),
+                error: (err) => console.error(err),
+            });
+        }
+    };
 
     useEffect(() => {
         if (productSlug) {
+            const reviews$: Subscription | undefined = loadReviews();
             const product$: Subscription = getProductDetail(productSlug).subscribe({
                 next: (productDetail: IProductDetail) => {
                     setProduct(productDetail.product);
@@ -49,13 +59,13 @@ export default function ProductDetailPage() {
                 error: (err) => {
                     console.error(err);
                 }
-            })
-
+            });
             return () => {
                 product$.unsubscribe();
+                reviews$?.unsubscribe();
             }
         }
-    }, [productSlug])
+    }, [productSlug, reviews])
 
     return (
         <>
@@ -105,7 +115,7 @@ export default function ProductDetailPage() {
                                 {addReviewFormArea}
 
                                 <Suspense fallback={<Throbber/>}>
-                                    <ProductReviewList product={product}/>
+                                    <ProductReviewList reviews={reviews} product={product}/>
                                 </Suspense>
                             </section>
                         </div>

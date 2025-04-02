@@ -12,6 +12,7 @@ import {Toast} from "primereact/toast";
 
 interface IProductReviewFormProps {
     product: IProduct;
+    reviewSubmittedCallback: () => void;
 }
 
 export function ProductReviewForm(props: IProductReviewFormProps) {
@@ -40,6 +41,7 @@ export function ProductReviewForm(props: IProductReviewFormProps) {
                     })
                 }
                 resetForm();
+                props.reviewSubmittedCallback();
             },
             error: (err) => {
                 if (toast.current) {
