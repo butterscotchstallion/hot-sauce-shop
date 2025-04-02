@@ -4,19 +4,33 @@ import {Rating, RatingChangeEvent} from "primereact/rating";
 import {useState} from "react";
 import {Card} from "primereact/card";
 import SpiceRating from "./SpiceRating.tsx";
+import {Button} from "primereact/button";
+import {IProduct} from "./IProduct.ts";
+import {addReview} from "./ProductService.ts";
+import {IReview} from "../Reviews/IReview.ts";
 
 interface IProductReviewFormProps {
-    productId: number;
+    product: IProduct;
 }
 
-export function ProductReviewForm() {
+export function ProductReviewForm(props: IProductReviewFormProps) {
     const [productRating, setProductRating] = useState<number>(0);
     const [spiceRating, setSpiceRating] = useState<number>(0);
     const [reviewTitle, setReviewTitle] = useState<string>("");
     const [reviewComment, setReviewComment] = useState<string>("");
 
     const onSubmit = () => {
+        const review: IReview = {
+            title: reviewTitle,
+            rating: productRating,
+            spiceRating: spiceRating,
+            comment: reviewComment,
+        }
+        addReview(review, props.product.slug).subscribe({
+            next: (success: boolean) => {
 
+            }
+        })
     };
 
     return (
@@ -53,6 +67,10 @@ export function ProductReviewForm() {
                                 cols={40}
                                 minLength={10}
                                 maxLength={1000}/>
+                        </section>
+
+                        <section className="mt-4 flex justify-right">
+                            <Button type="submit" icon="pi pi-save" label="Submit Review"/>
                         </section>
                     </div>
                 </form>

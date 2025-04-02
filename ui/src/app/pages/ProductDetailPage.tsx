@@ -36,7 +36,7 @@ export default function ProductDetailPage() {
     });
 
     const addReviewFormArea = (
-        user ? <ProductReviewForm/> : "Sign in to add a review"
+        user ? <ProductReviewForm product={product}/> : "Sign in to add a review"
     )
 
     useEffect(() => {

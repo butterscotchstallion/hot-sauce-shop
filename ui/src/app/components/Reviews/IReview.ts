@@ -4,4 +4,5 @@ export interface IReview {
     title: string;
     comment: string;
     rating: number;
+    spiceRating: number;
 }

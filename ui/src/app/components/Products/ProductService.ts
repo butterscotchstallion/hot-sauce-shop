@@ -5,6 +5,7 @@ import {IProduct} from "./IProduct.ts";
 import {IAutocompleteSuggestion} from "./IAutocompleteSuggestion.ts";
 import {IDisplayTag} from "../../pages/ProductListPage.tsx";
 import {IProductDetail} from "./IProductDetail.ts";
+import {IReview} from "../Reviews/IReview.ts";
 
 function getFilterTagsURLParameter(filters: IDisplayTag[]): string {
     if (filters.length > 0) {
@@ -90,4 +91,52 @@ export function addOrUpdateItem(product: IProduct, isNewProduct: boolean): Subje
         updateItem$.error(err);
     })
     return updateItem$;
+}
+
+export function addReview(review: IReview, productSlug: string): Subject<boolean> {
+    const review$ = new Subject<boolean>();
+    fetch(`${PRODUCTS_URL}/${productSlug}/reviews`, {
+        method: 'POST',
+        body: JSON.stringify(review),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                if (resp?.status === "OK") {
+                    review$.next(true);
+                } else {
+                    review$.error(resp?.message || "Unknown error");
+                }
+            });
+        } else {
+            review$.error(res.statusText);
+        }
+    }).catch((err) => {
+        review$.error(err);
+    });
+    return review$;
+}
+
+export function deleteProduct(slug: string): Subject<boolean> {
+    const deleteItem$ = new Subject<boolean>();
+    fetch(`${PRODUCTS_URL}/${slug}`, {
+        method: 'DELETE',
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                if (resp?.status === "OK") {
+                    deleteItem$.next(true);
+                } else {
+                    deleteItem$.error(resp?.message || "Unknown error");
+                }
+            });
+        } else {
+            deleteItem$.error(res.statusText);
+        }
+    }).catch((err) => {
+        deleteItem$.error(err);
+    });
+    return deleteItem$;
 }
