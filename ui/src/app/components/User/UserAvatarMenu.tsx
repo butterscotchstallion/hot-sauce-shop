@@ -96,7 +96,7 @@ export default function UserAvatarMenu() {
                     aria-controls="popup_menu_left"
                     aria-haspopup
                     className="ml-2 cursor-pointer"
-                    image="/images/avatars/amyelsner.png"
+                    image={`/images/avatars/${user?.avatarFilename}`}
                     shape="circle"/>
                 <Menu model={items} popup ref={menu} popupAlignment="left"/>
             </>

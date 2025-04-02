@@ -3,6 +3,8 @@ export interface IReview {
     title: string;
     comment: string;
     rating: number;
+    createdAt: Date;
+    updatedAt: Date;
     spiceRating: number;
     inventoryItemId: number;
     userId: number;

@@ -14,10 +14,12 @@ export default function ReviewCard(props: IReviewCardProps) {
                 <aside className="flex flex-row text-center items-center gap-2 w-[100px]">
                     <NavLink to={`/users/${encodeURI(props.review.usernameSlug)}`}>
                         <Avatar
-                            className="text-center mx-auto cursor-pointer block w-[50px] h-[50px]"
+                            size={"large"}
+                            className="text-center mx-auto cursor-pointer block w-[75px] h-[75px]"
                             image={`/images/avatars/${props.review.userAvatarFilename}`}
                             shape="circle"/>
                         <div>{props.review.username}</div>
+                        <div>{new Date(props.review.createdAt).toLocaleDateString()}</div>
                     </NavLink>
                 </aside>
                 <div>
