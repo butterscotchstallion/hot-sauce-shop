@@ -17,9 +17,12 @@ import {RootState} from "../store.ts";
 import {ProductReviewForm} from "../components/Products/ProductReviewForm.tsx";
 import {ProductReviewList} from "../components/Products/ProductReviewList.tsx";
 import {IReview} from "../components/Reviews/IReview.ts";
+import {IUserRole} from "../components/User/IUserRole.ts";
+import {userHasRole, UserRole} from "../components/User/UserService.ts";
 
 export default function ProductDetailPage() {
     const user: IUser | null = useSelector((state: RootState) => state.user.user);
+    const userRoles: IUserRole[] | [] = useSelector((state: RootState) => state.user.roles);
     const params: Readonly<Params<string>> = useParams();
     const productSlug: string | undefined = params.slug;
     const [product, setProduct] = useState<IProduct>();
@@ -31,16 +34,15 @@ export default function ProductDetailPage() {
     });
 
     const reviewSubmittedCallback = () => {
-
+        loadReviews();
     }
     const addReviewFormArea: ReactElement = (
-        user && product ?
+        user && userHasRole(UserRole.REVIEWER, userRoles) && product ?
             <ProductReviewForm reviewSubmittedCallback={reviewSubmittedCallback} product={product}/>
-            : <>Sign in to add a review</>
+            : <p className="mb-4">Sign in to add a review</p>
     )
-    const loadReviews = (): Subscription | undefined => {
+    const loadReviews: () => (Subscription | undefined) = (): Subscription | undefined => {
         if (productSlug) {
-            console.log('loading reviews for product: ' + productSlug);
             return getProductReviews(productSlug).subscribe({
                 next: (reviews: IReview[]) => setReviews(reviews),
                 error: (err) => console.error(err),

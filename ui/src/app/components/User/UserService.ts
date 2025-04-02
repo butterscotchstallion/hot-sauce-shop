@@ -27,11 +27,11 @@ export function removeSessionCookie() {
 }
 
 export function userHasRole(role: UserRole, roles: IUserRole[]): boolean {
-    roles.forEach((userRole: IUserRole) => {
-        if (userRole.name === role) {
+    for (let j = 0; j < roles.length; j++) {
+        if (roles[j].name === role) {
             return true;
         }
-    });
+    }
     return false;
 }
 
