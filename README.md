@@ -17,6 +17,8 @@
 ![product list](screenshots/products-list.png)
 ## Product Detail
 ![product detail](screenshots/product-detail.png)
+## Product Reviews
+![product reviews](screenshots/product-review-area.png)
 ## Cart
 ![cart](screenshots/cart.png)
 ## Product autocomplete
