@@ -249,7 +249,7 @@ export default function AdminInventoryItemForm(props: IAdminInventoryItemFormPro
                                         </div>
                                     </section>
                                 </section>
-                                <section className="right-col w-full">
+                                <section className="right-col w-1/2">
                                     <h3 className="text-1xl font-bold mb-4">Tags</h3>
                                     <MultiSelect value={productTags}
                                                  onChange={(e: MultiSelectChangeEvent) => setProductTags(e.value)}
