@@ -139,14 +139,14 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 			})
 			return
 		}
-		res = gin.H{
+
+		c.JSON(http.StatusOK, gin.H{
 			"status": "OK",
 			"results": gin.H{
 				"product": product,
 				"tags":    tags,
 			},
-		}
-		c.JSON(http.StatusOK, res)
+		})
 	}))
 
 	r.GET("/api/v1/products", cache.CachePage(store, time.Minute*15, func(c *gin.Context) {
@@ -177,16 +177,16 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 				"message": fmt.Sprintf("Error fetching inventory: %v", err),
 			}
 			c.JSON(http.StatusInternalServerError, res)
-		} else {
-			res = gin.H{
-				"status": "OK",
-				"results": gin.H{
-					"inventory": inventoryResults,
-					"total":     total,
-				},
-			}
-			c.JSON(http.StatusOK, res)
+			return
 		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "OK",
+			"results": gin.H{
+				"inventory": inventoryResults,
+				"total":     total,
+			},
+		})
 	}))
 
 	r.GET("/api/v1/products/autocomplete", func(c *gin.Context) {
