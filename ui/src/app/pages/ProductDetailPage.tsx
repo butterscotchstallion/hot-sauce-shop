@@ -82,7 +82,7 @@ export default function ProductDetailPage() {
                     </section>
 
                     <section className="flex gap-10">
-                        <aside>
+                        <aside className="w-[250px]">
                             <ul>
                                 <li className="mb-4"><ProductImage product={product}/></li>
                                 <li className="mb-4"><SpiceRating rating={product.spiceRating}/></li>
