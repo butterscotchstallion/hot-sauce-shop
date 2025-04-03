@@ -67,7 +67,7 @@ export function ProductReviewForm(props: IProductReviewFormProps) {
         <>
             <Card title="Add Review" className="mb-4">
                 <form onSubmit={onSubmit}>
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-4 w-1/2">
                         <section>
                             <label className="block mb-2" htmlFor="title">Title</label>
                             <InputText
@@ -83,19 +83,21 @@ export function ProductReviewForm(props: IProductReviewFormProps) {
                             />
                         </section>
 
-                        <section>
-                            <label className="block mb-2" htmlFor="rating">Overall Rating</label>
-                            <Rating value={productRating}
-                                    required={true}
-                                    onChange={(e: RatingChangeEvent) => setProductRating(e.value || 1)}
-                                    cancel={false}/>
-                        </section>
+                        <section className="flex justify-between gap-4">
+                            <section>
+                                <label className="block mb-2" htmlFor="rating">Overall Rating</label>
+                                <Rating value={productRating}
+                                        required={true}
+                                        onChange={(e: RatingChangeEvent) => setProductRating(e.value || 1)}
+                                        cancel={false}/>
+                            </section>
 
-                        <section>
-                            <label className="block mb-2" htmlFor="rating">Spice Rating</label>
-                            <SpiceRating readOnly={false}
-                                         rating={spiceRating}
-                                         onChange={(e: number) => setSpiceRating(e)}/>
+                            <section>
+                                <label className="block mb-2" htmlFor="rating">Spice Rating</label>
+                                <SpiceRating readOnly={false}
+                                             rating={spiceRating}
+                                             onChange={(e: number) => setSpiceRating(e)}/>
+                            </section>
                         </section>
 
                         <section>
