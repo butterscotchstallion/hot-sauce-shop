@@ -6,6 +6,7 @@ import {IAutocompleteSuggestion} from "./IAutocompleteSuggestion.ts";
 import {IDisplayTag} from "../../pages/ProductListPage.tsx";
 import {IProductDetail} from "./IProductDetail.ts";
 import {IReview} from "../Reviews/IReview.ts";
+import {IAddProductReviewRequest} from "./IAddProductReviewRequest.ts";
 
 function getFilterTagsURLParameter(filters: IDisplayTag[]): string {
     if (filters.length > 0) {
@@ -93,7 +94,7 @@ export function addOrUpdateItem(product: IProduct, isNewProduct: boolean): Subje
     return updateItem$;
 }
 
-export function addReview(review: IReview, productSlug: string): Subject<boolean> {
+export function addReview(review: IAddProductReviewRequest, productSlug: string): Subject<boolean> {
     const review$ = new Subject<boolean>();
     fetch(`${PRODUCTS_URL}/${productSlug}/reviews`, {
         method: 'POST',

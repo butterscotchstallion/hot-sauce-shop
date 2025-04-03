@@ -7,8 +7,8 @@ import SpiceRating from "./SpiceRating.tsx";
 import {Button} from "primereact/button";
 import {IProduct} from "./IProduct.ts";
 import {addReview} from "./ProductService.ts";
-import {IReview} from "../Reviews/IReview.ts";
 import {Toast} from "primereact/toast";
+import {IAddProductReviewRequest} from "./IAddProductReviewRequest.ts";
 
 interface IProductReviewFormProps {
     product: IProduct;
@@ -24,7 +24,7 @@ export function ProductReviewForm(props: IProductReviewFormProps) {
 
     const onSubmit = (e: FormEvent<HTMLElement>) => {
         e.preventDefault();
-        const review: IReview = {
+        const review: IAddProductReviewRequest = {
             title: reviewTitle,
             rating: productRating,
             spiceRating: spiceRating,

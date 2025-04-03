@@ -113,12 +113,19 @@ export default function ProductDetailPage() {
                             </section>
 
                             <section className="mt-10">
-                                <h2 className="font-bold text-lg mb-4">Reviews</h2>
-                                {addReviewFormArea}
-
+                                <div className="flex justify-between">
+                                    <h2 className="font-bold text-lg mb-4">Reviews ({reviews.length})</h2>
+                                    {user && userHasRole(UserRole.REVIEWER, userRoles) && (
+                                        <a href="#add-review-area">Write a review</a>
+                                    )}
+                                </div>
                                 <Suspense fallback={<Throbber/>}>
                                     <ProductReviewList reviews={reviews} product={product}/>
                                 </Suspense>
+
+                                <div id="add-review-area">
+                                    {addReviewFormArea}
+                                </div>
                             </section>
                         </div>
                     </section>
