@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"slices"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -20,6 +21,7 @@ type InventoryItem struct {
 	SpiceRating      int        `json:"spiceRating" db:"spice_rating"`
 	CreatedAt        time.Time  `json:"createdAt" db:"created_at"`
 	UpdatedAt        *time.Time `json:"updatedAt" db:"updated_at"`
+	ReviewCount      int        `json:"reviewCount" db:"review_count"`
 }
 
 type ProductAutocompleteSuggestion struct {
@@ -67,7 +69,12 @@ func GetInventoryItemsOrderedBySortKey(
 	tagIds []int,
 ) ([]InventoryItem, error) {
 	// Sort is validated at endpoint
-	sortClause := fmt.Sprintf("ORDER BY %s\n", sort)
+	direction := "ASC"
+	descSorts := []string{"spice_rating", "review_count", "price"}
+	if slices.Contains(descSorts, sort) {
+		direction = "DESC"
+	}
+	sortClause := fmt.Sprintf("ORDER BY %s %s\n", sort, direction)
 	offsetClause := fmt.Sprintf("OFFSET %d\n", offset)
 	limitClause := ""
 	if limit > 0 {
@@ -91,7 +98,8 @@ func GetInventoryItemsOrderedBySortKey(
 		       i.price,
 		       i.created_at,
 		       i.updated_at,
-		       i.spice_rating
+		       i.spice_rating,
+		       (SELECT COUNT(*) FROM inventory_item_reviews WHERE inventory_item_id = i.id) AS review_count
 		FROM inventories i
 	` + tagIdsJoinClause + `
 		WHERE 1=1
@@ -206,8 +214,9 @@ func GetInventoryItemBySlug(dbPool *pgxpool.Pool, slug string) (InventoryItem, e
 		   	price,
 		   	created_at,
 		   	updated_at,
-		   	spice_rating
-		FROM inventories
+		   	spice_rating,
+		   	(SELECT COUNT(*) FROM inventory_item_reviews WHERE inventory_item_id = i.id) AS review_count
+		FROM inventories i
 		WHERE slug = $1
 	`
 	inventoryItem := InventoryItem{}

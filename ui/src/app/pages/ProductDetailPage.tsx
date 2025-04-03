@@ -119,9 +119,12 @@ export default function ProductDetailPage() {
                                         <a href="#add-review-area">Write a review</a>
                                     )}
                                 </div>
-                                <Suspense fallback={<Throbber/>}>
-                                    <ProductReviewList reviews={reviews} product={product}/>
-                                </Suspense>
+
+                                <div id="reviews">
+                                    <Suspense fallback={<Throbber/>}>
+                                        <ProductReviewList reviews={reviews} product={product}/>
+                                    </Suspense>
+                                </div>
 
                                 <div id="add-review-area">
                                     {addReviewFormArea}

@@ -72,7 +72,12 @@ export default function ProductCard(props: IProductCardProps) {
                 </NavLink>
 
                 <div className="flex justify-between">
-                    <span className="text-green-200 font-bold pt-4">${props.product.price.toFixed(2)}</span>
+                    <div>
+                        <div className="text-green-200 font-bold pt-4">${props.product.price.toFixed(2)}</div>
+                        <div><NavLink
+                            to={`/products/${props.product.slug}#reviews`}>{props.product.reviewCount} reviews</NavLink>
+                        </div>
+                    </div>
                     <Button
                         label="Add"
                         icon="pi pi-shopping-cart"

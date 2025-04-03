@@ -9,4 +9,5 @@ export interface IProduct {
     updatedAt?: Date;
     spiceRating: number;
     tagIds?: number[];
+    reviewCount: number;
 }
