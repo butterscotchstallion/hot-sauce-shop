@@ -67,7 +67,7 @@ export default function ProductDetailPage() {
                 reviews$?.unsubscribe();
             }
         }
-    }, [productSlug, reviews])
+    }, []);
 
     return (
         <>

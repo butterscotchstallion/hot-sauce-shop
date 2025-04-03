@@ -119,35 +119,34 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 	r.GET("/api/v1/products/:slug", cache.CachePage(store, time.Minute*15, func(c *gin.Context) {
 		urlSlug := c.Param("slug")
 		var res gin.H
-		if len(urlSlug) > 0 {
-			product, err := lib.GetInventoryItemBySlug(dbPool, urlSlug)
-			if err != nil {
-				logger.Error(fmt.Sprintf("Error fetching product: %v", err))
-				res = gin.H{
-					"status":  "ERROR",
-					"message": fmt.Sprintf("Error fetching product: %v", err),
-				}
-				c.JSON(http.StatusInternalServerError, res)
-			} else {
-				tags, tagsErr := lib.GetInventoryItemTags(dbPool, logger, product.Id)
-				if tagsErr != nil {
-					logger.Error(fmt.Sprintf("Error fetching tags: %v", tagsErr))
-					c.JSON(http.StatusInternalServerError, gin.H{
-						"status":  "ERROR",
-						"message": fmt.Sprintf("Error fetching tags: %v", tagsErr),
-					})
-					return
-				}
-				res = gin.H{
-					"status": "OK",
-					"results": gin.H{
-						"product": product,
-						"tags":    tags,
-					},
-				}
-				c.JSON(http.StatusOK, res)
+		product, err := lib.GetInventoryItemBySlug(dbPool, urlSlug)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Error fetching product: %v", err))
+			res = gin.H{
+				"status":  "ERROR",
+				"message": fmt.Sprintf("Error fetching product: %v", err),
 			}
+			c.JSON(http.StatusInternalServerError, res)
+			return
 		}
+
+		tags, tagsErr := lib.GetInventoryItemTags(dbPool, logger, product.Id)
+		if tagsErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching tags: %v", tagsErr))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": fmt.Sprintf("Error fetching tags: %v", tagsErr),
+			})
+			return
+		}
+		res = gin.H{
+			"status": "OK",
+			"results": gin.H{
+				"product": product,
+				"tags":    tags,
+			},
+		}
+		c.JSON(http.StatusOK, res)
 	}))
 
 	r.GET("/api/v1/products", cache.CachePage(store, time.Minute*15, func(c *gin.Context) {
