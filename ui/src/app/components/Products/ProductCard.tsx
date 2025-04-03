@@ -10,6 +10,7 @@ import {RootState} from "../../store.ts";
 import {useDispatch, useSelector} from "react-redux";
 import {addCartItem} from "../Cart/CartService.ts";
 import {cartItemAdded} from "../Cart/Cart.slice.ts";
+import {IUser} from "../User/IUser.ts";
 
 interface IProductCardProps {
     product: IProduct,
@@ -17,6 +18,7 @@ interface IProductCardProps {
 }
 
 export default function ProductCard(props: IProductCardProps) {
+    const user: IUser = useSelector((state: RootState) => state.user.user);
     const idQuantityMap = useSelector((state: RootState) => {
         return state.cart.idQuantityMap;
     });
@@ -27,7 +29,7 @@ export default function ProductCard(props: IProductCardProps) {
         setIsAddingToCart(true);
         addCartItem({
             inventoryItemId: product.id,
-            userId: 1,
+            userId: user.id,
             overrideQuantity: false,
             quantity: 1,
         }).subscribe({
@@ -50,7 +52,7 @@ export default function ProductCard(props: IProductCardProps) {
                 });
                 setIsAddingToCart(false);
             }
-        })
+        });
     }
 
     return (
@@ -78,12 +80,15 @@ export default function ProductCard(props: IProductCardProps) {
                             to={`/products/${props.product.slug}#reviews`}>{props.product.reviewCount} reviews</NavLink>
                         </div>
                     </div>
-                    <Button
-                        label="Add"
-                        icon="pi pi-shopping-cart"
-                        badge={idQuantityMap && props.product.id in idQuantityMap ? idQuantityMap[props.product.id].toString() : '0'}
-                        disabled={isAddingToCart}
-                        onClick={() => addToCart(props.product)}/>
+
+                    {user && (
+                        <Button
+                            label="Add"
+                            icon="pi pi-shopping-cart"
+                            badge={idQuantityMap && props.product.id in idQuantityMap ? idQuantityMap[props.product.id].toString() : '0'}
+                            disabled={isAddingToCart}
+                            onClick={() => addToCart(props.product)}/>
+                    )}
                 </div>
             </Card>
         </div>
