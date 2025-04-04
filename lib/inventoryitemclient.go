@@ -217,7 +217,8 @@ func GetInventoryItemBySlug(dbPool *pgxpool.Pool, slug string) (InventoryItem, e
 		   	created_at,
 		   	updated_at,
 		   	spice_rating,
-		   	(SELECT COUNT(*) FROM inventory_item_reviews WHERE inventory_item_id = i.id) AS review_count
+		   	(SELECT COUNT(*) FROM inventory_item_reviews WHERE inventory_item_id = i.id) AS review_count,
+			COALESCE((SELECT AVG(rating) FROM inventory_item_reviews WHERE inventory_item_id = i.id), 0) AS average_rating
 		FROM inventories i
 		WHERE slug = $1
 	`
