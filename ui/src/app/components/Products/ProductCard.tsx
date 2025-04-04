@@ -73,7 +73,7 @@ export default function ProductCard(props: IProductCardProps) {
                     </section>
                 </NavLink>
 
-                <div className="flex justify-between">
+                <div className="flex justify-between items-end">
                     <div>
                         <ul>
                             <li className="text-green-200 font-bold pt-4">${props.product.price.toFixed(2)}</li>
@@ -94,6 +94,7 @@ export default function ProductCard(props: IProductCardProps) {
 
                     {user && (
                         <Button
+                            className="h-[50px]"
                             label="Add"
                             icon="pi pi-shopping-cart"
                             badge={idQuantityMap && props.product.id in idQuantityMap ? idQuantityMap[props.product.id].toString() : '0'}
