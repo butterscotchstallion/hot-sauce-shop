@@ -10,4 +10,5 @@ export interface IProduct {
     spiceRating: number;
     tagIds?: number[];
     reviewCount: number;
+    averageRating: number;
 }

@@ -22,6 +22,7 @@ type InventoryItem struct {
 	CreatedAt        time.Time  `json:"createdAt" db:"created_at"`
 	UpdatedAt        *time.Time `json:"updatedAt" db:"updated_at"`
 	ReviewCount      int        `json:"reviewCount" db:"review_count"`
+	AverageRating    *float32   `json:"averageRating" db:"average_rating"`
 }
 
 type ProductAutocompleteSuggestion struct {
@@ -99,7 +100,8 @@ func GetInventoryItemsOrderedBySortKey(
 		       i.created_at,
 		       i.updated_at,
 		       i.spice_rating,
-		       (SELECT COUNT(*) FROM inventory_item_reviews WHERE inventory_item_id = i.id) AS review_count
+		       (SELECT COUNT(*) FROM inventory_item_reviews WHERE inventory_item_id = i.id) AS review_count,
+		       (SELECT AVG(rating) FROM inventory_item_reviews WHERE inventory_item_id = i.id) AS average_rating
 		FROM inventories i
 	` + tagIdsJoinClause + `
 		WHERE 1=1
