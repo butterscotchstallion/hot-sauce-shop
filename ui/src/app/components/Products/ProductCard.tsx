@@ -76,17 +76,11 @@ export default function ProductCard(props: IProductCardProps) {
                 <div className="flex justify-between items-end">
                     <div>
                         <ul>
-                            <li className="text-green-200 font-bold pt-4">${props.product.price.toFixed(2)}</li>
-                            <li>
-                                <NavLink
-                                    to={`/products/${props.product.slug}#reviews`}>{props.product.reviewCount}
-                                    {props.product.reviewCount === 1 ? " review" : " reviews"}
-                                </NavLink>
-                            </li>
-                            <li title={`Average Rating: ${props.product?.averageRating.toFixed(1) || 0}`}>
+                            <li className="text-green-200 font-bold pt-4 mb-1">${props.product.price.toFixed(2)}</li>
+                            <li title={`Average Rating: ${props.product.averageRating.toFixed(1)} from ${props.product.reviewCount} reviews`}>
                                 <NavLink
                                     to={`/products/${props.product.slug}#reviews`}>
-                                    <i className="pi pi-star-fill text-yellow-200"></i> {props.product?.averageRating.toFixed(1) || 0}
+                                    <i className="pi pi-star-fill text-yellow-200"></i> {props.product.averageRating.toFixed(1)} ({props.product.reviewCount})
                                 </NavLink>
                             </li>
                         </ul>
