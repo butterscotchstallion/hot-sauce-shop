@@ -84,7 +84,10 @@ export default function ProductCard(props: IProductCardProps) {
                                 </NavLink>
                             </li>
                             <li title={`Average Rating: ${props.product?.averageRating.toFixed(1) || 0}`}>
-                                <i className="pi pi-star-fill text-yellow-200"></i> {props.product?.averageRating.toFixed(1) || 0}
+                                <NavLink
+                                    to={`/products/${props.product.slug}#reviews`}>
+                                    <i className="pi pi-star-fill text-yellow-200"></i> {props.product?.averageRating.toFixed(1) || 0}
+                                </NavLink>
                             </li>
                         </ul>
                     </div>
