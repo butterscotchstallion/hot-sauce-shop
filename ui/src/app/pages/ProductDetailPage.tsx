@@ -167,15 +167,13 @@ export default function ProductDetailPage() {
 
                                 <section id="review-insights" className="mb-4">
                                     <Card title="Review Insights">
-                                        {/*<Chart
-                                            type="pie"
-                                            data={chartData}
-                                            options={chartOptions}
-                                            className="w-full md:w-30rem"/>*/}
-                                        <Chart type="doughnut"
-                                               data={chartData}
-                                               options={chartOptions}
-                                               className="w-1/2 md:w-15rem"/>
+                                        <section>
+                                            <h3 className="text-1xl font-bold mb-2">Review Ratings</h3>
+                                            <Chart type="doughnut"
+                                                   data={chartData}
+                                                   options={chartOptions}
+                                                   className="w-1/2 md:w-15rem"/>
+                                        </section>
                                     </Card>
                                 </section>
 
