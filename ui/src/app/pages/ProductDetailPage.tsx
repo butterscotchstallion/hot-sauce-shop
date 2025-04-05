@@ -87,6 +87,9 @@ export default function ProductDetailPage() {
         }
         setChartData(data);
     }
+    const toggleReviewInsightsButton = () => {
+        setIsReviewInsightsVisible(!isReviewInsightsVisible);
+    }
 
     useEffect(() => {
         if (productSlug) {
@@ -159,9 +162,9 @@ export default function ProductDetailPage() {
                                             size="small"
                                             className="h-[35px]"
                                             severity="info"
-                                            label="Show Review Insights"
+                                            label="Toggle Review Insights"
                                             icon="pi pi-chart-bar"
-                                            onClick={() => setIsReviewInsightsVisible(!isReviewInsightsVisible)}
+                                            onClick={() => toggleReviewInsightsButton()}
                                         />
                                         {user && userHasRole(UserRole.REVIEWER, userRoles) && (
                                             <Button
