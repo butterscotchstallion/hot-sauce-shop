@@ -113,10 +113,16 @@ export default function ProductDetailPage() {
                             </section>
 
                             <section className="mt-10">
-                                <div className="flex justify-between">
+                                <div className="flex justify-between mb-2">
                                     <h2 className="font-bold text-lg mb-4">Reviews ({reviews.length})</h2>
                                     {user && userHasRole(UserRole.REVIEWER, userRoles) && (
-                                        <a href="#add-review-area">Write a review</a>
+                                        <Button label="Add Review" icon="pi pi-pencil" onClick={() => {
+                                            document.getElementById("add-review-area")?.scrollIntoView({
+                                                behavior: "smooth",
+                                                block: "start",
+                                                inline: "nearest"
+                                            });
+                                        }}/>
                                     )}
                                 </div>
 
