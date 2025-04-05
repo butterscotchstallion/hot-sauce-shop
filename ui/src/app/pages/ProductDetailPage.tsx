@@ -134,7 +134,7 @@ export default function ProductDetailPage() {
                             </ul>
                         </aside>
 
-                        <div>
+                        <div className="w-full">
                             <section className="mb-2">
                                 <h2 className="font-bold text-lg mb-4">Description</h2>
                                 <Card>

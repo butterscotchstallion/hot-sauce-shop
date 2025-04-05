@@ -13,7 +13,7 @@ export default function ReviewCard(props: IReviewCardProps) {
     return (
         <Card title={props.review.title} className="w-full mb-4">
             <div className="flex gap-4">
-                <aside className="flex flex-row text-center items-center gap-2 w-[100px]">
+                <aside className="flex flex-row text-center items-start gap-2 w-[100px]">
                     <NavLink to={`/users/${encodeURI(props.review.usernameSlug)}`}>
                         <Avatar
                             size={"large"}
@@ -27,10 +27,10 @@ export default function ReviewCard(props: IReviewCardProps) {
                     </NavLink>
                 </aside>
                 <section className="flex flex-col w-full gap-4">
-                    <div>
+                    <div className="min-h-[80px]">
                         {props.review.comment}
                     </div>
-                    <section className="flex w-full mt-6 justify-between">
+                    <section className="flex w-1/3 mt-6 justify-between">
                         <section className="w-1/2">
                             <p className="mb-2">Rating</p>
                             <Rating value={props.review.rating} readOnly={true} cancel={false}/>
