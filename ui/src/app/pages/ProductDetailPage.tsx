@@ -36,10 +36,9 @@ export default function ProductDetailPage() {
     const productTagList = productTags.map((tag: ITag) => {
         return <Tag key={tag.id} severity="info" value={tag.name} className="mr-2"></Tag>
     });
-    const [chartOptions] = useState<ChartOptions>({
-        cutout: '60%'
-    });
+    const [chartOptions] = useState<ChartOptions>({});
     const [chartData, setChartData] = useState<ChartData>();
+    const [isReviewInsightsVisible, setIsReviewInsightsVisible] = useState<boolean>(false);
 
     const reviewSubmittedCallback = () => {
         loadReviews();
@@ -154,28 +153,46 @@ export default function ProductDetailPage() {
                             <section className="mt-10">
                                 <div className="flex justify-between mb-2">
                                     <h2 className="font-bold text-lg mb-4">Reviews ({reviews.length})</h2>
-                                    {user && userHasRole(UserRole.REVIEWER, userRoles) && (
-                                        <Button label="Add Review" icon="pi pi-pencil" onClick={() => {
-                                            document.getElementById("add-review-area")?.scrollIntoView({
-                                                behavior: "smooth",
-                                                block: "start",
-                                                inline: "nearest"
-                                            });
-                                        }}/>
-                                    )}
+
+                                    <section className="w-1/2 flex gap-4 justify-end">
+                                        <Button
+                                            size="small"
+                                            className="h-[35px]"
+                                            severity="info"
+                                            label="Show Review Insights"
+                                            icon="pi pi-chart-bar"
+                                            onClick={() => setIsReviewInsightsVisible(!isReviewInsightsVisible)}
+                                        />
+                                        {user && userHasRole(UserRole.REVIEWER, userRoles) && (
+                                            <Button
+                                                size="small"
+                                                className="h-[35px]"
+                                                label="Add Review"
+                                                icon="pi pi-pencil"
+                                                onClick={() => {
+                                                    document.getElementById("add-review-area")?.scrollIntoView({
+                                                        behavior: "smooth",
+                                                        block: "start",
+                                                        inline: "nearest"
+                                                    });
+                                                }}/>
+                                        )}
+                                    </section>
                                 </div>
 
-                                <section id="review-insights" className="mb-4">
-                                    <Card title="Review Insights">
-                                        <section>
-                                            <h3 className="text-1xl font-bold mb-2">Review Ratings</h3>
-                                            <Chart type="doughnut"
-                                                   data={chartData}
-                                                   options={chartOptions}
-                                                   className="w-1/2 md:w-15rem"/>
-                                        </section>
-                                    </Card>
-                                </section>
+                                {isReviewInsightsVisible && (
+                                    <section id="review-insights" className="mb-4">
+                                        <Card title="Review Insights">
+                                            <section>
+                                                <h3 className="text-1xl font-bold mb-2">Review Ratings</h3>
+                                                <Chart type="doughnut"
+                                                       data={chartData}
+                                                       options={chartOptions}
+                                                       className="w-1/2 md:w-15rem"/>
+                                            </section>
+                                        </Card>
+                                    </section>
+                                )}
 
                                 <div id="reviews">
                                     <Suspense fallback={<Throbber/>}>
