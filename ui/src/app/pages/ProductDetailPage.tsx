@@ -19,6 +19,10 @@ import {ProductReviewList} from "../components/Products/ProductReviewList.tsx";
 import {IReview} from "../components/Reviews/IReview.ts";
 import {IUserRole} from "../components/User/IUserRole.ts";
 import {userHasRole, UserRole} from "../components/User/UserService.ts";
+import {Chart} from "primereact/chart";
+import {ChartData, ChartOptions} from "chart.js";
+import {IProductReviewResponse} from "../components/Products/IProductReviewResponse.ts";
+import {IReviewRatingDistribution} from "../components/Products/IReviewRatingDistribution.ts";
 
 export default function ProductDetailPage() {
     const user: IUser | null = useSelector((state: RootState) => state.user.user);
@@ -32,6 +36,10 @@ export default function ProductDetailPage() {
     const productTagList = productTags.map((tag: ITag) => {
         return <Tag key={tag.id} severity="info" value={tag.name} className="mr-2"></Tag>
     });
+    const [chartOptions] = useState<ChartOptions>({
+        cutout: '60%'
+    });
+    const [chartData, setChartData] = useState<ChartData>();
 
     const reviewSubmittedCallback = () => {
         loadReviews();
@@ -44,11 +52,42 @@ export default function ProductDetailPage() {
     const loadReviews: () => (Subscription | undefined) = (): Subscription | undefined => {
         if (productSlug) {
             return getProductReviews(productSlug).subscribe({
-                next: (reviews: IReview[]) => setReviews(reviews),
+                next: (resp: IProductReviewResponse) => {
+                    setReviews(resp.reviews);
+                    setReviewDataAndOptions(resp.reviewRatingDistributions);
+                },
                 error: (err) => console.error(err),
             });
         }
     };
+    const setReviewDataAndOptions = (ratingDistribution: IReviewRatingDistribution[]) => {
+        const documentStyle: CSSStyleDeclaration = getComputedStyle(document.documentElement);
+        const labels: string[] = [];
+        const chartData: number[] = [];
+        ratingDistribution.forEach((ratingDistribution: IReviewRatingDistribution) => {
+            labels.push(ratingDistribution.rating.toString());
+            chartData.push(ratingDistribution.count);
+        });
+        const data = {
+            labels: labels,
+            datasets: [
+                {
+                    data: chartData,
+                    backgroundColor: [
+                        documentStyle.getPropertyValue('--blue-500'),
+                        documentStyle.getPropertyValue('--yellow-500'),
+                        documentStyle.getPropertyValue('--green-500')
+                    ],
+                    hoverBackgroundColor: [
+                        documentStyle.getPropertyValue('--blue-400'),
+                        documentStyle.getPropertyValue('--yellow-400'),
+                        documentStyle.getPropertyValue('--green-400')
+                    ]
+                }
+            ]
+        }
+        setChartData(data);
+    }
 
     useEffect(() => {
         if (productSlug) {
@@ -125,6 +164,20 @@ export default function ProductDetailPage() {
                                         }}/>
                                     )}
                                 </div>
+
+                                <section id="review-insights" className="mb-4">
+                                    <Card title="Review Insights">
+                                        {/*<Chart
+                                            type="pie"
+                                            data={chartData}
+                                            options={chartOptions}
+                                            className="w-full md:w-30rem"/>*/}
+                                        <Chart type="doughnut"
+                                               data={chartData}
+                                               options={chartOptions}
+                                               className="w-1/2 md:w-15rem"/>
+                                    </Card>
+                                </section>
 
                                 <div id="reviews">
                                     <Suspense fallback={<Throbber/>}>

@@ -30,6 +30,11 @@ type ProductAutocompleteSuggestion struct {
 	Slug string `json:"slug"`
 }
 
+type RatingDistribution struct {
+	Rating int `json:"rating"`
+	Count  int `json:"count"`
+}
+
 func AddOrUpdateInventoryItem(dbPool *pgxpool.Pool, logger *slog.Logger, inventoryItem InventoryItem) (int, error) {
 	const query = `
 		INSERT INTO inventories (
@@ -239,6 +244,40 @@ func GetInventoryItemBySlug(dbPool *pgxpool.Pool, slug string) (InventoryItem, e
 	}
 
 	return inventoryItems[0], nil
+}
+
+func getInventoryItemRatingSumById(dbPool *pgxpool.Pool, id int) (int, error) {
+	const query = `
+		SELECT SUM(rating)
+		FROM inventory_item_reviews
+		WHERE inventory_item_id = $1
+	`
+	var ratingSum int
+	err := dbPool.QueryRow(context.Background(), query, id).Scan(&ratingSum)
+	if err != nil {
+		return 0, err
+	}
+	return ratingSum, nil
+}
+
+func GetInventoryItemReviewRatingDistributionBySlug(dbPool *pgxpool.Pool, slug string) ([]RatingDistribution, error) {
+	const query = `
+		SELECT r.rating, COUNT(*) AS count
+		FROM inventory_item_reviews r
+		LEFT JOIN inventories i ON i.id = r.inventory_item_id
+		WHERE i.slug = $1
+		GROUP BY rating
+	`
+	rows, err := dbPool.Query(context.Background(), query, slug)
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	ratingDistributions, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[RatingDistribution])
+	if collectRowsErr != nil {
+		return ratingDistributions, collectRowsErr
+	}
+	return ratingDistributions, nil
 }
 
 func InventoryItemExists(dbPool *pgxpool.Pool, id int) (bool, error) {

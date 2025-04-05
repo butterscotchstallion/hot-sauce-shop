@@ -304,10 +304,22 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 			})
 			return
 		}
+
+		ratingDistribution, ratingErr := lib.GetInventoryItemReviewRatingDistributionBySlug(dbPool, itemSlug)
+		if ratingErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching rating distribution: %v", ratingErr.Error()))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": fmt.Sprintf("Error fetching rating distribution: %v", ratingErr.Error()),
+			})
+			return
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"status": "OK",
 			"results": gin.H{
-				"reviews": reviews,
+				"reviews":            reviews,
+				"ratingDistribution": ratingDistribution,
 			},
 		})
 	})

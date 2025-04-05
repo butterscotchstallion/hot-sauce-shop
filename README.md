@@ -17,6 +17,8 @@
 ![product list](screenshots/products-list.png)
 ## Product Detail
 ![product detail](screenshots/product-detail.png)
+## Review ratings and charts
+![review ratings and charts](screenshots/review-ratings-distribution.png)
 ## Product Reviews
 ![product reviews](screenshots/product-review-area.png)
 ## Cart

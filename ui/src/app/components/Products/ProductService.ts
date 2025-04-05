@@ -5,8 +5,8 @@ import {IProduct} from "./IProduct.ts";
 import {IAutocompleteSuggestion} from "./IAutocompleteSuggestion.ts";
 import {IDisplayTag} from "../../pages/ProductListPage.tsx";
 import {IProductDetail} from "./IProductDetail.ts";
-import {IReview} from "../Reviews/IReview.ts";
 import {IAddProductReviewRequest} from "./IAddProductReviewRequest.ts";
+import {IProductReviewResponse} from "./IProductReviewResponse.ts";
 
 function getFilterTagsURLParameter(filters: IDisplayTag[]): string {
     if (filters.length > 0) {
@@ -121,13 +121,16 @@ export function addReview(review: IAddProductReviewRequest, productSlug: string)
     return review$;
 }
 
-export function getProductReviews(productSlug: string): Subject<IReview[]> {
-    const reviews$ = new Subject<IReview[]>();
+export function getProductReviews(productSlug: string): Subject<IProductReviewResponse> {
+    const reviews$ = new Subject<IProductReviewResponse>();
     fetch(`${PRODUCTS_URL}/${productSlug}/reviews`).then((res: Response) => {
         if (res.ok) {
             res.json().then(resp => {
                 if (resp?.status === "OK") {
-                    reviews$.next(resp?.results?.reviews || [])
+                    reviews$.next({
+                        reviews: resp.results.reviews,
+                        reviewRatingDistributions: resp.results.ratingDistribution,
+                    });
                 } else {
                     reviews$.error(resp?.message || "Unknown error");
                 }
