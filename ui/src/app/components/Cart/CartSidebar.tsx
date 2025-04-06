@@ -165,6 +165,12 @@ export default function CartSidebar() {
         setFilters(_filters);
         setGlobalFilterValue(value);
     };
+    const sidebarCartNameTpl = (cartItem: ICart): ReactElement => {
+        return <div tooltip='" + cartItem.name + "' className='flex items-center gap-2'>{cartItem.name}</div>;
+    }
+    const priceColumnTpl = (cartItem: ICart): ReactElement => {
+        return <>{cartItem.price.toFixed(2)}</>
+    }
 
     return (
         <>
@@ -178,7 +184,7 @@ export default function CartSidebar() {
                 aria-haspopup/>
 
             <Sidebar
-                style={{width: '28rem'}}
+                style={{width: '33rem'}}
                 position={"right"}
                 visible={sidebarVisible}
                 onHide={() => setSidebarVisible(false)}
@@ -197,9 +203,16 @@ export default function CartSidebar() {
                             filterMatchMode="contains"
                             className="w-[40%] max-w-[80px] whitespace-nowrap overflow-hidden text-ellipsis"
                             field="name"
-                            header="Name"></Column>
-                        <Column sortable className="w-[20%]" field="price" header="Price"></Column>
-                        <Column sortable className="w-[5%]" body={quantityColTpl} field="quantity"
+                            header="Name"
+                            body={sidebarCartNameTpl}></Column>
+                        <Column sortable
+                                className="w-[20%]"
+                                field="price"
+                                header="Price"
+                                body={priceColumnTpl}></Column>
+                        <Column sortable
+                                className="w-[5%]" body={quantityColTpl}
+                                field="quantity"
                                 header="Quantity"></Column>
                         <Column className="w-[5%]" header="Remove" body={removeCartItemTpl}/>
                     </DataTable>
