@@ -77,7 +77,7 @@ func GetInventoryItemsOrderedBySortKey(
 ) ([]InventoryItem, error) {
 	// Sort is validated at endpoint
 	direction := "ASC"
-	descSorts := []string{"spice_rating", "review_count", "price", "average_rating"}
+	descSorts := []string{"spice_rating", "review_count", "price", "average_rating", "average_spice_rating"}
 	if slices.Contains(descSorts, sort) {
 		direction = "DESC"
 	}
