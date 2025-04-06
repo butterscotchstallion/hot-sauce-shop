@@ -11,4 +11,5 @@ export interface IProduct {
     tagIds?: number[];
     reviewCount: number;
     averageRating: number;
+    averageSpiceRating: number;
 }

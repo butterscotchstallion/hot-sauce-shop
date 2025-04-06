@@ -27,7 +27,7 @@ export default function ReviewCard(props: IReviewCardProps) {
                     </NavLink>
                 </aside>
                 <section className="flex flex-col w-full gap-4">
-                    <div className="min-h-[80px]">
+                    <div className="min-h-[60px]">
                         {props.review.comment}
                     </div>
                     <section className="flex w-1/3 mt-6 justify-between">

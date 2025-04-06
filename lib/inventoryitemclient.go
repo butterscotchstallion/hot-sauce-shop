@@ -12,17 +12,18 @@ import (
 )
 
 type InventoryItem struct {
-	Id               int        `json:"id" db:"id"`
-	Name             string     `json:"name" db:"name"`
-	Description      string     `json:"description" db:"description"`
-	ShortDescription string     `json:"shortDescription" db:"short_description"`
-	Slug             string     `json:"slug" db:"slug"`
-	Price            float32    `json:"price" db:"price"`
-	SpiceRating      int        `json:"spiceRating" db:"spice_rating"`
-	CreatedAt        time.Time  `json:"createdAt" db:"created_at"`
-	UpdatedAt        *time.Time `json:"updatedAt" db:"updated_at"`
-	ReviewCount      int        `json:"reviewCount" db:"review_count"`
-	AverageRating    *float32   `json:"averageRating" db:"average_rating"`
+	Id                 int        `json:"id" db:"id"`
+	Name               string     `json:"name" db:"name"`
+	Description        string     `json:"description" db:"description"`
+	ShortDescription   string     `json:"shortDescription" db:"short_description"`
+	Slug               string     `json:"slug" db:"slug"`
+	Price              float32    `json:"price" db:"price"`
+	SpiceRating        int        `json:"spiceRating" db:"spice_rating"`
+	CreatedAt          time.Time  `json:"createdAt" db:"created_at"`
+	UpdatedAt          *time.Time `json:"updatedAt" db:"updated_at"`
+	ReviewCount        int        `json:"reviewCount" db:"review_count"`
+	AverageRating      *float32   `json:"averageRating" db:"average_rating"`
+	AverageSpiceRating *float32   `json:"averageSpiceRating" db:"average_spice_rating"`
 }
 
 type ProductAutocompleteSuggestion struct {
@@ -106,7 +107,8 @@ func GetInventoryItemsOrderedBySortKey(
 		       i.updated_at,
 		       i.spice_rating,
 		       (SELECT COUNT(*) FROM inventory_item_reviews WHERE inventory_item_id = i.id) AS review_count,
-		       COALESCE((SELECT AVG(rating) FROM inventory_item_reviews WHERE inventory_item_id = i.id), 0) AS average_rating
+		       COALESCE((SELECT AVG(rating) FROM inventory_item_reviews WHERE inventory_item_id = i.id), 0) AS average_rating,
+		       COALESCE((SELECT AVG(inventory_item_reviews.spice_rating) FROM inventory_item_reviews WHERE inventory_item_id = i.id), 0) AS average_spice_rating
 		FROM inventories i
 	` + tagIdsJoinClause + `
 		WHERE 1=1
@@ -223,7 +225,8 @@ func GetInventoryItemBySlug(dbPool *pgxpool.Pool, slug string) (InventoryItem, e
 		   	updated_at,
 		   	spice_rating,
 		   	(SELECT COUNT(*) FROM inventory_item_reviews WHERE inventory_item_id = i.id) AS review_count,
-			COALESCE((SELECT AVG(rating) FROM inventory_item_reviews WHERE inventory_item_id = i.id), 0) AS average_rating
+			COALESCE((SELECT AVG(rating) FROM inventory_item_reviews WHERE inventory_item_id = i.id), 0) AS average_rating,
+			COALESCE((SELECT AVG(inventory_item_reviews.spice_rating) FROM inventory_item_reviews WHERE inventory_item_id = i.id), 0) AS average_spice_rating
 		FROM inventories i
 		WHERE slug = $1
 	`

@@ -84,6 +84,16 @@ export default function ProductCard(props: IProductCardProps) {
                                     {props.product.averageRating.toFixed(1)} ({props.product.reviewCount})
                                 </NavLink>
                             </li>
+                            <li title={`Average Spice Rating: ${props.product.averageSpiceRating.toFixed(1)} from ${props.product.reviewCount} reviews`}>
+                                <NavLink
+                                    to={`/products/${props.product.slug}#reviews`}>
+                                    <img
+                                        src="/images/hot-pepper.png"
+                                        className="w-[16px] h-[16px] mr-2 inline"
+                                        alt="Average Spice Rating"/>
+                                    {props.product.averageSpiceRating.toFixed(1)} ({props.product.reviewCount})
+                                </NavLink>
+                            </li>
                         </ul>
                     </div>
 
