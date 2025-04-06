@@ -92,7 +92,7 @@ export default function ProductListPage(): ReactElement {
                                   onChange={(e) => setProductListSortKey(e.value)}
                                   options={productListSortOptions}
                                   optionLabel="label"
-                                  className="w-[10rem]"/>
+                                  className="w-[15rem]"/>
                     </section>
 
                     {products.length > 0 ? (
