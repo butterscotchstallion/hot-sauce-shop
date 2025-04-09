@@ -14,6 +14,7 @@ import {addCartItem, deleteCartItem} from "./CartService.ts";
 import {confirmDialog, ConfirmDialog} from "primereact/confirmdialog";
 import {FilterMatchMode} from "primereact/api";
 import {InputText} from "primereact/inputtext";
+import {NavigateFunction, useNavigate} from "react-router";
 
 export default function CartSidebar() {
     const dispatch = useDispatch();
@@ -28,6 +29,7 @@ export default function CartSidebar() {
         name: {value: null, matchMode: FilterMatchMode.STARTS_WITH},
     });
     const [globalFilterValue, setGlobalFilterValue] = useState<string>('');
+    const navigate: NavigateFunction = useNavigate();
     let deleteCartItemInventoryId: number = 0;
 
     useEffect(() => {
@@ -166,12 +168,14 @@ export default function CartSidebar() {
         setGlobalFilterValue(value);
     };
     const sidebarCartNameTpl = (cartItem: ICart): ReactElement => {
-        return <div tooltip='" + cartItem.name + "' className='flex items-center gap-2'>{cartItem.name}</div>;
+        return <div className='flex items-center gap-2'>{cartItem.name}</div>;
     }
     const priceColumnTpl = (cartItem: ICart): ReactElement => {
         return <>{cartItem.price.toFixed(2)}</>
     }
-
+    const goToCheckOut = () => {
+        navigate('/orders/checkout');
+    }
     return (
         <>
             <Button
@@ -220,7 +224,11 @@ export default function CartSidebar() {
 
                 <section className="mt-4 mb-4 flex justify-between">
                     <h3 className="text-xl font-bold">Total: ${cartSubtotal.toFixed(2)}</h3>
-                    <Button label="Checkout" icon="pi pi-shopping-cart" className="p-button-rounded"/>
+                    <Button
+                        onClick={() => goToCheckOut()}
+                        label="Checkout"
+                        icon="pi pi-shopping-cart"
+                        className="p-button-rounded"/>
                 </section>
             </Sidebar>
 
