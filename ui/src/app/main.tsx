@@ -8,6 +8,7 @@ import Throbber from "./components/Shared/Throbber.tsx";
 import AdminPage from "./pages/Admin/AdminPage.tsx";
 import AdminInventoryPage from "./pages/Admin/AdminInventoryPage.tsx";
 import {AdminUserDetailPage} from "./pages/Admin/AdminUserDetailPage.tsx";
+import {OrderCheckoutPage} from "./pages/OrderCheckoutPage.tsx";
 
 const HomePage = React.lazy(() => import("./pages/HomePage.tsx"));
 const ProductListPage = React.lazy(() => import("./pages/ProductListPage.tsx"));

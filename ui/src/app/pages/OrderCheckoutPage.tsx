@@ -1,3 +1,7 @@
 export function OrderCheckoutPage() {
-    return <div>Order Checkout Page</div>;
+    return (
+        <>
+            <h1 className="text-2xl font-bold">Checkout</h1>
+        </>
+    )
 }

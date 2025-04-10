@@ -195,7 +195,8 @@ export default function CartSidebar() {
             >
                 <h2 className="text-2xl font-bold">Cart</h2>
                 <section className="mt-4 cart-table-area">
-                    <InputText value={globalFilterValue} onChange={onGlobalFilterChange}
+                    <InputText value={globalFilterValue}
+                               onChange={onGlobalFilterChange}
                                placeholder="Filter cart items"/>
                     <DataTable className="w-full"
                                value={cartState.items}
@@ -215,10 +216,13 @@ export default function CartSidebar() {
                                 header="Price"
                                 body={priceColumnTpl}></Column>
                         <Column sortable
-                                className="w-[5%]" body={quantityColTpl}
+                                className="w-[5%]"
+                                body={quantityColTpl}
                                 field="quantity"
                                 header="Quantity"></Column>
-                        <Column className="w-[5%]" header="Remove" body={removeCartItemTpl}/>
+                        <Column className="w-[5%]"
+                                header="Remove"
+                                body={removeCartItemTpl}/>
                     </DataTable>
                 </section>
 
