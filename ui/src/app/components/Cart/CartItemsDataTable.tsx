@@ -67,13 +67,20 @@ export function CartItemsDataTable(props: ICartItemsDataTableProps) {
     };
     const sidebarCartNameTpl = (cartItem: ICart): ReactElement => {
         return <>
-            <div className='flex flex-col gap-2'>
-                <Link to={`/products/${cartItem.inventoryItemSlug}`}>
-                    {cartItem.name}
-                    <small
-                        className="block italic text-yellow-200">{cartItem.inventoryItemShortDescription}</small>
-                </Link>
-            </div>
+            <section className="flex gap-4 max-w-[250px]">
+                <div>
+                    <Link to={`/products/${cartItem.inventoryItemSlug}`}>
+                        <img src="/images/hot-pepper.png" width="50" height="50" alt={`${cartItem.name}`}/>
+                    </Link>
+                </div>
+                <div>
+                    <div className='flex flex-col gap-2'>
+                        <Link to={`/products/${cartItem.inventoryItemSlug}`}>
+                            {cartItem.name}
+                        </Link>
+                    </div>
+                </div>
+            </section>
         </>
     }
     const priceColumnTpl = (cartItem: ICart): ReactElement => {
