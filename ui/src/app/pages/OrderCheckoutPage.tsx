@@ -7,6 +7,7 @@ import {Button} from "primereact/button";
 import {useSelector} from "react-redux";
 import {RootState} from "../store.ts";
 import dayjs, {Dayjs} from 'dayjs';
+import {Tooltip} from 'primereact/tooltip';
 
 interface IOrderTotalItems {
     name: string;
@@ -22,10 +23,27 @@ export function OrderCheckoutPage() {
     const instantTransmission: Dayjs = today.add(1, "hours");
     const deliveryDateFormat: string = "ddd, MMM D";
     const deliveryOptions: IDeliveryOption[] = [
-        {name: "Instant Transmission", price: 99.99, deliveryDate: instantTransmission.format(deliveryDateFormat)},
-        {name: "Two Day", price: 9.99, deliveryDate: twoDay.format(deliveryDateFormat)},
-        {name: "Three Day", price: 4.99, deliveryDate: threeDay.format(deliveryDateFormat)},
-        {name: "Whenever", price: 0.00, deliveryDate: whenever.format(deliveryDateFormat)},
+        {
+            name: "Instant Transmission",
+            price: 99.99,
+            deliveryDate: instantTransmission.format(deliveryDateFormat),
+            description: "Teleported via black hole after packaging"
+        },
+        {
+            name: "Two Day",
+            price: 9.99,
+            deliveryDate: twoDay.format(deliveryDateFormat)
+        },
+        {
+            name: "Three Day",
+            price: 4.99,
+            deliveryDate: threeDay.format(deliveryDateFormat)
+        },
+        {
+            name: "Whenever",
+            price: 0.00,
+            deliveryDate: whenever.format(deliveryDateFormat)
+        },
     ];
     const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<IDeliveryOption>(deliveryOptions[0]);
     const [orderTotal, setOrderTotal] = useState<string>(cartSubtotal.toFixed(2));
@@ -36,6 +54,18 @@ export function OrderCheckoutPage() {
     ];
     const priceFormatted = (row) => {
         return `$${row.price}`;
+    }
+    const deliveryOptionName = (row) => {
+        return <>
+            <p>
+                {row.name} {row?.description &&
+                <i className="pl-2 cursor-pointer pi pi-question-circle custom-target-icon text-yellow-200"
+                   data-pr-tooltip={row.description}
+                   data-pr-position="right"
+                   data-pr-at="right+5 top"
+                   data-pr-my="left center-2"></i>}
+            </p>
+        </>
     }
     useEffect(() => {
         const newOrderTotal: string = (parseFloat(cartSubtotal) + selectedDeliveryOption.price).toFixed(2);
@@ -58,7 +88,7 @@ export function OrderCheckoutPage() {
                                 selection={selectedDeliveryOption}
                                 onSelectionChange={(e) => setSelectedDeliveryOption(e.value)}>
                                 <Column selectionMode="single" headerStyle={{width: '3rem'}}></Column>
-                                <Column field="name" header="Name"/>
+                                <Column field="name" header="Name" body={deliveryOptionName}/>
                                 <Column field="price" header="Price" body={priceFormatted}/>
                                 <Column field="deliveryDate" header="Delivery Date"/>
                             </DataTable>
@@ -82,6 +112,8 @@ export function OrderCheckoutPage() {
                     </section>
                 </aside>
             </section>
+
+            <Tooltip target=".custom-target-icon"/>
         </>
     )
 }
