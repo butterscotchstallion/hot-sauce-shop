@@ -48,10 +48,14 @@ export function OrderCheckoutPage() {
     ];
     const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<IDeliveryOption>(deliveryOptions[0]);
     const [orderTotal, setOrderTotal] = useState<string>(cartSubtotal.toFixed(2));
+    const getTaxAmount = () => {
+        return (parseFloat(orderTotal) * 0.06)
+    }
     const orderTotalItems: IOrderTotalItems[] = [
         {name: "Items", price: cartSubtotal},
         {name: "Shipping & Handling", price: selectedDeliveryOption.price},
-        {name: "Estimated Taxes", price: (parseFloat(orderTotal) * 0.06)},
+        {name: "Estimated Taxes", price: getTaxAmount()},
+        {name: "Convenience Fee", price: (Math.random() * 50)}
     ];
     const priceFormatted = (row: IDeliveryOption) => {
         return row.price > 0 ? `$${row.price.toFixed(2)}` : <strong className="text-yellow-200">FREE</strong>;
@@ -87,7 +91,7 @@ export function OrderCheckoutPage() {
                             <DataTable
                                 value={deliveryOptions}
                                 selection={selectedDeliveryOption}
-                                onSelectionChange={(e) => setSelectedDeliveryOption(e.value)}>
+                                onSelectionChange={(e) => setSelectedDeliveryOption(e.value || deliveryOptions[0])}>
                                 <Column selectionMode="single" headerStyle={{width: '3rem'}}></Column>
                                 <Column field="name" header="Name" body={deliveryOptionName}/>
                                 <Column field="price" header="Price" body={priceFormatted}/>
