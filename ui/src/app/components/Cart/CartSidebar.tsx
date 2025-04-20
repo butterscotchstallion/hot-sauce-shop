@@ -33,6 +33,7 @@ export default function CartSidebar() {
 
     const goToCheckOut = () => {
         navigate('/orders/checkout');
+        setSidebarVisible(false);
     }
     return (
         <>
