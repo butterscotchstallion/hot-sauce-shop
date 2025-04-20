@@ -2,6 +2,7 @@ package lib
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -29,7 +30,7 @@ type Permission struct {
 func UpdateUserRoles(dbPool *pgxpool.Pool, logger *slog.Logger, userId int, roleIds []int) (bool, error) {
 	_, rolesDeletedErr := deleteUserRoles(dbPool, userId)
 	if rolesDeletedErr != nil {
-		logger.Error("Error deleting user roles: %v", rolesDeletedErr)
+		logger.Error(fmt.Sprintf("Error deleting user roles: %v", rolesDeletedErr))
 		return false, rolesDeletedErr
 	}
 	if len(roleIds) == 0 {
@@ -62,14 +63,14 @@ func GetRoleList(dbPool *pgxpool.Pool, logger *slog.Logger) ([]Role, error) {
 		ORDER BY r.name
 	`
 	rows, err := dbPool.Query(context.Background(), query)
-	defer rows.Close()
 	if err != nil {
-		logger.Error("Error getting role list: %v", err)
+		logger.Error(fmt.Sprintf("Error getting role list: %v", err))
 		return nil, err
 	}
+	defer rows.Close()
 	roles, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[Role])
 	if collectRowsErr != nil {
-		logger.Error("Error collecting roles: %v", collectRowsErr)
+		logger.Error(fmt.Sprintf("Error collecting roles: %v", collectRowsErr))
 		return nil, collectRowsErr
 	}
 	return roles, nil
@@ -83,14 +84,14 @@ func GetRolesByUserId(dbPool *pgxpool.Pool, logger *slog.Logger, userId int) ([]
 		WHERE ur.user_id = $1
 	`
 	rows, err := dbPool.Query(context.Background(), query, userId)
-	defer rows.Close()
 	if err != nil {
-		logger.Error("Error getting roles by user id: %v", err)
+		logger.Error(fmt.Sprintf("Error getting roles by user id: %v", err))
 		return nil, err
 	}
+	defer rows.Close()
 	roles, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[Role])
 	if collectRowsErr != nil {
-		logger.Error("Error collecting roles by user id: %v", collectRowsErr)
+		logger.Error(fmt.Sprintf("Error collecting roles by user id: %v", collectRowsErr))
 		return nil, collectRowsErr
 	}
 	return roles, nil

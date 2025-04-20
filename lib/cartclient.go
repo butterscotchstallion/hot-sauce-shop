@@ -2,7 +2,6 @@ package lib
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -70,7 +69,7 @@ func validateAddCartItemRequest(dbPool *pgxpool.Pool, req AddCartItemRequest) (b
 	}
 
 	if req.Quantity < 1 || req.Quantity > 100 {
-		return false, errors.New(fmt.Sprintf("quantity must be between 1 and 100: %v", req.Quantity))
+		return false, fmt.Errorf("quantity must be between 1 and 100: %v", req.Quantity)
 	}
 
 	return itemExists && userExists, nil

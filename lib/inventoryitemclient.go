@@ -176,12 +176,11 @@ func GetAutocompleteSuggestions(dbPool *pgxpool.Pool, logger *slog.Logger, searc
 		LIMIT 10
 	`
 	rows, err := dbPool.Query(context.Background(), query, searchQuery)
-	defer rows.Close()
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error running inventory item query: %v", err))
 		return nil, err
 	}
-
+	defer rows.Close()
 	suggestions, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[ProductAutocompleteSuggestion])
 	if collectRowsErr != nil {
 		logger.Error(fmt.Sprintf("Error collecting inventory item suggestions: %v", collectRowsErr))
@@ -199,11 +198,11 @@ func GetInventoryItemTags(dbPool *pgxpool.Pool, logger *slog.Logger, inventoryIt
 		WHERE it.inventory_id = $1
 	`
 	rows, err := dbPool.Query(context.Background(), query, inventoryItemId)
-	defer rows.Close()
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error running inventory item tags query: %v", err))
 		return nil, err
 	}
+	defer rows.Close()
 	tags, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[Tag])
 	if collectRowsErr != nil {
 		logger.Error(fmt.Sprintf("Error collecting inventory item tags: %v", collectRowsErr))
@@ -232,10 +231,10 @@ func GetInventoryItemBySlug(dbPool *pgxpool.Pool, slug string) (InventoryItem, e
 	`
 	inventoryItem := InventoryItem{}
 	rows, err := dbPool.Query(context.Background(), query, slug)
-	defer rows.Close()
 	if err != nil {
 		return inventoryItem, err
 	}
+	defer rows.Close()
 	inventoryItems, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[InventoryItem])
 
 	if collectRowsErr != nil {
@@ -249,20 +248,6 @@ func GetInventoryItemBySlug(dbPool *pgxpool.Pool, slug string) (InventoryItem, e
 	return inventoryItems[0], nil
 }
 
-func getInventoryItemRatingSumById(dbPool *pgxpool.Pool, id int) (int, error) {
-	const query = `
-		SELECT SUM(rating)
-		FROM inventory_item_reviews
-		WHERE inventory_item_id = $1
-	`
-	var ratingSum int
-	err := dbPool.QueryRow(context.Background(), query, id).Scan(&ratingSum)
-	if err != nil {
-		return 0, err
-	}
-	return ratingSum, nil
-}
-
 func GetInventoryItemReviewRatingDistributionBySlug(dbPool *pgxpool.Pool, slug string) ([]RatingDistribution, error) {
 	const query = `
 		SELECT r.rating, COUNT(*) AS count
@@ -272,10 +257,10 @@ func GetInventoryItemReviewRatingDistributionBySlug(dbPool *pgxpool.Pool, slug s
 		GROUP BY rating
 	`
 	rows, err := dbPool.Query(context.Background(), query, slug)
-	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	ratingDistributions, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[RatingDistribution])
 	if collectRowsErr != nil {
 		return ratingDistributions, collectRowsErr
