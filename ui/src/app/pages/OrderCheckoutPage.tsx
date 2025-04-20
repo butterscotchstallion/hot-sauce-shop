@@ -38,7 +38,7 @@ export function OrderCheckoutPage() {
         return `$${row.price}`;
     }
     useEffect(() => {
-        const newOrderTotal: string = (parseFloat(orderTotal) + selectedDeliveryOption.price).toFixed(2);
+        const newOrderTotal: string = (parseFloat(cartSubtotal) + selectedDeliveryOption.price).toFixed(2);
         setOrderTotal(newOrderTotal);
     }, [cartSubtotal, selectedDeliveryOption]);
 
