@@ -171,39 +171,41 @@ export function CartItemsDataTable() {
 
     return (
         <>
-            <section className="mb-4">
-                <InputText value={globalFilterValue}
-                           onChange={onGlobalFilterChange}
-                           placeholder="Filter cart items"/>
+            <section className="flex flex-col gap-4 w-full">
+                <section className="mb-4 w-full">
+                    <InputText value={globalFilterValue}
+                               onChange={onGlobalFilterChange}
+                               placeholder="Filter cart items"/>
 
-                <DataTable className="mt-4 w-full"
-                           value={cartState.items}
-                           filters={filters}
-                           globalFilterFields={['name']}>
-                    <Column
-                        sortable
-                        filterField="name"
-                        filterMatchMode="contains"
-                        className="w-[40%] max-w-[80px] whitespace-nowrap overflow-hidden text-ellipsis"
-                        field="name"
-                        header="Name"
-                        body={sidebarCartNameTpl}></Column>
-                    <Column sortable
-                            className="w-[20%]"
-                            field="price"
-                            header="Price"
-                            body={priceColumnTpl}></Column>
-                    <Column sortable
-                            className="w-[5%]"
-                            body={quantityColTpl}
-                            field="quantity"
-                            header="Quantity"></Column>
-                    <Column className="w-[5%]"
-                            header="Remove"
-                            body={removeCartItemTpl}/>
-                </DataTable>
+                    <DataTable className="mt-4 w-full"
+                               value={cartState.items}
+                               filters={filters}
+                               globalFilterFields={['name']}>
+                        <Column
+                            sortable
+                            filterField="name"
+                            filterMatchMode="contains"
+                            className="w-[40%] max-w-[80px] whitespace-nowrap overflow-hidden text-ellipsis"
+                            field="name"
+                            header="Name"
+                            body={sidebarCartNameTpl}></Column>
+                        <Column sortable
+                                className="w-[20%]"
+                                field="price"
+                                header="Price"
+                                body={priceColumnTpl}></Column>
+                        <Column sortable
+                                className="w-[5%]"
+                                body={quantityColTpl}
+                                field="quantity"
+                                header="Quantity"></Column>
+                        <Column className="w-[5%]"
+                                header="Remove"
+                                body={removeCartItemTpl}/>
+                    </DataTable>
+                </section>
+                <h3 className="text-xl font-bold">Total: ${cartSubtotal.toFixed(2)}</h3>
             </section>
-            <h3 className="text-xl font-bold">Total: ${cartSubtotal.toFixed(2)}</h3>
 
             <Toast ref={toast}/>
         </>
