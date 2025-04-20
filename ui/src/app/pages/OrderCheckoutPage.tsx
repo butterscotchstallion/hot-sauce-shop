@@ -6,6 +6,7 @@ import {useEffect, useState} from "react";
 import {Button} from "primereact/button";
 import {useSelector} from "react-redux";
 import {RootState} from "../store.ts";
+import dayjs, {Dayjs} from 'dayjs';
 
 interface IOrderTotalItems {
     name: string;
@@ -14,9 +15,17 @@ interface IOrderTotalItems {
 
 export function OrderCheckoutPage() {
     const cartSubtotal: number = useSelector((state: RootState) => state.cart.cartSubtotal);
+    const today: Dayjs = dayjs();
+    const twoDay: Dayjs = today.add(1, "days");
+    const threeDay: Dayjs = today.add(2, "days");
+    const whenever: Dayjs = today.add(7, "days");
+    const instantTransmission: Dayjs = today.add(1, "hours");
+    const deliveryDateFormat: string = "ddd, MMM D";
     const deliveryOptions: IDeliveryOption[] = [
-        {name: "Two Day", price: 9.99, deliveryDate: new Date("2025-04-21").toLocaleDateString()},
-        {name: "Three Day", price: 4.99, deliveryDate: new Date("2025-04-22").toLocaleDateString()},
+        {name: "Instant Transmission", price: 99.99, deliveryDate: instantTransmission.format(deliveryDateFormat)},
+        {name: "Two Day", price: 9.99, deliveryDate: twoDay.format(deliveryDateFormat)},
+        {name: "Three Day", price: 4.99, deliveryDate: threeDay.format(deliveryDateFormat)},
+        {name: "Whenever", price: 0.00, deliveryDate: whenever.format(deliveryDateFormat)},
     ];
     const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<IDeliveryOption>(deliveryOptions[0]);
     const [orderTotal, setOrderTotal] = useState<string>(cartSubtotal.toFixed(2));
@@ -25,7 +34,7 @@ export function OrderCheckoutPage() {
         {name: "Shipping & Handling", price: selectedDeliveryOption.price},
         {name: "Estimated Taxes", price: 0},
     ];
-    const orderTotalPriceFormatted = (row) => {
+    const priceFormatted = (row) => {
         return `$${row.price}`;
     }
     useEffect(() => {
@@ -50,7 +59,7 @@ export function OrderCheckoutPage() {
                                 onSelectionChange={(e) => setSelectedDeliveryOption(e.value)}>
                                 <Column selectionMode="single" headerStyle={{width: '3rem'}}></Column>
                                 <Column field="name" header="Name"/>
-                                <Column field="price" header="Price"/>
+                                <Column field="price" header="Price" body={priceFormatted}/>
                                 <Column field="deliveryDate" header="Delivery Date"/>
                             </DataTable>
                         </section>
@@ -58,7 +67,7 @@ export function OrderCheckoutPage() {
                         <section>
                             <DataTable value={orderTotalItems}>
                                 <Column field="name"/>
-                                <Column field="price" body={orderTotalPriceFormatted}/>
+                                <Column field="price" body={priceFormatted}/>
                             </DataTable>
                         </section>
 
