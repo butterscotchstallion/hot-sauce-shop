@@ -51,12 +51,12 @@ export function OrderCheckoutPage() {
     const orderTotalItems: IOrderTotalItems[] = [
         {name: "Items", price: cartSubtotal},
         {name: "Shipping & Handling", price: selectedDeliveryOption.price},
-        {name: "Estimated Taxes", price: (parseFloat(orderTotal) * 0.06).toFixed(2)},
+        {name: "Estimated Taxes", price: (parseFloat(orderTotal) * 0.06)},
     ];
-    const priceFormatted = (row) => {
-        return row.price > 0 ? `$${row.price}` : <strong className="text-yellow-200">FREE</strong>;
+    const priceFormatted = (row: IDeliveryOption) => {
+        return row.price > 0 ? `$${row.price.toFixed(2)}` : <strong className="text-yellow-200">FREE</strong>;
     }
-    const deliveryOptionName = (row) => {
+    const deliveryOptionName = (row: IDeliveryOption) => {
         return <>
             <p>
                 {row.name} {row?.description &&
