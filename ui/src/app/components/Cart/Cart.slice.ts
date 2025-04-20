@@ -9,17 +9,22 @@ export interface IIDQuantityMap {
 export interface IInitialCartState {
     items: ICart[];
     idQuantityMap: IIDQuantityMap;
+    cartSubtotal: number;
 }
 
 const initialState: IInitialCartState = {
     items: [],
-    idQuantityMap: {}
+    idQuantityMap: {},
+    cartSubtotal: 0
 }
 
 export const cartSlice: Slice = createSlice({
     name: 'cart',
     initialState,
     reducers: {
+        setCartSubtotal: (state, action) => {
+            state.cartSubtotal = action.payload;
+        },
         setCartItems: (state, action) => {
             state.items = action.payload;
         },
@@ -69,5 +74,12 @@ export const cartSlice: Slice = createSlice({
     }
 });
 
-export const {cartItemAdded, cartItemRemoved, setCartItemQuantity, setIdQuantityMap, setCartItems} = cartSlice.actions;
+export const {
+    cartItemAdded,
+    cartItemRemoved,
+    setCartItemQuantity,
+    setIdQuantityMap,
+    setCartItems,
+    setCartSubtotal,
+} = cartSlice.actions;
 export default cartSlice.reducer;

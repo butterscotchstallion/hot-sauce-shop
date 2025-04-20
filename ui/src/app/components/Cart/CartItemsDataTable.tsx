@@ -7,18 +7,28 @@ import {ReactElement, RefObject, useEffect, useRef, useState} from "react";
 import {Dropdown, DropdownChangeEvent} from "primereact/dropdown";
 import {FilterMatchMode} from "primereact/api";
 import {addCartItem, deleteCartItem} from "./CartService.ts";
-import {cartItemRemoved, IIDQuantityMap, IInitialCartState, setCartItemQuantity} from "./Cart.slice.ts";
+import {
+    cartItemRemoved,
+    IIDQuantityMap,
+    IInitialCartState,
+    setCartItemQuantity,
+    setCartSubtotal
+} from "./Cart.slice.ts";
 import {Toast} from "primereact/toast";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../store.ts";
 import {Button} from "primereact/button";
 import {confirmDialog} from "primereact/confirmdialog";
 
-export function CartItemsDataTable() {
+interface ICartItemsDataTableProps {
+    hideSubtotal?: boolean;
+}
+
+export function CartItemsDataTable(props: ICartItemsDataTableProps) {
     const dispatch = useDispatch();
     const toast: RefObject<Toast | null> = useRef<Toast>(null);
     const [cartItemsQuantity, setCartItemsQuantity] = React.useState<number>(0);
-    const [cartSubtotal, setCartSubtotal] = React.useState<number>(0);
+    const cartSubtotal: number = useSelector((state: RootState) => state.cart.cartSubtotal);
     const cartState: IInitialCartState = useSelector((state: RootState) => state.cart);
     const idQuantityMap: IIDQuantityMap = useSelector((state: RootState) => state.cart.idQuantityMap);
     const [filters, setFilters] = useState<DataTableFilterMeta>({
@@ -80,7 +90,7 @@ export function CartItemsDataTable() {
                     id: cartItem.inventoryItemId,
                     quantity
                 }));
-                setCartSubtotal(recalculateSubtotal(cartState.items));
+                dispatch(setCartSubtotal(recalculateSubtotal(cartState.items)));
             },
             error: (err: string) => {
                 toast.current?.show({
@@ -167,6 +177,7 @@ export function CartItemsDataTable() {
         setCartItemsQuantity(newTotal)
         const newSubtotal: number = recalculateSubtotal(cartState.items);
         setCartSubtotal(newSubtotal);
+        dispatch(setCartSubtotal(newSubtotal));
     }, [cartState, idQuantityMap, cartItemsQuantity]);
 
     return (
@@ -204,7 +215,7 @@ export function CartItemsDataTable() {
                                 body={removeCartItemTpl}/>
                     </DataTable>
                 </section>
-                <h3 className="text-xl font-bold">Total: ${cartSubtotal.toFixed(2)}</h3>
+                {!props.hideSubtotal && <h3 className="text-xl font-bold">Total: ${cartSubtotal.toFixed(2)}</h3>}
             </section>
 
             <Toast ref={toast}/>
