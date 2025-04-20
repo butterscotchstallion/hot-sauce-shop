@@ -2,7 +2,7 @@ import {CartItemsDataTable} from "../components/Cart/CartItemsDataTable.tsx";
 import {DataTable} from "primereact/datatable";
 import {IDeliveryOption} from "../components/Orders/IDeliveryOption.ts";
 import {Column} from "primereact/column";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {Button} from "primereact/button";
 import {useSelector} from "react-redux";
 import {RootState} from "../store.ts";
@@ -14,6 +14,13 @@ export function OrderCheckoutPage() {
         {name: "Three Day", price: 4.99, deliveryDate: new Date("2025-04-22").toLocaleDateString()},
     ];
     const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<IDeliveryOption>(deliveryOptions[0]);
+    const [orderTotal, setOrderTotal] = useState<string>(cartSubtotal.toFixed(2));
+
+    useEffect(() => {
+        const newOrderTotal: string = (parseFloat(orderTotal) + selectedDeliveryOption.price).toFixed(2);
+        setOrderTotal(newOrderTotal);
+    }, [cartSubtotal, selectedDeliveryOption]);
+
     return (
         <>
             <h1 className="text-2xl font-bold mb-4">Checkout</h1>
@@ -39,9 +46,9 @@ export function OrderCheckoutPage() {
                         <section>
                             <section className="flex justify-between gap-4">
                                 <h4 className="text-xl font-bold mb-2">
-                                    Order total: ${cartSubtotal}
+                                    Order total: ${orderTotal}
                                 </h4>
-                                <Button label="Place Order" icon="pi pi-cart"/>
+                                <Button label="Place Order" icon="pi pi-cart-arrow-down"/>
                             </section>
                         </section>
                     </section>

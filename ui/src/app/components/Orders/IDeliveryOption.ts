@@ -1,5 +1,5 @@
 export interface IDeliveryOption {
     name: string;
-    price: number | string;
+    price: number;
     deliveryDate: string;
 }
