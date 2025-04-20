@@ -42,7 +42,8 @@ export function OrderCheckoutPage() {
         {
             name: "Whenever",
             price: 0.00,
-            deliveryDate: whenever.format(deliveryDateFormat)
+            deliveryDate: whenever.format(deliveryDateFormat),
+            description: "Usually about a week"
         },
     ];
     const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<IDeliveryOption>(deliveryOptions[0]);
@@ -50,10 +51,10 @@ export function OrderCheckoutPage() {
     const orderTotalItems: IOrderTotalItems[] = [
         {name: "Items", price: cartSubtotal},
         {name: "Shipping & Handling", price: selectedDeliveryOption.price},
-        {name: "Estimated Taxes", price: 0},
+        {name: "Estimated Taxes", price: (parseFloat(orderTotal) * 0.06).toFixed(2)},
     ];
     const priceFormatted = (row) => {
-        return `$${row.price}`;
+        return row.price > 0 ? `$${row.price}` : <strong className="text-yellow-200">FREE</strong>;
     }
     const deliveryOptionName = (row) => {
         return <>
