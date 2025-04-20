@@ -19,8 +19,9 @@ func Cart(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			return
 		}
 
-		cartItems, err := lib.GetCartItems(dbPool, userId)
+		cartItems, err := lib.GetCartItems(dbPool, userId, logger)
 		if err != nil {
+			logger.Error(fmt.Sprintf("Error getting cart items: %v", err))
 			res = gin.H{
 				"status":  "ERROR",
 				"message": fmt.Sprintf("Error fetching cart: %v", err),

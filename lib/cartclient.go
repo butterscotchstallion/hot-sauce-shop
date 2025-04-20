@@ -11,14 +11,16 @@ import (
 )
 
 type CartItem struct {
-	Id              int        `json:"id" db:"id"`
-	InventoryItemId int        `json:"inventoryItemId" db:"inventory_item_id"`
-	Name            string     `json:"name" db:"name"`
-	Price           float32    `json:"price" db:"price"`
-	UserId          int        `json:"userId" db:"user_id"`
-	Quantity        int        `json:"quantity" db:"quantity"`
-	CreatedAt       *time.Time `json:"createdAt" db:"created_at"`
-	UpdatedAt       *time.Time `json:"updatedAt" db:"updated_at"`
+	Id                            int        `json:"id" db:"id"`
+	InventoryItemId               int        `json:"inventoryItemId" db:"inventory_item_id"`
+	Name                          string     `json:"name" db:"name"`
+	Price                         float32    `json:"price" db:"price"`
+	UserId                        int        `json:"userId" db:"user_id"`
+	Quantity                      int        `json:"quantity" db:"quantity"`
+	CreatedAt                     *time.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt                     *time.Time `json:"updatedAt" db:"updated_at"`
+	InventoryItemSlug             string     `json:"inventoryItemSlug" db:"slug"`
+	InventoryItemShortDescription string     `json:"inventoryItemShortDescription" db:"short_description"`
 }
 
 type AddCartItemRequest struct {
@@ -32,19 +34,23 @@ type DeleteCartItemRequest struct {
 	InventoryItemId int `json:"inventoryItemId"`
 }
 
-func GetCartItems(dbPool *pgxpool.Pool, userId int) ([]CartItem, error) {
+func GetCartItems(dbPool *pgxpool.Pool, userId int, logger *slog.Logger) ([]CartItem, error) {
 	const query = `
-		SELECT ci.*, i.price, i.name 
+		SELECT ci.*, 
+		       i.price,
+		       i.name,
+		       i.slug,
+		       i.short_description
 		FROM cart_items ci
 		JOIN inventories i ON ci.inventory_item_id = i.id
 		WHERE ci.user_id = $1
-		ORDER BY ci.updated_at, ci.created_at DESC
-	`
+		ORDER BY ci.updated_at, ci.created_at DESC`
 	rows, err := dbPool.Query(context.Background(), query, userId)
 	if err != nil {
 		return nil, err
 	}
 	cartItems, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[CartItem])
+	logger.Info(fmt.Sprintf("cart items: %v", rows))
 	if collectRowsErr != nil {
 		return nil, collectRowsErr
 	}
@@ -79,7 +85,7 @@ func validateAddCartItemRequest(dbPool *pgxpool.Pool, req AddCartItemRequest) (b
 UpdateCart
  1. Check if a cart item with this inventory item and user id exists
  2. Quantity is 1 by default
- 3. If cart item exists, add 1 to that
+ 3. If the cart item exists, add 1 to that
  3. If override quantity, update quantity
  4. Add cart item
 */
@@ -152,10 +158,10 @@ func GetCartItemsByInventoryItemIdAndUserId(dbPool *pgxpool.Pool, inventoryItemI
 	const query = `
 		SELECT ci.*
 		FROM cart_items ci
+		JOIN inventories i ON i.id = ci.inventory_item_id
 		WHERE 1=1
 		AND inventory_item_id = $1
-		AND user_id = $2
-	`
+		AND user_id = $2`
 	cartItem := CartItem{}
 	rows, err := dbPool.Query(context.Background(), query, inventoryItemId, userId)
 	if err != nil {

@@ -19,6 +19,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../store.ts";
 import {Button} from "primereact/button";
 import {confirmDialog} from "primereact/confirmdialog";
+import {Link} from "react-router";
 
 interface ICartItemsDataTableProps {
     hideSubtotal?: boolean;
@@ -65,7 +66,15 @@ export function CartItemsDataTable(props: ICartItemsDataTableProps) {
         setGlobalFilterValue(value);
     };
     const sidebarCartNameTpl = (cartItem: ICart): ReactElement => {
-        return <div className='flex items-center gap-2'>{cartItem.name}</div>;
+        return <>
+            <div className='flex flex-col gap-2'>
+                <Link to={`/products/${cartItem.inventoryItemSlug}`}>
+                    {cartItem.name}
+                    <small
+                        className="block italic text-yellow-200">{cartItem.inventoryItemShortDescription}</small>
+                </Link>
+            </div>
+        </>
     }
     const priceColumnTpl = (cartItem: ICart): ReactElement => {
         return <>{cartItem.price.toFixed(2)}</>
