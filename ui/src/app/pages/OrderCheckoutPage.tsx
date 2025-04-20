@@ -7,6 +7,11 @@ import {Button} from "primereact/button";
 import {useSelector} from "react-redux";
 import {RootState} from "../store.ts";
 
+interface IOrderTotalItems {
+    name: string;
+    price: number;
+}
+
 export function OrderCheckoutPage() {
     const cartSubtotal: number = useSelector((state: RootState) => state.cart.cartSubtotal);
     const deliveryOptions: IDeliveryOption[] = [
@@ -15,7 +20,14 @@ export function OrderCheckoutPage() {
     ];
     const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<IDeliveryOption>(deliveryOptions[0]);
     const [orderTotal, setOrderTotal] = useState<string>(cartSubtotal.toFixed(2));
-
+    const orderTotalItems: IOrderTotalItems[] = [
+        {name: "Items", price: cartSubtotal},
+        {name: "Shipping & Handling", price: selectedDeliveryOption.price},
+        {name: "Estimated Taxes", price: 0},
+    ];
+    const orderTotalPriceFormatted = (row) => {
+        return `$${row.price}`;
+    }
     useEffect(() => {
         const newOrderTotal: string = (parseFloat(orderTotal) + selectedDeliveryOption.price).toFixed(2);
         setOrderTotal(newOrderTotal);
@@ -40,6 +52,13 @@ export function OrderCheckoutPage() {
                                 <Column field="name" header="Name"/>
                                 <Column field="price" header="Price"/>
                                 <Column field="deliveryDate" header="Delivery Date"/>
+                            </DataTable>
+                        </section>
+
+                        <section>
+                            <DataTable value={orderTotalItems}>
+                                <Column field="name"/>
+                                <Column field="price" body={orderTotalPriceFormatted}/>
                             </DataTable>
                         </section>
 
