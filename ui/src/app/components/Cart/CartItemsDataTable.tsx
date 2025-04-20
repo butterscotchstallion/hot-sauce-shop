@@ -175,7 +175,8 @@ export function CartItemsDataTable() {
                 <InputText value={globalFilterValue}
                            onChange={onGlobalFilterChange}
                            placeholder="Filter cart items"/>
-                <DataTable className="w-full"
+
+                <DataTable className="mt-4 w-full"
                            value={cartState.items}
                            filters={filters}
                            globalFilterFields={['name']}>
@@ -203,7 +204,7 @@ export function CartItemsDataTable() {
                 </DataTable>
             </section>
             <h3 className="text-xl font-bold">Total: ${cartSubtotal.toFixed(2)}</h3>
-            
+
             <Toast ref={toast}/>
         </>
     )
