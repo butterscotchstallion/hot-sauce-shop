@@ -97,8 +97,8 @@ export function OrderCheckoutPage() {
 
                         <section>
                             <DataTable value={orderTotalItems}>
-                                <Column field="name"/>
-                                <Column field="price" body={priceFormatted}/>
+                                <Column field="name" header="Item"/>
+                                <Column field="price" header="Cost" body={priceFormatted}/>
                             </DataTable>
                         </section>
 
