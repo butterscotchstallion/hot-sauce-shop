@@ -6,7 +6,7 @@ import * as React from "react";
 import {ReactElement, RefObject, useEffect, useRef, useState} from "react";
 import {Dropdown, DropdownChangeEvent} from "primereact/dropdown";
 import {FilterMatchMode} from "primereact/api";
-import {addCartItem, deleteCartItem} from "./CartService.ts";
+import {addCartItem, calculateCartItemsTotal, deleteCartItem, recalculateSubtotal} from "./CartService.ts";
 import {
     cartItemRemoved,
     IIDQuantityMap,
@@ -119,21 +119,6 @@ export function CartItemsDataTable(props: ICartItemsDataTableProps) {
                 })
             }
         });
-    }
-
-    function calculateCartItemsTotal(cartItems: ICart[]): number {
-        return cartItems.reduce(
-            (sum: number, item: ICart) => sum + item.quantity,
-            0,
-        );
-    }
-
-    function recalculateSubtotal(cartItems: ICart[]): number {
-        return cartItems.reduce(
-            (acc: number, item: ICart) =>
-                acc + item.price * item.quantity,
-            0,
-        );
     }
 
     const onRemoveCartConfirmed = () => {

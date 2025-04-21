@@ -3,9 +3,9 @@ import * as React from "react";
 import {useEffect} from "react";
 import NavigationMenu from "../components/Navigation/NavigationMenu.tsx";
 import {useDispatch} from "react-redux";
-import {getCartItems} from "../components/Cart/CartService.ts";
+import {getCartItems, recalculateSubtotal} from "../components/Cart/CartService.ts";
 import {ICart} from "../components/Cart/ICart.ts";
-import {setCartItems, setIdQuantityMap} from "../components/Cart/Cart.slice.ts";
+import {setCartItems, setCartSubtotal, setIdQuantityMap} from "../components/Cart/Cart.slice.ts";
 import {Subscription} from "rxjs";
 import Cookies from "js-cookie";
 import {getUserDetailsBySessionId} from "../components/User/UserService.ts";
@@ -38,6 +38,7 @@ export default function BaseLayout({children}: Props) {
                 next: (cartItems: ICart[]) => {
                     dispatch(setCartItems(cartItems));
                     dispatch(setIdQuantityMap(cartItems));
+                    dispatch(setCartSubtotal(recalculateSubtotal(cartItems)));
                 },
                 error: () => {
                     console.error('Error loading cart items');

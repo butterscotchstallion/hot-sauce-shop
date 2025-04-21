@@ -4,6 +4,21 @@ import {ICart} from "./ICart.ts";
 import {IAddCartItemRequest} from "./IAddCartItemRequest.ts";
 import {IDeleteCartItemRequest} from "./IDeleteCartItemRequest.ts";
 
+export function calculateCartItemsTotal(cartItems: ICart[]): number {
+    return cartItems.reduce(
+        (sum: number, item: ICart) => sum + item.quantity,
+        0,
+    );
+}
+
+export function recalculateSubtotal(cartItems: ICart[]): number {
+    return cartItems.reduce(
+        (acc: number, item: ICart) =>
+            acc + item.price * item.quantity,
+        0,
+    );
+}
+
 export function getCartItems(): Subject<ICart[]> {
     const cartItems$ = new Subject<ICart[]>();
     fetch(CART_URL, {

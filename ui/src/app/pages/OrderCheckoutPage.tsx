@@ -19,7 +19,9 @@ import {Messages} from "primereact/messages";
 
 interface IOrderTotalItems {
     name: string;
-    price: number;
+    price?: number;
+    reductionPercent?: number;
+    description?: string;
     isCoupon?: boolean;
 }
 
@@ -65,7 +67,7 @@ export function OrderCheckoutPage() {
     const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<IDeliveryOption>(deliveryOptions[0]);
     const [orderTotal, setOrderTotal] = useState<string>(cartSubtotal.toFixed(2));
     const getTaxAmount = (): number => {
-        return parseFloat(orderTotal) * 0.06;
+        return cartSubtotal * 0.06;
     }
     const [orderTotalItems, setOrderTotalItems] = useState<IOrderTotalItems[]>([
         {name: "Subtotal", price: cartSubtotal},
@@ -74,34 +76,29 @@ export function OrderCheckoutPage() {
         {name: "Convenience Fee", price: convenienceFee}
     ]);
     const priceFormatted = (row) => {
-        let colValue: string | ReactElement = row.price > 0 ? `$${row.price.toFixed(2)}` :
-            <strong className="text-yellow-200">FREE</strong>;
+        let colValue: string | ReactElement;
         if (row.isCoupon) {
-            colValue = `-$${row.reductionPercent}`;
+            colValue = <strong className="text-yellow-200">-${row.reductionPercent}%</strong>;
+        } else {
+            colValue = row.price > 0 ? `$${row.price.toFixed(2)}` :
+                <strong className="text-yellow-200">FREE</strong>;
         }
         return (
             <>
                 {colValue}
-                {row.isCoupon &&
-                    <i className="pl-2 cursor-pointer pi pi-question-circle custom-target-icon text-yellow-200"
-                       data-pr-tooltip={row.description}
-                       data-pr-position="right"
-                       data-pr-at="right+5 top"
-                       data-pr-my="left center-2"></i>
-                }
             </>
         )
     }
-    const deliveryOptionName = (row: IDeliveryOption) => {
+    const rowWithOptionalDescription = (row) => {
         return <>
-            <p>
-                {row.name} {row?.description &&
+            {row.isCoupon ? <strong className="text-yellow-200">{row.name}</strong> : row.name}
+            {row?.description &&
                 <i className="pl-2 cursor-pointer pi pi-question-circle custom-target-icon text-yellow-200"
                    data-pr-tooltip={row.description}
                    data-pr-position="right"
                    data-pr-at="right+5 top"
-                   data-pr-my="left center-2"></i>}
-            </p>
+                   data-pr-my="left center-2"></i>
+            }
         </>
     }
     const couponCodeAppliedAlready = (code: string): boolean => {
@@ -142,7 +139,8 @@ export function OrderCheckoutPage() {
                             ]);
                             const newCouponOrderTotalItem: IOrderTotalItems = {
                                 name: validCouponCode.code,
-                                price: validCouponCode.reductionPercent,
+                                reductionPercent: validCouponCode.reductionPercent,
+                                description: validCouponCode.description,
                                 isCoupon: true,
                             };
                             setOrderTotalItems([
@@ -196,7 +194,7 @@ export function OrderCheckoutPage() {
                                 selection={selectedDeliveryOption}
                                 onSelectionChange={(e) => setSelectedDeliveryOption(e.value || deliveryOptions[0])}>
                                 <Column selectionMode="single" headerStyle={{width: '3rem'}}></Column>
-                                <Column field="name" header="Name" body={deliveryOptionName}/>
+                                <Column field="name" header="Name" body={rowWithOptionalDescription}/>
                                 <Column field="price" header="Price" body={priceFormatted}/>
                                 <Column field="deliveryDate" header="Delivery Date"/>
                             </DataTable>
@@ -259,7 +257,7 @@ export function OrderCheckoutPage() {
 
                         <section>
                             <DataTable value={orderTotalItems}>
-                                <Column field="name" header="Item"/>
+                                <Column field="name" header="Item" body={rowWithOptionalDescription}/>
                                 <Column field="price" header="Cost" body={priceFormatted}/>
                             </DataTable>
                         </section>
