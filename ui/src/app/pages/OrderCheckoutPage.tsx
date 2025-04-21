@@ -2,7 +2,7 @@ import {CartItemsDataTable} from "../components/Cart/CartItemsDataTable.tsx";
 import {DataTable} from "primereact/datatable";
 import {IDeliveryOption} from "../components/Orders/IDeliveryOption.ts";
 import {Column} from "primereact/column";
-import {useEffect, useState} from "react";
+import {Ref, RefObject, useEffect, useRef, useState} from "react";
 import {Button} from "primereact/button";
 import {useSelector} from "react-redux";
 import {RootState} from "../store.ts";
@@ -11,6 +11,11 @@ import {Tooltip} from 'primereact/tooltip';
 import {Card} from "primereact/card";
 import {Link, NavigateFunction, useNavigate} from "react-router";
 import {InputText} from "primereact/inputtext";
+import {getCouponCodeByCode} from "../components/Orders/CouponCodeService.ts";
+import {Toast} from "primereact/toast";
+import {Subscription} from "rxjs";
+import {ICouponCode} from "../components/Orders/ICouponCode.ts";
+import {Messages} from "primereact/messages";
 
 interface IOrderTotalItems {
     name: string;
@@ -18,9 +23,11 @@ interface IOrderTotalItems {
 }
 
 export function OrderCheckoutPage() {
+    const messages: RefObject<Messages | null> = useRef<Messages | null>(null);
+    const toast: Ref<Toast | null> = useRef<Toast | null>(null);
     const navigate: NavigateFunction = useNavigate();
     const [convenienceFee] = useState(Math.random() * 20);
-    const [couponCodes, setCouponCodes] = useState<string[]>([]);
+    const [couponCodes, setCouponCodes] = useState<ICouponCode[]>([]);
     const [couponCode, setCouponCode] = useState<string>("");
     const cartSubtotal: number = useSelector((state: RootState) => state.cart.cartSubtotal);
     const today: Dayjs = dayjs();
@@ -29,6 +36,7 @@ export function OrderCheckoutPage() {
     const whenever: Dayjs = today.add(7, "days");
     const instantTransmission: Dayjs = today.add(1, "hours");
     const deliveryDateFormat: string = "ddd, MMM D";
+    let coupon$: Subscription;
     const deliveryOptions: IDeliveryOption[] = [
         {
             name: "Instant Transmission",
@@ -79,10 +87,64 @@ export function OrderCheckoutPage() {
             </p>
         </>
     }
+    const couponCodeAppliedAlready = (code: string): boolean => {
+        for (let j = 0; j < couponCodes.length; j++) {
+            if (couponCodes[j].code === code) {
+                return true;
+            }
+        }
+        return false;
+    };
+    const addCouponCode = () => {
+        if (couponCode.length > 0) {
+            const isCouponCodeAppliedAlready: boolean = couponCodeAppliedAlready(couponCode);
+            if (isCouponCodeAppliedAlready) {
+                if (messages.current) {
+                    messages.current.show([
+                        {
+                            severity: "error",
+                            summary: "Error",
+                            detail: "Coupon code already applied"
+                        }
+                    ]);
+                }
+            } else {
+                coupon$ = getCouponCodeByCode(couponCode).subscribe({
+                    next: (isValid: boolean) => {
+                        if (toast.current) {
+                            if (isValid) {
+                                toast.current.show({
+                                    severity: 'success',
+                                    summary: 'Coupon code added',
+                                    detail: 'Applied coupon code ' + couponCode,
+                                    life: 3000,
+                                });
+                                setCouponCode("");
+                                setCouponCodes([
+                                    ...couponCodes,
+                                    couponCode
+                                ]);
+                            } else {
+                                // show invalid coupon code message
+                            }
+                        }
+                    },
+                    error: (e) => {
+                        console.error(e);
+                    }
+                });
+            }
+        }
+    }
     useEffect(() => {
         const newOrderTotal: string = (parseFloat(String(cartSubtotal)) + selectedDeliveryOption.price).toFixed(2);
         setOrderTotal(newOrderTotal);
     }, [cartSubtotal, selectedDeliveryOption]);
+    useEffect(() => {
+        return () => {
+            coupon$?.unsubscribe();
+        }
+    }, []);
     return (
         <>
             <h1 className="text-2xl font-bold mb-4">Checkout</h1>
@@ -141,6 +203,7 @@ export function OrderCheckoutPage() {
                                                     onChange={(e) => setCouponCode(e.target.value)}
                                                 />
                                                 <Button
+                                                    onClick={() => addCouponCode()}
                                                     label="Apply"
                                                     icon="pi pi-plus"
                                                     size="small"
@@ -175,6 +238,8 @@ export function OrderCheckoutPage() {
             </section>
 
             <Tooltip target=".custom-target-icon"/>
+            <Toast ref={toast}/>
+            <Messages ref={messages}/>
         </>
     )
 }
