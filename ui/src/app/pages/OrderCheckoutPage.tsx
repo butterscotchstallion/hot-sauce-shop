@@ -106,7 +106,7 @@ export function OrderCheckoutPage() {
                             <section className="flex justify-between gap-4 items-center">
                                 <div>
                                     <p>Delivering to John HotSauceLover</p>
-                                    <p></p>
+                                    <p>123 MAPLE ST, Reston VA, 08812, United States</p>
                                 </div>
                                 <Button
                                     onClick={() => navigate("/account/addresses")}
