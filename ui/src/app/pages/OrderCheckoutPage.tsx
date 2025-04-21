@@ -188,40 +188,41 @@ export function OrderCheckoutPage() {
 
                         <section>
                             <Card>
-                                <section className="flex justify-between items-center gap-4">
-                                    <div className="flex flex-col gap-6">
-                                        <section>
-                                            Paying with
-                                            <Link to={`/account/payment-methods/1`}>
-                                                <i className="pi pi-credit-card mr-1 ml-2"></i> Visa 1234
-                                            </Link>
-                                        </section>
-
-                                        <section>
-                                            <div>
-                                                <Messages ref={messages}/>
-                                            </div>
-                                            <div className="flex gap-4">
-                                                <InputText
-                                                    type="text"
-                                                    className="p-inputtext-sm"
-                                                    placeholder="Enter coupon code"
-                                                    maxLength={20}
-                                                    value={couponCode}
-                                                    onChange={(e) => setCouponCode(e.target.value)}
-                                                />
-                                                <Button
-                                                    onClick={() => addCouponCode()}
-                                                    label="Apply"
-                                                    icon="pi pi-plus"
-                                                    size="small"
-                                                    disabled={couponCode.length === 0}
-                                                />
-                                            </div>
-                                        </section>
-                                    </div>
-                                    <Button link label="Change" icon="pi pi-wallet"
-                                            onClick={() => navigate("/account/payment-methods")}/>
+                                <section className="flex flex-col gap-4">
+                                    <section className="flex justify-between items-center gap-4">
+                                        <div className="flex flex-col gap-6">
+                                            <section>
+                                                Paying with
+                                                <Link to={`/account/payment-methods/1`}>
+                                                    <i className="pi pi-credit-card mr-1 ml-2"></i> Visa 1234
+                                                </Link>
+                                            </section>
+                                        </div>
+                                        <Button link label="Change" icon="pi pi-wallet"
+                                                onClick={() => navigate("/account/payment-methods")}/>
+                                    </section>
+                                    <section>
+                                        <div>
+                                            <Messages ref={messages}/>
+                                        </div>
+                                        <div className="flex gap-4">
+                                            <InputText
+                                                type="text"
+                                                className="p-inputtext-sm"
+                                                placeholder="Enter coupon code"
+                                                maxLength={20}
+                                                value={couponCode}
+                                                onChange={(e) => setCouponCode(e.target.value)}
+                                            />
+                                            <Button
+                                                onClick={() => addCouponCode()}
+                                                label="Apply"
+                                                icon="pi pi-plus"
+                                                size="small"
+                                                disabled={couponCode.length === 0}
+                                            />
+                                        </div>
+                                    </section>
                                 </section>
                             </Card>
                         </section>

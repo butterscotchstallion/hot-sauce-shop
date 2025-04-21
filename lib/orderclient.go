@@ -20,7 +20,7 @@ func GetCouponByCode(dbPool *pgxpool.Pool, code string) (CouponCode, error) {
 	const query = `
 		SELECT code, description, created_at, updated_at, expires_at
 		FROM coupons
-		WHERE code = $1
+		WHERE UPPER(code) = UPPER($1)
 		AND expires_at > NOW()
 	`
 	row, err := dbPool.Query(context.Background(), query, code)
