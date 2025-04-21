@@ -75,10 +75,13 @@ export function OrderCheckoutPage() {
         {name: "Estimated Taxes", price: getTaxAmount()},
         {name: "Convenience Fee", price: convenienceFee}
     ]);
+    const getPriceReductionAmount = (reductionPercent: number): string => {
+        return (cartSubtotal * (reductionPercent / 100)).toFixed(2);
+    }
     const priceFormatted = (row) => {
         let colValue: string | ReactElement;
         if (row.isCoupon) {
-            colValue = <strong className="text-yellow-200">-${row.reductionPercent}%</strong>;
+            colValue = <strong className="text-yellow-200">-${getPriceReductionAmount(row.reductionPercent)}</strong>;
         } else {
             colValue = row.price > 0 ? `$${row.price.toFixed(2)}` :
                 <strong className="text-yellow-200">FREE</strong>;
@@ -170,7 +173,10 @@ export function OrderCheckoutPage() {
         setOrderTotal(newOrderTotal);
 
         const updatedOrderTotalItems: IOrderTotalItems[] = orderTotalItems;
-        updatedOrderTotalItems[1].price = selectedDeliveryOption.price;
+        const deliveryOptionIndex: number = updatedOrderTotalItems.findIndex(
+            (item) => item.name === "Shipping & Handling"
+        );
+        updatedOrderTotalItems[deliveryOptionIndex].price = selectedDeliveryOption.price;
         setOrderTotalItems(updatedOrderTotalItems);
     }, [cartSubtotal, orderTotalItems, selectedDeliveryOption]);
     useEffect(() => {
