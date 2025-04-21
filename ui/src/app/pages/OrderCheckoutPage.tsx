@@ -20,6 +20,8 @@ interface IOrderTotalItems {
 export function OrderCheckoutPage() {
     const navigate: NavigateFunction = useNavigate();
     const [convenienceFee] = useState(Math.random() * 20);
+    const [couponCodes, setCouponCodes] = useState<string[]>([]);
+    const [couponCode, setCouponCode] = useState<string>("");
     const cartSubtotal: number = useSelector((state: RootState) => state.cart.cartSubtotal);
     const today: Dayjs = dayjs();
     const twoDay: Dayjs = today.add(1, "days");
@@ -53,7 +55,7 @@ export function OrderCheckoutPage() {
     ];
     const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<IDeliveryOption>(deliveryOptions[0]);
     const [orderTotal, setOrderTotal] = useState<string>(cartSubtotal.toFixed(2));
-    const getTaxAmount = () => {
+    const getTaxAmount = (): number => {
         return (parseFloat(orderTotal) * 0.06)
     }
     const orderTotalItems: IOrderTotalItems[] = [
@@ -130,12 +132,20 @@ export function OrderCheckoutPage() {
 
                                         <section>
                                             <div className="flex gap-4">
-                                                <InputText type="text"
-                                                           className="p-inputtext-sm"
-                                                           placeholder="Enter coupon code"
-                                                           maxLength={20}
+                                                <InputText
+                                                    type="text"
+                                                    className="p-inputtext-sm"
+                                                    placeholder="Enter coupon code"
+                                                    maxLength={20}
+                                                    value={couponCode}
+                                                    onChange={(e) => setCouponCode(e.target.value)}
                                                 />
-                                                <Button label="Apply" icon="pi pi-plus" size="small"/>
+                                                <Button
+                                                    label="Apply"
+                                                    icon="pi pi-plus"
+                                                    size="small"
+                                                    disabled={couponCode.length === 0}
+                                                />
                                             </div>
                                         </section>
                                     </div>
