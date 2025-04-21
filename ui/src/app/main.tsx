@@ -9,6 +9,7 @@ import AdminPage from "./pages/Admin/AdminPage.tsx";
 import AdminInventoryPage from "./pages/Admin/AdminInventoryPage.tsx";
 import {AdminUserDetailPage} from "./pages/Admin/AdminUserDetailPage.tsx";
 import {OrderCheckoutPage} from "./pages/OrderCheckoutPage.tsx";
+import {AccountPage} from "./pages/Account/AccountPage.tsx";
 
 const HomePage = React.lazy(() => import("./pages/HomePage.tsx"));
 const ProductListPage = React.lazy(() => import("./pages/ProductListPage.tsx"));
@@ -28,6 +29,7 @@ createRoot(document.getElementById('root')!).render(
                     <Route path="admin/users/edit/:slug" element={<AdminUserDetailPage isNewUser={false}/>}/>
                     <Route path="admin/users/add" element={<AdminUserDetailPage isNewUser={true}/>}/>
                     <Route path="orders/checkout" element={<OrderCheckoutPage/>}/>
+                    <Route path="account" element={<AccountPage/>}/>
                 </Route>
                 <Route path="*" element={<Navigate to="/"/>}/>
             </Routes>

@@ -56,7 +56,7 @@ export function OrderCheckoutPage() {
         return (parseFloat(orderTotal) * 0.06)
     }
     const orderTotalItems: IOrderTotalItems[] = [
-        {name: "Items", price: cartSubtotal},
+        {name: "Subtotal", price: cartSubtotal},
         {name: "Shipping & Handling", price: selectedDeliveryOption.price},
         {name: "Estimated Taxes", price: getTaxAmount()},
         {name: "Convenience Fee", price: convenienceFee}
@@ -77,7 +77,7 @@ export function OrderCheckoutPage() {
         </>
     }
     useEffect(() => {
-        const newOrderTotal: string = (parseFloat(cartSubtotal) + selectedDeliveryOption.price).toFixed(2);
+        const newOrderTotal: string = (parseFloat(String(cartSubtotal)) + selectedDeliveryOption.price).toFixed(2);
         setOrderTotal(newOrderTotal);
     }, [cartSubtotal, selectedDeliveryOption]);
     return (
