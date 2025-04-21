@@ -21,6 +21,7 @@ interface IOrderTotalItems {
     name: string;
     price?: number;
     reductionPercent?: number;
+    reductionAmount?: number;
     description?: string;
     isCoupon?: boolean;
 }
@@ -32,6 +33,8 @@ export function OrderCheckoutPage() {
     const [convenienceFee] = useState(Math.random() * 20);
     const [couponCodes, setCouponCodes] = useState<ICouponCode[]>([]);
     const [couponCode, setCouponCode] = useState<string>("");
+    const totalCouponReductionAmount: RefObject<number> = useRef<number>(0);
+    const [couponReductionAmountMap, setCouponReductionAmountMap] = useState<Map<string, number>>(new Map<string, number>());
     const cartSubtotal: number = useSelector((state: RootState) => state.cart.cartSubtotal);
     const today: Dayjs = dayjs();
     const twoDay: Dayjs = today.add(1, "days");
@@ -75,13 +78,13 @@ export function OrderCheckoutPage() {
         {name: "Estimated Taxes", price: getTaxAmount()},
         {name: "Convenience Fee", price: convenienceFee}
     ]);
-    const getPriceReductionAmount = (reductionPercent: number): string => {
-        return (cartSubtotal * (reductionPercent / 100)).toFixed(2);
+    const getPriceReductionAmount = (reductionPercent: number): number => {
+        return (cartSubtotal * (reductionPercent / 100));
     }
     const priceFormatted = (row) => {
         let colValue: string | ReactElement;
         if (row.isCoupon) {
-            colValue = <strong className="text-yellow-200">-${getPriceReductionAmount(row.reductionPercent)}</strong>;
+            colValue = <strong className="text-yellow-200">-${row.reductionAmount.toFixed(2)}</strong>;
         } else {
             colValue = row.price > 0 ? `$${row.price.toFixed(2)}` :
                 <strong className="text-yellow-200">FREE</strong>;
@@ -140,9 +143,14 @@ export function OrderCheckoutPage() {
                                 ...couponCodes,
                                 validCouponCode
                             ]);
+                            const reductionAmount: number = getPriceReductionAmount(validCouponCode.reductionPercent);
+                            const updatedAmountMap: Map<string, number> = couponReductionAmountMap;
+                            updatedAmountMap.set(validCouponCode.code, reductionAmount);
+                            setCouponReductionAmountMap(updatedAmountMap);
                             const newCouponOrderTotalItem: IOrderTotalItems = {
                                 name: validCouponCode.code,
                                 reductionPercent: validCouponCode.reductionPercent,
+                                reductionAmount: reductionAmount,
                                 description: validCouponCode.description,
                                 isCoupon: true,
                             };
@@ -169,7 +177,11 @@ export function OrderCheckoutPage() {
         }
     }
     useEffect(() => {
-        const newOrderTotal: string = (parseFloat(String(cartSubtotal)) + selectedDeliveryOption.price).toFixed(2);
+        totalCouponReductionAmount.current = Array.from(
+            couponReductionAmountMap.values()).reduce((a, b) => a + b, 0
+        );
+        const updatedCartSubtotal: number = cartSubtotal - totalCouponReductionAmount.current;
+        const newOrderTotal: string = (parseFloat(String(updatedCartSubtotal)) + selectedDeliveryOption.price).toFixed(2);
         setOrderTotal(newOrderTotal);
 
         const updatedOrderTotalItems: IOrderTotalItems[] = orderTotalItems;
