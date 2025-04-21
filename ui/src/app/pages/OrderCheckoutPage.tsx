@@ -110,27 +110,32 @@ export function OrderCheckoutPage() {
                 }
             } else {
                 coupon$ = getCouponCodeByCode(couponCode).subscribe({
-                    next: (isValid: boolean) => {
+                    next: (validCouponCode: ICouponCode) => {
                         if (toast.current) {
-                            if (isValid) {
-                                toast.current.show({
-                                    severity: 'success',
-                                    summary: 'Coupon code added',
-                                    detail: 'Applied coupon code ' + couponCode,
-                                    life: 3000,
-                                });
-                                setCouponCode("");
-                                setCouponCodes([
-                                    ...couponCodes,
-                                    couponCode
-                                ]);
-                            } else {
-                                // show invalid coupon code message
-                            }
+                            toast.current.show({
+                                severity: 'success',
+                                summary: 'Coupon code added',
+                                detail: 'Applied coupon code ' + validCouponCode.code,
+                                life: 3000,
+                            });
+                            setCouponCode("");
+                            setCouponCodes([
+                                ...couponCodes,
+                                validCouponCode
+                            ]);
                         }
                     },
                     error: (e) => {
                         console.error(e);
+                        if (messages.current) {
+                            messages.current.show([
+                                {
+                                    severity: 'error',
+                                    summary: 'Error adding coupon code',
+                                    detail: "Invalid Coupon Code"
+                                }
+                            ]);
+                        }
                     }
                 });
             }
