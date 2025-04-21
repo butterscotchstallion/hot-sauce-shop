@@ -65,7 +65,7 @@ export function OrderCheckoutPage() {
     const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<IDeliveryOption>(deliveryOptions[0]);
     const [orderTotal, setOrderTotal] = useState<string>(cartSubtotal.toFixed(2));
     const getTaxAmount = (): number => {
-        return (parseFloat(orderTotal) * 0.06)
+        return parseFloat(orderTotal) * 0.06;
     }
     const [orderTotalItems, setOrderTotalItems] = useState<IOrderTotalItems[]>([
         {name: "Subtotal", price: cartSubtotal},
@@ -78,7 +78,6 @@ export function OrderCheckoutPage() {
             <strong className="text-yellow-200">FREE</strong>;
         if (row.isCoupon) {
             colValue = `-$${row.reductionPercent}`;
-            console.log(row);
         }
         return (
             <>
@@ -171,7 +170,11 @@ export function OrderCheckoutPage() {
     useEffect(() => {
         const newOrderTotal: string = (parseFloat(String(cartSubtotal)) + selectedDeliveryOption.price).toFixed(2);
         setOrderTotal(newOrderTotal);
-    }, [cartSubtotal, selectedDeliveryOption]);
+
+        const updatedOrderTotalItems: IOrderTotalItems[] = orderTotalItems;
+        updatedOrderTotalItems[1].price = selectedDeliveryOption.price;
+        setOrderTotalItems(updatedOrderTotalItems);
+    }, [cartSubtotal, orderTotalItems, selectedDeliveryOption]);
     useEffect(() => {
         return () => {
             couponSubscription.current?.unsubscribe();
