@@ -102,6 +102,20 @@ export function OrderCheckoutPage() {
                             </DataTable>
                         </section>
 
+                        <Card>
+                            <section className="flex justify-between gap-4 items-center">
+                                <div>
+                                    <p>Delivering to John HotSauceLover</p>
+                                    <p></p>
+                                </div>
+                                <Button
+                                    onClick={() => navigate("/account/addresses")}
+                                    link
+                                    label="Change"
+                                    icon="pi pi-address-book"/>
+                            </section>
+                        </Card>
+
                         <section>
                             <Card>
                                 <section className="flex justify-between items-center gap-4">
