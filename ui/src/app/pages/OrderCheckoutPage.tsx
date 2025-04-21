@@ -89,7 +89,7 @@ export function OrderCheckoutPage() {
     }
     const couponCodeAppliedAlready = (code: string): boolean => {
         for (let j = 0; j < couponCodes.length; j++) {
-            if (couponCodes[j].code === code) {
+            if (couponCodes[j].code.toUpperCase() === code.toUpperCase()) {
                 return true;
             }
         }
@@ -116,8 +116,8 @@ export function OrderCheckoutPage() {
                                 severity: 'success',
                                 summary: 'Coupon code added',
                                 detail: 'Applied coupon code ' + validCouponCode.code,
-                                closable: true
                             });
+                            messages.current?.clear();
                             setCouponCode("");
                             setCouponCodes([
                                 ...couponCodes,
@@ -131,8 +131,8 @@ export function OrderCheckoutPage() {
                             messages.current.show([
                                 {
                                     severity: 'error',
-                                    summary: 'Error adding coupon code',
-                                    detail: "Invalid Coupon Code"
+                                    detail: "Invalid Coupon Code",
+                                    sticky: true,
                                 }
                             ]);
                         }
@@ -226,6 +226,15 @@ export function OrderCheckoutPage() {
                                 </section>
                             </Card>
                         </section>
+
+                        {couponCodes.length > 0 && (
+                            <section>
+                                <DataTable value={couponCodes} columnResizeMode="expand">
+                                    <Column field="code" header="Coupon Code"/>
+                                    <Column field="description" header="Description"/>
+                                </DataTable>
+                            </section>
+                        )}
 
                         <section>
                             <DataTable value={orderTotalItems}>
