@@ -2,7 +2,7 @@ import {CartItemsDataTable} from "../components/Cart/CartItemsDataTable.tsx";
 import {DataTable} from "primereact/datatable";
 import {IDeliveryOption} from "../components/Orders/IDeliveryOption.ts";
 import {Column} from "primereact/column";
-import {Ref, RefObject, useEffect, useRef, useState} from "react";
+import {ReactElement, Ref, RefObject, useEffect, useRef, useState} from "react";
 import {Button} from "primereact/button";
 import {useSelector} from "react-redux";
 import {RootState} from "../store.ts";
@@ -20,6 +20,7 @@ import {Messages} from "primereact/messages";
 interface IOrderTotalItems {
     name: string;
     price: number;
+    isCoupon?: boolean;
 }
 
 export function OrderCheckoutPage() {
@@ -56,7 +57,7 @@ export function OrderCheckoutPage() {
         },
         {
             name: "Whenever",
-            price: 0.00,
+            price: 0,
             deliveryDate: whenever.format(deliveryDateFormat),
             description: "Usually about a week"
         },
@@ -66,14 +67,31 @@ export function OrderCheckoutPage() {
     const getTaxAmount = (): number => {
         return (parseFloat(orderTotal) * 0.06)
     }
-    const orderTotalItems: IOrderTotalItems[] = [
+    const [orderTotalItems, setOrderTotalItems] = useState<IOrderTotalItems[]>([
         {name: "Subtotal", price: cartSubtotal},
         {name: "Shipping & Handling", price: selectedDeliveryOption.price},
         {name: "Estimated Taxes", price: getTaxAmount()},
         {name: "Convenience Fee", price: convenienceFee}
-    ];
-    const priceFormatted = (row: IDeliveryOption) => {
-        return row.price > 0 ? `$${row.price.toFixed(2)}` : <strong className="text-yellow-200">FREE</strong>;
+    ]);
+    const priceFormatted = (row) => {
+        let colValue: string | ReactElement = row.price > 0 ? `$${row.price.toFixed(2)}` :
+            <strong className="text-yellow-200">FREE</strong>;
+        if (row.isCoupon) {
+            colValue = `-$${row.reductionPercent}`;
+            console.log(row);
+        }
+        return (
+            <>
+                {colValue}
+                {row.isCoupon &&
+                    <i className="pl-2 cursor-pointer pi pi-question-circle custom-target-icon text-yellow-200"
+                       data-pr-tooltip={row.description}
+                       data-pr-position="right"
+                       data-pr-at="right+5 top"
+                       data-pr-my="left center-2"></i>
+                }
+            </>
+        )
     }
     const deliveryOptionName = (row: IDeliveryOption) => {
         return <>
@@ -122,6 +140,15 @@ export function OrderCheckoutPage() {
                             setCouponCodes([
                                 ...couponCodes,
                                 validCouponCode
+                            ]);
+                            const newCouponOrderTotalItem: IOrderTotalItems = {
+                                name: validCouponCode.code,
+                                price: validCouponCode.reductionPercent,
+                                isCoupon: true,
+                            };
+                            setOrderTotalItems([
+                                newCouponOrderTotalItem,
+                                ...orderTotalItems,
                             ]);
                         }
                     },
@@ -226,15 +253,6 @@ export function OrderCheckoutPage() {
                                 </section>
                             </Card>
                         </section>
-
-                        {couponCodes.length > 0 && (
-                            <section>
-                                <DataTable value={couponCodes} columnResizeMode="expand">
-                                    <Column field="code" header="Coupon Code"/>
-                                    <Column field="description" header="Description"/>
-                                </DataTable>
-                            </section>
-                        )}
 
                         <section>
                             <DataTable value={orderTotalItems}>
