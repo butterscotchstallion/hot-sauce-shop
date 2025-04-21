@@ -23,6 +23,8 @@
 ![product reviews](screenshots/product-review-area.png)
 ## Cart
 ![cart](screenshots/cart.png)
+## Order Checkout Page
+![Order Checkout Page](screenshots/order-checkout-page.png)
 ## Product autocomplete
 ![autocomplete](screenshots/autocomplete.png)
 ## Admin - Edit Item

@@ -103,15 +103,15 @@ export function OrderCheckoutPage() {
                         </section>
 
                         <section>
-                            <Card title="Payment Method">
-                                <section className="flex justify-between gap-4">
+                            <Card>
+                                <section className="flex justify-between items-center gap-4">
                                     <div>
                                         Paying with
                                         <Link to={`/account/payment-methods/1`}>
-                                            <i className="pi pi-wallet mr-1 ml-2"></i> Visa 1234
+                                            <i className="pi pi-credit-card mr-1 ml-2"></i> Visa 1234
                                         </Link>
                                     </div>
-                                    <Button link label="Change" icon="pi pi-credit-card"
+                                    <Button link label="Change" icon="pi pi-wallet"
                                             onClick={() => navigate("/account/payment-methods")}/>
                                 </section>
                             </Card>
