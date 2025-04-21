@@ -84,7 +84,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 
 		sessionId, err := lib.AddUserSessionId(dbPool, verifiedUser.Id)
 		if err != nil || len(sessionId) == 0 {
-			logger.Error("Error generating sessionId: %v", err.Error())
+			logger.Error(fmt.Sprintf("Error generating sessionId: %v", err.Error()))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",
 				"message": err.Error(),

@@ -45,6 +45,7 @@ func main() {
 	routes.User(r, dbPool, logger)
 	routes.Session(r, dbPool, logger)
 	routes.Admin(r, dbPool, logger, store)
+	routes.Orders(r, dbPool, logger)
 
 	defer func(conn *websocket.Conn) {
 		err := conn.Close()
@@ -57,8 +58,4 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error starting server: %v", err)
 	}
-}
-
-func setUpEventBus() {
-
 }

@@ -30,7 +30,7 @@ func IsSignedInAndUserExists(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.
 
 	user, getUserErr := lib.GetUserBySessionId(dbPool, logger, sessionIdCookieValue)
 	if getUserErr != nil || user == (lib.User{}) {
-		logger.Error("Error fetching user: %v", getUserErr)
+		logger.Error(fmt.Sprintf("Error fetching user: %v", getUserErr))
 		c.JSON(http.StatusNotFound, gin.H{
 			"status":  "ERROR",
 			"message": "No user found for session ID",
@@ -49,7 +49,7 @@ func IsUserAdmin(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (boo
 
 	roles, rolesErr := lib.GetRolesByUserId(dbPool, logger, userId)
 	if rolesErr != nil {
-		logger.Error("Error fetching roles: %v", rolesErr.Error())
+		logger.Error(fmt.Sprintf("Error fetching roles: %v", rolesErr.Error()))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "ERROR",
 			"message": rolesErr.Error(),
@@ -98,7 +98,7 @@ func Admin(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *pers
 
 		isUserAdmin, isUserAdminErr := IsUserAdmin(c, dbPool, logger)
 		if isUserAdminErr != nil {
-			logger.Error("Error checking if user is admin: %v", isUserAdminErr)
+			logger.Error(fmt.Sprintf("Error checking if user is admin: %v", isUserAdminErr))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",
 				"message": isUserAdminErr.Error(),
@@ -124,7 +124,7 @@ func Admin(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *pers
 			getRoleIdsFromRoles(adminUserUpdateRequest.Roles),
 		)
 		if updateErr != nil {
-			logger.Error("Error updating user roles: %v", updateErr)
+			logger.Error(fmt.Sprintf("Error updating user roles: %v", updateErr))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",
 				"message": updateErr.Error(),
@@ -140,7 +140,7 @@ func Admin(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *pers
 	r.GET("/api/v1/admin/roles", cache.CachePage(store, time.Minute*15, func(c *gin.Context) {
 		isUserAdmin, isUserAdminErr := IsUserAdmin(c, dbPool, logger)
 		if isUserAdminErr != nil {
-			logger.Error("Error checking if user is admin: %v", isUserAdminErr)
+			logger.Error(fmt.Sprintf("Error checking if user is admin: %v", isUserAdminErr))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",
 				"message": isUserAdminErr.Error(),
@@ -159,7 +159,7 @@ func Admin(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *pers
 
 		roles, roleErr := lib.GetRoleList(dbPool, logger)
 		if roleErr != nil {
-			logger.Error("Error fetching roles: %v", roleErr.Error())
+			logger.Error(fmt.Sprintf("Error fetching roles: %v", roleErr.Error()))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",
 				"message": roleErr.Error(),
@@ -197,7 +197,7 @@ func Admin(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *pers
 
 		sessionUser, getUserErr := lib.GetUserBySessionId(dbPool, logger, sessionIdCookieValue)
 		if getUserErr != nil || sessionUser == (lib.User{}) {
-			logger.Error("Error fetching session user: %v", getUserErr)
+			logger.Error(fmt.Sprintf("Error fetching session user: %v", getUserErr))
 			c.JSON(http.StatusNotFound, gin.H{
 				"status":  "ERROR",
 				"message": "No user found for session ID",

@@ -1,15 +1,17 @@
 import {Subject} from "rxjs";
 import {ICouponCode} from "./ICouponCode.ts";
+import {ORDERS_COUPON_CODE_URL} from "../Shared/Api.ts";
 
 export function getCouponCodeByCode(code: string): Subject<ICouponCode> {
     const code$: Subject<ICouponCode> = new Subject<ICouponCode>();
-
-    // TODO: implement coupon code API
-    code$.next({
-        code: "SPICY20",
-        description: "20% off your order",
-        expirationDate: new Date(2030, 1, 1),
+    fetch(`${ORDERS_COUPON_CODE_URL}/${code}`).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => code$.next(resp?.results?.couponCode));
+        } else {
+            res.json().then(resp => code$.error(resp?.message || "Unknown error"));
+        }
+    }).catch((err) => {
+        code$.error(err);
     });
-
     return code$;
 }

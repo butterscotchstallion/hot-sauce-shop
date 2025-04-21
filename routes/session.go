@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -24,7 +25,7 @@ func Session(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		user, getUserErr := lib.GetUserBySessionId(dbPool, logger, sessionIdCookieValue)
 
 		if getUserErr != nil || user == (lib.User{}) {
-			logger.Error("Error fetching user: %v", getUserErr)
+			logger.Error(fmt.Sprintf("Error fetching user: %v", getUserErr))
 			c.JSON(http.StatusNotFound, gin.H{
 				"status":  "ERROR",
 				"message": "No user found for session ID",
@@ -34,7 +35,7 @@ func Session(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 
 		roles, rolesErr := lib.GetRolesByUserId(dbPool, logger, user.Id)
 		if rolesErr != nil {
-			logger.Error("Error fetching roles: %v", rolesErr.Error())
+			logger.Error(fmt.Sprintf("Error fetching roles: %v", rolesErr.Error()))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",
 				"message": rolesErr.Error(),

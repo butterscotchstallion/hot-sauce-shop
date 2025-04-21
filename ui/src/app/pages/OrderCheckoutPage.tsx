@@ -36,7 +36,7 @@ export function OrderCheckoutPage() {
     const whenever: Dayjs = today.add(7, "days");
     const instantTransmission: Dayjs = today.add(1, "hours");
     const deliveryDateFormat: string = "ddd, MMM D";
-    let coupon$: Subscription;
+    const couponSubscription: RefObject<Subscription | null> = useRef<Subscription>(null);
     const deliveryOptions: IDeliveryOption[] = [
         {
             name: "Instant Transmission",
@@ -109,14 +109,14 @@ export function OrderCheckoutPage() {
                     ]);
                 }
             } else {
-                coupon$ = getCouponCodeByCode(couponCode).subscribe({
+                couponSubscription.current = getCouponCodeByCode(couponCode).subscribe({
                     next: (validCouponCode: ICouponCode) => {
                         if (toast.current) {
                             toast.current.show({
                                 severity: 'success',
                                 summary: 'Coupon code added',
                                 detail: 'Applied coupon code ' + validCouponCode.code,
-                                life: 3000,
+                                closable: true
                             });
                             setCouponCode("");
                             setCouponCodes([
@@ -147,7 +147,7 @@ export function OrderCheckoutPage() {
     }, [cartSubtotal, selectedDeliveryOption]);
     useEffect(() => {
         return () => {
-            coupon$?.unsubscribe();
+            couponSubscription.current?.unsubscribe();
         }
     }, []);
     return (
@@ -198,6 +198,9 @@ export function OrderCheckoutPage() {
                                         </section>
 
                                         <section>
+                                            <div>
+                                                <Messages ref={messages}/>
+                                            </div>
                                             <div className="flex gap-4">
                                                 <InputText
                                                     type="text"
@@ -244,7 +247,6 @@ export function OrderCheckoutPage() {
 
             <Tooltip target=".custom-target-icon"/>
             <Toast ref={toast}/>
-            <Messages ref={messages}/>
         </>
     )
 }

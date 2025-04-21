@@ -5,11 +5,17 @@
 - Product list/view
 - Admin area
 - Custom user system with session management
+- Role-based access control
+- And more!
 
 # Tech Stack
 - Go
 - Postgres
 - React, PrimeReact, Redux
+
+# Running
+- Front end: `cd ui/src; npm run dev`
+- API run and watch: `air -c .air.toml`
 
 # Screenshots
 
