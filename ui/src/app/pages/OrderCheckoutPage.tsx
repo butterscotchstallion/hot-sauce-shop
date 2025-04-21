@@ -9,7 +9,7 @@ import {RootState} from "../store.ts";
 import dayjs, {Dayjs} from 'dayjs';
 import {Tooltip} from 'primereact/tooltip';
 import {Card} from "primereact/card";
-import {Link} from "react-router";
+import {Link, NavigateFunction, useNavigate} from "react-router";
 
 interface IOrderTotalItems {
     name: string;
@@ -17,6 +17,7 @@ interface IOrderTotalItems {
 }
 
 export function OrderCheckoutPage() {
+    const navigate: NavigateFunction = useNavigate();
     const [convenienceFee] = useState(Math.random() * 20);
     const cartSubtotal: number = useSelector((state: RootState) => state.cart.cartSubtotal);
     const today: Dayjs = dayjs();
@@ -103,7 +104,16 @@ export function OrderCheckoutPage() {
 
                         <section>
                             <Card title="Payment Method">
-                                Paying with <Link to={`/account/payment/1`}>Visa 1234</Link>
+                                <section className="flex justify-between gap-4">
+                                    <div>
+                                        Paying with
+                                        <Link to={`/account/payment-methods/1`}>
+                                            <i className="pi pi-wallet mr-1 ml-2"></i> Visa 1234
+                                        </Link>
+                                    </div>
+                                    <Button link label="Change" icon="pi pi-credit-card"
+                                            onClick={() => navigate("/account/payment-methods")}/>
+                                </section>
                             </Card>
                         </section>
 
