@@ -1,1 +1,9 @@
 @use "styles/throbber";
+
+a, a:visited {
+  color: var(--color-yellow-200);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

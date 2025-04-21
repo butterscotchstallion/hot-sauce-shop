@@ -8,6 +8,8 @@ import {useSelector} from "react-redux";
 import {RootState} from "../store.ts";
 import dayjs, {Dayjs} from 'dayjs';
 import {Tooltip} from 'primereact/tooltip';
+import {Card} from "primereact/card";
+import {Link} from "react-router";
 
 interface IOrderTotalItems {
     name: string;
@@ -97,6 +99,12 @@ export function OrderCheckoutPage() {
                                 <Column field="price" header="Price" body={priceFormatted}/>
                                 <Column field="deliveryDate" header="Delivery Date"/>
                             </DataTable>
+                        </section>
+
+                        <section>
+                            <Card title="Payment Method">
+                                Paying with <Link to={`/account/payment/1`}>Visa 1234</Link>
+                            </Card>
                         </section>
 
                         <section>
