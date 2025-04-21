@@ -15,6 +15,7 @@ interface IOrderTotalItems {
 }
 
 export function OrderCheckoutPage() {
+    const [convenienceFee] = useState(Math.random() * 20);
     const cartSubtotal: number = useSelector((state: RootState) => state.cart.cartSubtotal);
     const today: Dayjs = dayjs();
     const twoDay: Dayjs = today.add(1, "days");
@@ -55,7 +56,7 @@ export function OrderCheckoutPage() {
         {name: "Items", price: cartSubtotal},
         {name: "Shipping & Handling", price: selectedDeliveryOption.price},
         {name: "Estimated Taxes", price: getTaxAmount()},
-        {name: "Convenience Fee", price: (Math.random() * 50)}
+        {name: "Convenience Fee", price: convenienceFee}
     ];
     const priceFormatted = (row: IDeliveryOption) => {
         return row.price > 0 ? `$${row.price.toFixed(2)}` : <strong className="text-yellow-200">FREE</strong>;
@@ -76,7 +77,6 @@ export function OrderCheckoutPage() {
         const newOrderTotal: string = (parseFloat(cartSubtotal) + selectedDeliveryOption.price).toFixed(2);
         setOrderTotal(newOrderTotal);
     }, [cartSubtotal, selectedDeliveryOption]);
-
     return (
         <>
             <h1 className="text-2xl font-bold mb-4">Checkout</h1>
