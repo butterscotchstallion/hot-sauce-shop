@@ -10,6 +10,7 @@ import dayjs, {Dayjs} from 'dayjs';
 import {Tooltip} from 'primereact/tooltip';
 import {Card} from "primereact/card";
 import {Link, NavigateFunction, useNavigate} from "react-router";
+import {InputText} from "primereact/inputtext";
 
 interface IOrderTotalItems {
     name: string;
@@ -106,7 +107,7 @@ export function OrderCheckoutPage() {
                             <section className="flex justify-between gap-4 items-center">
                                 <div>
                                     <p>Delivering to John HotSauceLover</p>
-                                    <p>123 MAPLE ST, Reston VA, 08812, United States</p>
+                                    <p>123 MAPLE ST, Boulder CO, 12345, United States</p>
                                 </div>
                                 <Button
                                     onClick={() => navigate("/account/addresses")}
@@ -119,11 +120,24 @@ export function OrderCheckoutPage() {
                         <section>
                             <Card>
                                 <section className="flex justify-between items-center gap-4">
-                                    <div>
-                                        Paying with
-                                        <Link to={`/account/payment-methods/1`}>
-                                            <i className="pi pi-credit-card mr-1 ml-2"></i> Visa 1234
-                                        </Link>
+                                    <div className="flex flex-col gap-6">
+                                        <section>
+                                            Paying with
+                                            <Link to={`/account/payment-methods/1`}>
+                                                <i className="pi pi-credit-card mr-1 ml-2"></i> Visa 1234
+                                            </Link>
+                                        </section>
+
+                                        <section>
+                                            <div className="flex gap-4">
+                                                <InputText type="text"
+                                                           className="p-inputtext-sm"
+                                                           placeholder="Enter coupon code"
+                                                           maxLength={20}
+                                                />
+                                                <Button label="Apply" icon="pi pi-plus" size="small"/>
+                                            </div>
+                                        </section>
                                     </div>
                                     <Button link label="Change" icon="pi pi-wallet"
                                             onClick={() => navigate("/account/payment-methods")}/>
