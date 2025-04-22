@@ -168,21 +168,21 @@ export function OrderCheckoutPage() {
         }
     }
     useEffect(() => {
-        // Update order total based on coupon discounts and delivery option
-        totalCouponReductionAmount.current = Array.from(
-            couponReductionAmountMap.values()).reduce((a, b) => a + b, 0
-        );
-        const updatedCartSubtotal: number = cartSubtotal - totalCouponReductionAmount.current;
-        const hasFreeShipping: boolean = hasFreeShippingCoupon();
-        let shippingAndHandlingCost: number = selectedShippingOption?.price || 0;
-        if (hasFreeShipping) {
-            console.info("Free shipping coupon applied");
-            shippingAndHandlingCost = 0;
-        }
-        const newOrderTotal: string = (parseFloat(String(updatedCartSubtotal)) + shippingAndHandlingCost).toFixed(2);
-        setOrderTotal(newOrderTotal);
-
         if (selectedShippingOption) {
+            // Update order total based on coupon discounts and delivery option
+            totalCouponReductionAmount.current = Array.from(
+                couponReductionAmountMap.values()).reduce((a, b) => a + b, 0
+            );
+            const updatedCartSubtotal: number = cartSubtotal - totalCouponReductionAmount.current;
+            const hasFreeShipping: boolean = hasFreeShippingCoupon();
+            let shippingAndHandlingCost: number = selectedShippingOption.price;
+            if (hasFreeShipping) {
+                console.info("Free shipping coupon applied");
+                shippingAndHandlingCost = 0;
+            }
+            const newOrderTotal: string = (parseFloat(String(updatedCartSubtotal)) + shippingAndHandlingCost).toFixed(2);
+            setOrderTotal(newOrderTotal);
+
             // Update the delivery option price in the order total items table
             const updatedOrderTotalItems: IOrderTotalItems[] = orderTotalItems;
             const deliveryOptionIndex: number = updatedOrderTotalItems.findIndex(
@@ -191,13 +191,16 @@ export function OrderCheckoutPage() {
             updatedOrderTotalItems[deliveryOptionIndex].price = selectedShippingOption.price;
             setOrderTotalItems(updatedOrderTotalItems);
         }
-    }, [cartSubtotal, orderTotalItems, selectedShippingOption]);
-    
+    }, [cartSubtotal, orderTotalItems, selectedShippingOption, shippingOptions]);
+
+    useEffect(() => {
+        setSelectedShippingOption(shippingOptions[0]);
+    }, [shippingOptions]);
+
     useEffect(() => {
         shippingOptionsSubscription.current = getShippingOptions().subscribe({
             next: (shippingOptions: IShippingOption[]) => {
                 setShippingOptions(addDeliveryDateToShippingOptions(shippingOptions));
-                setSelectedShippingOption(shippingOptions[0]);
             },
             error: (err) => {
                 console.error(err);
