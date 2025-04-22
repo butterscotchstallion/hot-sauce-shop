@@ -115,6 +115,14 @@ export function OrderCheckoutPage() {
         }
         return false;
     };
+    const onCouponCodeKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Enter") {
+            addCouponCode();
+        }
+        if (e.key === "Escape") {
+            setCouponCode("");
+        }
+    }
     const addCouponCode = () => {
         if (couponCode.length > 0) {
             const isCouponCodeAppliedAlready: boolean = couponCodeAppliedAlready(couponCode);
@@ -266,6 +274,7 @@ export function OrderCheckoutPage() {
                                                 className="p-inputtext-sm"
                                                 placeholder="Enter coupon code"
                                                 maxLength={20}
+                                                onKeyDown={onCouponCodeKeyDown}
                                                 value={couponCode}
                                                 onChange={(e) => setCouponCode(e.target.value)}
                                             />
