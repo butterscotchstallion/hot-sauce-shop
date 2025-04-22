@@ -1,13 +1,11 @@
 import {CartItemsDataTable} from "../components/Cart/CartItemsDataTable.tsx";
-import {DataTable} from "primereact/datatable";
-import {IDeliveryOption} from "../components/Orders/IDeliveryOption.ts";
+import {DataTable, DataTableSelectionSingleChangeEvent} from "primereact/datatable";
 import {Column} from "primereact/column";
 import * as React from "react";
 import {ReactElement, Ref, RefObject, useEffect, useRef, useState} from "react";
 import {Button} from "primereact/button";
 import {useSelector} from "react-redux";
 import {RootState} from "../store.ts";
-import dayjs, {Dayjs} from 'dayjs';
 import {Tooltip} from 'primereact/tooltip';
 import {Card} from "primereact/card";
 import {Link, NavigateFunction, useNavigate} from "react-router";
@@ -18,7 +16,7 @@ import {Subscription} from "rxjs";
 import {ICouponCode} from "../components/Orders/ICouponCode.ts";
 import {Messages} from "primereact/messages";
 import {IShippingOption} from "../components/Orders/IShippingOption.ts";
-import {getShippingOptions} from "../components/Orders/shippingOptionsService.ts";
+import {addDeliveryDateToShippingOptions, getShippingOptions} from "../components/Orders/shippingOptionsService.ts";
 
 interface IOrderTotalItems {
     name: string;
@@ -40,47 +38,17 @@ export function OrderCheckoutPage() {
     const [couponReductionAmountMap, setCouponReductionAmountMap] = useState<Map<string, number>>(new Map<string, number>());
     const [shippingOptions, setShippingOptions] = useState<IShippingOption[]>([])
     const cartSubtotal: number = useSelector((state: RootState) => state.cart.cartSubtotal);
-    const today: Dayjs = dayjs();
-    const twoDay: Dayjs = today.add(1, "days");
-    const threeDay: Dayjs = today.add(2, "days");
-    const whenever: Dayjs = today.add(7, "days");
-    const instantTransmission: Dayjs = today.add(1, "hours");
-    const deliveryDateFormat: string = "ddd, MMM D";
     const couponSubscription: RefObject<Subscription | null> = useRef<Subscription>(null);
     const shippingOptionsSubscription: RefObject<Subscription | null> = useRef<Subscription>(null);
     const shippingOptionsMessages: RefObject<Messages | null> = useRef<Messages | null>(null);
-    const deliveryOptions: IDeliveryOption[] = [
-        {
-            name: "Instant Transmission",
-            price: 99.99,
-            deliveryDate: instantTransmission.format(deliveryDateFormat),
-            description: "Teleported via black hole after packaging"
-        },
-        {
-            name: "Two Day",
-            price: 9.99,
-            deliveryDate: twoDay.format(deliveryDateFormat)
-        },
-        {
-            name: "Three Day",
-            price: 4.99,
-            deliveryDate: threeDay.format(deliveryDateFormat)
-        },
-        {
-            name: "Whenever",
-            price: 0,
-            deliveryDate: whenever.format(deliveryDateFormat),
-            description: "Usually about a week"
-        },
-    ];
-    const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<IDeliveryOption>(deliveryOptions[0]);
+    const [selectedShippingOption, setSelectedShippingOption] = useState<IShippingOption>();
     const [orderTotal, setOrderTotal] = useState<string>(cartSubtotal.toFixed(2));
     const getTaxAmount = (): number => {
         return cartSubtotal * 0.06;
     }
     const [orderTotalItems, setOrderTotalItems] = useState<IOrderTotalItems[]>([
         {name: "Subtotal", price: cartSubtotal},
-        {name: "Shipping & Handling", price: selectedDeliveryOption.price},
+        {name: "Shipping & Handling", price: selectedShippingOption?.price},
         {name: "Estimated Taxes", price: getTaxAmount()},
         {name: "Convenience Fee", price: convenienceFee}
     ]);
@@ -206,7 +174,7 @@ export function OrderCheckoutPage() {
         );
         const updatedCartSubtotal: number = cartSubtotal - totalCouponReductionAmount.current;
         const hasFreeShipping: boolean = hasFreeShippingCoupon();
-        let shippingAndHandlingCost: number = selectedDeliveryOption.price;
+        let shippingAndHandlingCost: number = selectedShippingOption?.price || 0;
         if (hasFreeShipping) {
             console.info("Free shipping coupon applied");
             shippingAndHandlingCost = 0;
@@ -214,18 +182,22 @@ export function OrderCheckoutPage() {
         const newOrderTotal: string = (parseFloat(String(updatedCartSubtotal)) + shippingAndHandlingCost).toFixed(2);
         setOrderTotal(newOrderTotal);
 
-        // Update the delivery option price in the order total items table
-        const updatedOrderTotalItems: IOrderTotalItems[] = orderTotalItems;
-        const deliveryOptionIndex: number = updatedOrderTotalItems.findIndex(
-            (item) => item.name === "Shipping & Handling"
-        );
-        updatedOrderTotalItems[deliveryOptionIndex].price = selectedDeliveryOption.price;
-        setOrderTotalItems(updatedOrderTotalItems);
-    }, [cartSubtotal, orderTotalItems, selectedDeliveryOption]);
+        if (selectedShippingOption) {
+            // Update the delivery option price in the order total items table
+            const updatedOrderTotalItems: IOrderTotalItems[] = orderTotalItems;
+            const deliveryOptionIndex: number = updatedOrderTotalItems.findIndex(
+                (item) => item.name === "Shipping & Handling"
+            );
+            updatedOrderTotalItems[deliveryOptionIndex].price = selectedShippingOption.price;
+            setOrderTotalItems(updatedOrderTotalItems);
+        }
+    }, [cartSubtotal, orderTotalItems, selectedShippingOption]);
+    
     useEffect(() => {
         shippingOptionsSubscription.current = getShippingOptions().subscribe({
             next: (shippingOptions: IShippingOption[]) => {
-                setShippingOptions(shippingOptions);
+                setShippingOptions(addDeliveryDateToShippingOptions(shippingOptions));
+                setSelectedShippingOption(shippingOptions[0]);
             },
             error: (err) => {
                 console.error(err);
@@ -248,8 +220,12 @@ export function OrderCheckoutPage() {
                             <h4 className="text-xl font-bold mb-2">Delivery Options</h4>
                             <DataTable
                                 value={shippingOptions}
-                                selection={selectedDeliveryOption}
-                                onSelectionChange={(e) => setSelectedDeliveryOption(e.value || deliveryOptions[0])}>
+                                selection={selectedShippingOption}
+                                onSelectionChange={(e: DataTableSelectionSingleChangeEvent<IShippingOption[]>) => {
+                                    if (e.value) {
+                                        setSelectedShippingOption(e.value)
+                                    }
+                                }}>
                                 <Column selectionMode="single" headerStyle={{width: '3rem'}}></Column>
                                 <Column field="name" header="Name" body={rowWithOptionalDescription}/>
                                 <Column field="price" header="Price" body={priceFormatted}/>

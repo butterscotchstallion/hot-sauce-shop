@@ -3,6 +3,7 @@ export interface IShippingOption {
     name: string;
     description: string;
     timeToShipUnit: string;
-    timeToShipQuantity: number;
+    timeToShipUnitQuantity: number;
     price: number;
+    deliveryDate: string;
 }
