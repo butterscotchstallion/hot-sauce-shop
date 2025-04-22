@@ -8,3 +8,4 @@ export const SESSION_URL: string = BASE_API_URL + '/session';
 export const ADMIN_USER_DETAIL_URL: string = BASE_API_URL + '/admin/user';
 export const ADMIN_USER_ROLE_LIST: string = BASE_API_URL + '/admin/roles';
 export const ORDERS_COUPON_CODE_URL: string = BASE_API_URL + '/coupons';
+export const ORDERS_SHIPPING_OPTIONS_URL: string = BASE_API_URL + '/orders/shipping-options';

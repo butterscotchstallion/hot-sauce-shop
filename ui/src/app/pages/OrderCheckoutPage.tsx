@@ -2,6 +2,7 @@ import {CartItemsDataTable} from "../components/Cart/CartItemsDataTable.tsx";
 import {DataTable} from "primereact/datatable";
 import {IDeliveryOption} from "../components/Orders/IDeliveryOption.ts";
 import {Column} from "primereact/column";
+import * as React from "react";
 import {ReactElement, Ref, RefObject, useEffect, useRef, useState} from "react";
 import {Button} from "primereact/button";
 import {useSelector} from "react-redux";
@@ -16,6 +17,8 @@ import {Toast} from "primereact/toast";
 import {Subscription} from "rxjs";
 import {ICouponCode} from "../components/Orders/ICouponCode.ts";
 import {Messages} from "primereact/messages";
+import {IShippingOption} from "../components/Orders/IShippingOption.ts";
+import {getShippingOptions} from "../components/Orders/shippingOptionsService.ts";
 
 interface IOrderTotalItems {
     name: string;
@@ -35,6 +38,7 @@ export function OrderCheckoutPage() {
     const [couponCode, setCouponCode] = useState<string>("");
     const totalCouponReductionAmount: RefObject<number> = useRef<number>(0);
     const [couponReductionAmountMap, setCouponReductionAmountMap] = useState<Map<string, number>>(new Map<string, number>());
+    const [shippingOptions, setShippingOptions] = useState<IShippingOption[]>([])
     const cartSubtotal: number = useSelector((state: RootState) => state.cart.cartSubtotal);
     const today: Dayjs = dayjs();
     const twoDay: Dayjs = today.add(1, "days");
@@ -43,6 +47,8 @@ export function OrderCheckoutPage() {
     const instantTransmission: Dayjs = today.add(1, "hours");
     const deliveryDateFormat: string = "ddd, MMM D";
     const couponSubscription: RefObject<Subscription | null> = useRef<Subscription>(null);
+    const shippingOptionsSubscription: RefObject<Subscription | null> = useRef<Subscription>(null);
+    const shippingOptionsMessages: RefObject<Messages | null> = useRef<Messages | null>(null);
     const deliveryOptions: IDeliveryOption[] = [
         {
             name: "Instant Transmission",
@@ -115,7 +121,10 @@ export function OrderCheckoutPage() {
         }
         return false;
     };
-    const onCouponCodeKeyDown = (e: KeyboardEvent) => {
+    const hasFreeShippingCoupon = () => {
+        return couponCodeAppliedAlready("HOTANDFREE");
+    }
+    const onCouponCodeKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
             addCouponCode();
         }
@@ -196,7 +205,13 @@ export function OrderCheckoutPage() {
             couponReductionAmountMap.values()).reduce((a, b) => a + b, 0
         );
         const updatedCartSubtotal: number = cartSubtotal - totalCouponReductionAmount.current;
-        const newOrderTotal: string = (parseFloat(String(updatedCartSubtotal)) + selectedDeliveryOption.price).toFixed(2);
+        const hasFreeShipping: boolean = hasFreeShippingCoupon();
+        let shippingAndHandlingCost: number = selectedDeliveryOption.price;
+        if (hasFreeShipping) {
+            console.info("Free shipping coupon applied");
+            shippingAndHandlingCost = 0;
+        }
+        const newOrderTotal: string = (parseFloat(String(updatedCartSubtotal)) + shippingAndHandlingCost).toFixed(2);
         setOrderTotal(newOrderTotal);
 
         // Update the delivery option price in the order total items table
@@ -208,7 +223,14 @@ export function OrderCheckoutPage() {
         setOrderTotalItems(updatedOrderTotalItems);
     }, [cartSubtotal, orderTotalItems, selectedDeliveryOption]);
     useEffect(() => {
-        console.log(cartSubtotal)
+        shippingOptionsSubscription.current = getShippingOptions().subscribe({
+            next: (shippingOptions: IShippingOption[]) => {
+                setShippingOptions(shippingOptions);
+            },
+            error: (err) => {
+                console.error(err);
+            }
+        });
         return () => {
             couponSubscription.current?.unsubscribe();
         }
@@ -225,7 +247,7 @@ export function OrderCheckoutPage() {
                         <section>
                             <h4 className="text-xl font-bold mb-2">Delivery Options</h4>
                             <DataTable
-                                value={deliveryOptions}
+                                value={shippingOptions}
                                 selection={selectedDeliveryOption}
                                 onSelectionChange={(e) => setSelectedDeliveryOption(e.value || deliveryOptions[0])}>
                                 <Column selectionMode="single" headerStyle={{width: '3rem'}}></Column>
@@ -233,6 +255,7 @@ export function OrderCheckoutPage() {
                                 <Column field="price" header="Price" body={priceFormatted}/>
                                 <Column field="deliveryDate" header="Delivery Date"/>
                             </DataTable>
+                            <Messages ref={shippingOptionsMessages}/>
                         </section>
 
                         <Card>
@@ -274,7 +297,7 @@ export function OrderCheckoutPage() {
                                                 className="p-inputtext-sm"
                                                 placeholder="Enter coupon code"
                                                 maxLength={20}
-                                                onKeyDown={onCouponCodeKeyDown}
+                                                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => onCouponCodeKeyDown(e)}
                                                 value={couponCode}
                                                 onChange={(e) => setCouponCode(e.target.value)}
                                             />

@@ -17,6 +17,29 @@ type CouponCode struct {
 	ReductionPercent int       `json:"reductionPercent"`
 }
 
+type ShippingOption struct {
+	Id                     int     `json:"id"`
+	Name                   string  `json:"name"`
+	Description            string  `json:"description"`
+	Price                  float64 `json:"price"`
+	TimeToShipUnitQuantity int     `json:"timeToShipUnitQuantity"`
+	TimeToShipUnit         string  `json:"timeToShipUnit"`
+}
+
+func GetShippingOptions(dbPool *pgxpool.Pool) ([]ShippingOption, error) {
+	const query = `SELECT * FROM shipping_options`
+	rows, err := dbPool.Query(context.Background(), query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	shippingOptions, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[ShippingOption])
+	if collectRowsErr != nil {
+		return nil, collectRowsErr
+	}
+	return shippingOptions, nil
+}
+
 func GetCouponByCode(dbPool *pgxpool.Pool, code string) (CouponCode, error) {
 	const query = `
 		SELECT code, description, created_at, updated_at, expires_at, reduction_percent
