@@ -154,10 +154,16 @@ export function OrderCheckoutPage() {
                                 description: validCouponCode.description,
                                 isCoupon: true,
                             };
+                            /*
+                            const updatedOrderTotalItems: IOrderTotalItems[] = orderTotalItems;
+                            updatedOrderTotalItems.toSpliced(1, 0, newCouponOrderTotalItem);
+                            console.log(updatedOrderTotalItems);
+                            setOrderTotalItems(updatedOrderTotalItems);
+                            */
                             setOrderTotalItems([
                                 newCouponOrderTotalItem,
                                 ...orderTotalItems,
-                            ]);
+                            ])
                         }
                     },
                     error: (e) => {
@@ -177,6 +183,7 @@ export function OrderCheckoutPage() {
         }
     }
     useEffect(() => {
+        // Update order total based on coupon discounts and delivery option
         totalCouponReductionAmount.current = Array.from(
             couponReductionAmountMap.values()).reduce((a, b) => a + b, 0
         );
@@ -184,6 +191,7 @@ export function OrderCheckoutPage() {
         const newOrderTotal: string = (parseFloat(String(updatedCartSubtotal)) + selectedDeliveryOption.price).toFixed(2);
         setOrderTotal(newOrderTotal);
 
+        // Update the delivery option price in the order total items table
         const updatedOrderTotalItems: IOrderTotalItems[] = orderTotalItems;
         const deliveryOptionIndex: number = updatedOrderTotalItems.findIndex(
             (item) => item.name === "Shipping & Handling"
@@ -192,6 +200,7 @@ export function OrderCheckoutPage() {
         setOrderTotalItems(updatedOrderTotalItems);
     }, [cartSubtotal, orderTotalItems, selectedDeliveryOption]);
     useEffect(() => {
+        console.log(cartSubtotal)
         return () => {
             couponSubscription.current?.unsubscribe();
         }
