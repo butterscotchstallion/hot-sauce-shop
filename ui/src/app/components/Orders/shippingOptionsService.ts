@@ -23,7 +23,6 @@ export function addDeliveryDateToShippingOptions(options: IShippingOption[]): IS
     return options.map((option: IShippingOption) => {
         return {
             ...option,
-            // today.add(2, "days");
             deliveryDate: today.add(option.timeToShipUnitQuantity, option.timeToShipUnit).format(deliveryDateFormat)
         }
     });

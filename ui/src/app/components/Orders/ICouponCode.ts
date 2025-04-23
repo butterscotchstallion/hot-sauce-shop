@@ -5,4 +5,5 @@ export interface ICouponCode {
     createdAt: Date;
     updatedAt: Date;
     reductionPercent: number;
+    couponTypeName: string;
 }

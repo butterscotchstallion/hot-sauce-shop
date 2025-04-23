@@ -15,6 +15,7 @@ type CouponCode struct {
 	UpdatedAt        time.Time `json:"updatedAt"`
 	ExpiresAt        time.Time `json:"expiresAt"`
 	ReductionPercent int       `json:"reductionPercent"`
+	CouponTypeName   string    `json:"couponTypeName"`
 }
 
 type ShippingOption struct {
@@ -42,8 +43,10 @@ func GetShippingOptions(dbPool *pgxpool.Pool) ([]ShippingOption, error) {
 
 func GetCouponByCode(dbPool *pgxpool.Pool, code string) (CouponCode, error) {
 	const query = `
-		SELECT code, description, created_at, updated_at, expires_at, reduction_percent
+		SELECT code, description, created_at, updated_at, expires_at, reduction_percent,
+		       ct.name AS coupon_type_name
 		FROM coupons
+		JOIN coupon_types ct ON ct.id = coupons.coupon_type_id
 		WHERE UPPER(code) = UPPER($1)
 		AND expires_at > NOW()
 	`

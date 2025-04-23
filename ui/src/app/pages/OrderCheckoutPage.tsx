@@ -17,6 +17,7 @@ import {ICouponCode} from "../components/Orders/ICouponCode.ts";
 import {Messages} from "primereact/messages";
 import {IShippingOption} from "../components/Orders/IShippingOption.ts";
 import {addDeliveryDateToShippingOptions, getShippingOptions} from "../components/Orders/shippingOptionsService.ts";
+import {CouponTypeName} from "../components/Orders/CouponTypeName.ts";
 
 interface IOrderTotalItems {
     name: string;
@@ -25,6 +26,7 @@ interface IOrderTotalItems {
     reductionAmount?: number;
     description?: string;
     isCoupon?: boolean;
+    couponTypeName?: string;
 }
 
 export function OrderCheckoutPage() {
@@ -43,6 +45,7 @@ export function OrderCheckoutPage() {
     const shippingOptionsMessages: RefObject<Messages | null> = useRef<Messages | null>(null);
     const [selectedShippingOption, setSelectedShippingOption] = useState<IShippingOption>();
     const [orderTotal, setOrderTotal] = useState<string>(cartSubtotal.toFixed(2));
+    const shippingOptionPriceMap: RefObject<Map<string, number>> = useRef<Map<string, number>>(new Map<string, number>());
     const getTaxAmount = (): number => {
         return cartSubtotal * 0.06;
     }
@@ -58,7 +61,11 @@ export function OrderCheckoutPage() {
     const priceFormatted = (row) => {
         let colValue: string | ReactElement;
         if (row.isCoupon) {
-            colValue = <strong className="text-yellow-200">-${row.reductionAmount.toFixed(2)}</strong>;
+            let value: string = row.reductionAmount.toFixed(2);
+            if (row.couponTypeName === CouponTypeName.FREE_SHIPPING) {
+                value = row.price;
+            }
+            colValue = <strong className="text-yellow-200">-${value}</strong>;
         } else {
             colValue = row.price > 0 ? `$${row.price.toFixed(2)}` :
                 <strong className="text-yellow-200">FREE</strong>;
@@ -132,23 +139,28 @@ export function OrderCheckoutPage() {
                             const updatedAmountMap: Map<string, number> = couponReductionAmountMap;
                             updatedAmountMap.set(validCouponCode.code, reductionAmount);
                             setCouponReductionAmountMap(updatedAmountMap);
-                            const newCouponOrderTotalItem: IOrderTotalItems = {
-                                name: validCouponCode.code,
-                                reductionPercent: validCouponCode.reductionPercent,
-                                reductionAmount: reductionAmount,
-                                description: validCouponCode.description,
-                                isCoupon: true,
-                            };
-                            /*
-                            const updatedOrderTotalItems: IOrderTotalItems[] = orderTotalItems;
-                            updatedOrderTotalItems.toSpliced(1, 0, newCouponOrderTotalItem);
-                            console.log(updatedOrderTotalItems);
-                            setOrderTotalItems(updatedOrderTotalItems);
-                            */
-                            setOrderTotalItems([
-                                newCouponOrderTotalItem,
-                                ...orderTotalItems,
-                            ])
+
+                            if (selectedShippingOption) {
+                                const newCouponOrderTotalItem: IOrderTotalItems = {
+                                    name: validCouponCode.code,
+                                    reductionPercent: validCouponCode.reductionPercent,
+                                    reductionAmount: reductionAmount,
+                                    description: validCouponCode.description,
+                                    isCoupon: true,
+                                    couponTypeName: validCouponCode.couponTypeName,
+                                    price: shippingOptionPriceMap.current.get(selectedShippingOption.name)
+                                };
+                                /*
+                                const updatedOrderTotalItems: IOrderTotalItems[] = orderTotalItems;
+                                updatedOrderTotalItems.toSpliced(1, 0, newCouponOrderTotalItem);
+                                console.log(updatedOrderTotalItems);
+                                setOrderTotalItems(updatedOrderTotalItems);
+                                */
+                                setOrderTotalItems([
+                                    newCouponOrderTotalItem,
+                                    ...orderTotalItems,
+                                ])
+                            }
                         }
                     },
                     error: (e) => {
@@ -179,6 +191,7 @@ export function OrderCheckoutPage() {
             if (hasFreeShipping) {
                 console.info("Free shipping coupon applied");
                 shippingAndHandlingCost = 0;
+                selectedShippingOption.price = 0;
             }
             const newOrderTotal: string = (parseFloat(String(updatedCartSubtotal)) + shippingAndHandlingCost).toFixed(2);
             setOrderTotal(newOrderTotal);
@@ -191,7 +204,7 @@ export function OrderCheckoutPage() {
             updatedOrderTotalItems[deliveryOptionIndex].price = selectedShippingOption.price;
             setOrderTotalItems(updatedOrderTotalItems);
         }
-    }, [cartSubtotal, orderTotalItems, selectedShippingOption, shippingOptions]);
+    }, [cartSubtotal, couponReductionAmountMap, orderTotalItems, selectedShippingOption, shippingOptions]);
 
     useEffect(() => {
         setSelectedShippingOption(shippingOptions[0]);
@@ -201,6 +214,9 @@ export function OrderCheckoutPage() {
         shippingOptionsSubscription.current = getShippingOptions().subscribe({
             next: (shippingOptions: IShippingOption[]) => {
                 setShippingOptions(addDeliveryDateToShippingOptions(shippingOptions));
+                shippingOptions.forEach((option: IShippingOption) => {
+                    shippingOptionPriceMap.current.set(option.name, option.price);
+                });
             },
             error: (err) => {
                 console.error(err);
