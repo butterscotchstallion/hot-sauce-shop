@@ -4,7 +4,7 @@ import {Column} from "primereact/column";
 import * as React from "react";
 import {ReactElement, Ref, RefObject, useEffect, useRef, useState} from "react";
 import {Button} from "primereact/button";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../store.ts";
 import {Tooltip} from 'primereact/tooltip';
 import {Card} from "primereact/card";
@@ -18,6 +18,7 @@ import {Messages} from "primereact/messages";
 import {IShippingOption} from "../components/Orders/IShippingOption.ts";
 import {addDeliveryDateToShippingOptions, getShippingOptions} from "../components/Orders/shippingOptionsService.ts";
 import {CouponTypeName} from "../components/Orders/CouponTypeName.ts";
+import {setCartSubtotal} from "../components/Cart/Cart.slice.ts";
 
 interface IOrderTotalItems {
     name: string;
@@ -30,6 +31,7 @@ interface IOrderTotalItems {
 }
 
 export function OrderCheckoutPage() {
+    const dispatch = useDispatch();
     const messages: RefObject<Messages | null> = useRef<Messages | null>(null);
     const toast: Ref<Toast | null> = useRef<Toast | null>(null);
     const navigate: NavigateFunction = useNavigate();
@@ -198,11 +200,14 @@ export function OrderCheckoutPage() {
 
             // Update the delivery option price in the order total items table
             const updatedOrderTotalItems: IOrderTotalItems[] = orderTotalItems;
-            const deliveryOptionIndex: number = updatedOrderTotalItems.findIndex(
-                (item) => item.name === "Shipping & Handling"
-            );
-            updatedOrderTotalItems[deliveryOptionIndex].price = selectedShippingOption.price;
+            updatedOrderTotalItems.forEach((item: IOrderTotalItems) => {
+                if (item.couponTypeName === CouponTypeName.FREE_SHIPPING) {
+                    item.price = shippingOptionPriceMap.current.get(selectedShippingOption.name);
+                }
+            });
             setOrderTotalItems(updatedOrderTotalItems);
+
+            dispatch(setCartSubtotal(updatedCartSubtotal));
         }
     }, [cartSubtotal, couponReductionAmountMap, orderTotalItems, selectedShippingOption, shippingOptions]);
 
