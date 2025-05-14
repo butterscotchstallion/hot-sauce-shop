@@ -1,47 +1,49 @@
-import {useEffect, useState} from "react";
 import {IUser} from "../../components/User/IUser.ts";
-import {getUserBySlug} from "../../components/User/AdminService.ts";
+import {useSelector} from "react-redux";
+import {RootState} from "../../store.ts";
+import {UserRoleList} from "../../components/User/UserRoleList.tsx";
+import {IUserRole} from "../../components/User/IUserRole.ts";
 
 export function AccountPage() {
-    const [account] = useState<IUser | null>(null);
-
-    useEffect(() => {
-        const account$: Subscription = getUserBySlug()
-    }, []);
-
+    const user: IUser | null = useSelector((state: RootState) => state.user.user);
+    const roles: IUserRole[] = useSelector((state: RootState) => state.user.roles);
     return (
         <>
             <h1 className="text-3xl font-bold mb-4">Account Settings</h1>
 
             <section className="mt-4">
-                <table className="w-1/3">
-                    <tbody>
-                    <tr>
-                        <td className="w-1/2 mb-4">
-                            <strong>Username</strong>
-                        </td>
-                        <td>
-                            SauceBoss
-                        </td>
-                    </tr>
-                    <tr>
-                        <td className="w-1/2  mb-4">
-                            <strong>Created</strong>
-                        </td>
-                        <td>
-                            May 1, 2021
-                        </td>
-                    </tr>
-                    <tr>
-                        <td className="w-1/2  mb-4">
-                            <strong>Roles</strong>
-                        </td>
-                        <td>
-                            Role List Here
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+                {user ? (
+                    <table className="w-1/4">
+                        <tbody>
+                        <tr>
+                            <td className="w-1/2 pb-2">
+                                <strong>Username</strong>
+                            </td>
+                            <td className="pb-2">
+                                {user.username}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="w-1/2 pb-2">
+                                <strong>Created</strong>
+                            </td>
+                            <td className="pb-2">
+                                {new Date(user.createdAt).toLocaleDateString()}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="w-1/2 pb-2 align-top">
+                                <strong>Roles</strong>
+                            </td>
+                            <td className="pb-2">
+                                {roles ? (
+                                    <UserRoleList roles={roles}/>
+                                ) : 'No user roles available'}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                ) : 'Error getting user details.'}
             </section>
         </>
     )
