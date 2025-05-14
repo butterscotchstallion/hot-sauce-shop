@@ -33,7 +33,6 @@ export default function BaseLayout({children}: Props) {
                     console.error('Error loading user');
                 }
             });
-
             cartItems$ = getCartItems().subscribe({
                 next: (cartItems: ICart[]) => {
                     dispatch(setCartItems(cartItems));

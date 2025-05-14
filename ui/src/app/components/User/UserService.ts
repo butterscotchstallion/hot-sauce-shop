@@ -76,6 +76,8 @@ export function getUserDetailsBySessionId(): Subject<IUserDetails> {
                 } else {
                     user$.error(resp?.message || "Unknown error");
                 }
+            }).catch((err) => {
+                user$.error(err);
             });
         } else {
             user$.error(res.statusText);

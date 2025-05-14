@@ -27,10 +27,14 @@ export function getCartItems(): Subject<ICart[]> {
         if (res.ok) {
             res.json().then(resp => {
                 cartItems$.next(resp?.results.cartItems || null)
-            });
+            }).catch((err) => {
+                cartItems$.error(err);
+            })
         } else {
             cartItems$.error(res.statusText);
         }
+    }).catch((err) => {
+        cartItems$.error(err);
     })
     return cartItems$;
 }
