@@ -19,6 +19,7 @@ import {IShippingOption} from "../components/Orders/IShippingOption.ts";
 import {addDeliveryDateToShippingOptions, getShippingOptions} from "../components/Orders/shippingOptionsService.ts";
 import {CouponTypeName} from "../components/Orders/CouponTypeName.ts";
 import {setCartSubtotal} from "../components/Cart/Cart.slice.ts";
+import {recalculateSubtotal} from "../components/Cart/CartService.ts";
 
 interface IOrderTotalItems {
     name: string;
@@ -32,6 +33,7 @@ interface IOrderTotalItems {
 
 export function OrderCheckoutPage() {
     const dispatch = useDispatch();
+    const cartItems = useSelector((state: RootState) => state.cart.cartItems);
     const messages: RefObject<Messages | null> = useRef<Messages | null>(null);
     const toast: Ref<Toast | null> = useRef<Toast | null>(null);
     const navigate: NavigateFunction = useNavigate();
@@ -141,28 +143,6 @@ export function OrderCheckoutPage() {
                             const updatedAmountMap: Map<string, number> = couponReductionAmountMap;
                             updatedAmountMap.set(validCouponCode.code, reductionAmount);
                             setCouponReductionAmountMap(updatedAmountMap);
-
-                            if (selectedShippingOption) {
-                                const newCouponOrderTotalItem: IOrderTotalItems = {
-                                    name: validCouponCode.code,
-                                    reductionPercent: validCouponCode.reductionPercent,
-                                    reductionAmount: reductionAmount,
-                                    description: validCouponCode.description,
-                                    isCoupon: true,
-                                    couponTypeName: validCouponCode.couponTypeName,
-                                    price: shippingOptionPriceMap.current.get(selectedShippingOption.name)
-                                };
-                                /*
-                                const updatedOrderTotalItems: IOrderTotalItems[] = orderTotalItems;
-                                updatedOrderTotalItems.toSpliced(1, 0, newCouponOrderTotalItem);
-                                console.log(updatedOrderTotalItems);
-                                setOrderTotalItems(updatedOrderTotalItems);
-                                */
-                                setOrderTotalItems([
-                                    newCouponOrderTotalItem,
-                                    ...orderTotalItems,
-                                ])
-                            }
                         }
                     },
                     error: (e) => {
@@ -193,26 +173,33 @@ export function OrderCheckoutPage() {
             if (hasFreeShipping) {
                 console.info("Free shipping coupon applied");
                 shippingAndHandlingCost = 0;
-                selectedShippingOption.price = 0;
+                //selectedShippingOption.price = 0;
             }
             const newOrderTotal: string = (parseFloat(String(updatedCartSubtotal)) + shippingAndHandlingCost).toFixed(2);
             setOrderTotal(newOrderTotal);
 
+            /*
             // Update the delivery option price in the order total items table
             const updatedOrderTotalItems: IOrderTotalItems[] = orderTotalItems;
-            updatedOrderTotalItems.forEach((item: IOrderTotalItems) => {
+            for (let j = 0; j < updatedOrderTotalItems.length; j++) {
+                const item: IOrderTotalItems = updatedOrderTotalItems[j];
                 if (item.couponTypeName === CouponTypeName.FREE_SHIPPING) {
                     item.price = shippingOptionPriceMap.current.get(selectedShippingOption.name);
+                    break;
                 }
-            });
-            setOrderTotalItems(updatedOrderTotalItems);
-
+            }
+            setOrderTotalItems(updatedOrderTotalItems);*/
             dispatch(setCartSubtotal(updatedCartSubtotal));
         }
-    }, [cartSubtotal, couponReductionAmountMap, orderTotalItems, selectedShippingOption, shippingOptions]);
+    }, [cartSubtotal, selectedShippingOption, shippingOptions]);
 
     useEffect(() => {
-        setSelectedShippingOption(shippingOptions[0]);
+        if (shippingOptions.length) {
+            const firstOption: IShippingOption = shippingOptions[0];
+            setSelectedShippingOption(firstOption);
+            console.log(`Set selected shipping option to ${firstOption.name}`);
+            dispatch(setCartSubtotal(recalculateSubtotal(cartItems)));
+        }
     }, [shippingOptions]);
 
     useEffect(() => {
@@ -247,7 +234,7 @@ export function OrderCheckoutPage() {
                                 selection={selectedShippingOption}
                                 onSelectionChange={(e: DataTableSelectionSingleChangeEvent<IShippingOption[]>) => {
                                     if (e.value) {
-                                        setSelectedShippingOption(e.value)
+                                        setSelectedShippingOption(e.value);
                                     }
                                 }}>
                                 <Column selectionMode="single" headerStyle={{width: '3rem'}}></Column>
@@ -313,6 +300,15 @@ export function OrderCheckoutPage() {
                                 </section>
                             </Card>
                         </section>
+
+                        {couponCodes.length > 0 && (
+                            <section>
+                                <DataTable value={couponCodes}>
+                                    <Column field="code" header="Coupon"/>
+                                    <Column field="description" header="Description"/>
+                                </DataTable>
+                            </section>
+                        )}
 
                         <section>
                             <DataTable value={orderTotalItems}>

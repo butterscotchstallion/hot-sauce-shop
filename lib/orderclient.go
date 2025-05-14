@@ -28,7 +28,7 @@ type ShippingOption struct {
 }
 
 func GetShippingOptions(dbPool *pgxpool.Pool) ([]ShippingOption, error) {
-	const query = `SELECT * FROM shipping_options`
+	const query = `SELECT * FROM shipping_options ORDER BY price DESC`
 	rows, err := dbPool.Query(context.Background(), query)
 	if err != nil {
 		return nil, err

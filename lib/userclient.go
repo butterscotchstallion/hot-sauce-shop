@@ -103,7 +103,11 @@ func GetUserBySessionId(dbPool *pgxpool.Pool, logger *slog.Logger, sessionId str
 		JOIN user_sessions s ON u.id = s.user_id
 		WHERE 1=1
 		AND s.enabled = true
-		AND s.created_at >= DATE_TRUNC('month', current_date - interval '1' month)
+		AND (
+		    s.created_at >= DATE_TRUNC('month', current_date - interval '1' month)
+		    OR 
+		    s.updated_at >= DATE_TRUNC('month', current_date - interval '1' month)
+		)
 		AND s.session_id = $1
 	`
 	row, err := dbPool.Query(context.Background(), query, sessionId)
