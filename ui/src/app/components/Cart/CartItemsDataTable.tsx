@@ -69,14 +69,6 @@ export function CartItemsDataTable(props: ICartItemsDataTableProps) {
         return <>
             <section className="flex gap-4 max-w-[250px]">
                 <div>
-                    <Link to={`/products/${cartItem.inventoryItemSlug}`}>
-                        <img src="/images/hot-pepper-thumbnail.png"
-                             width="50"
-                             height="50"
-                             alt={`${cartItem.name}`}/>
-                    </Link>
-                </div>
-                <div>
                     <div className='flex flex-col gap-2'>
                         <Link to={`/products/${cartItem.inventoryItemSlug}`}>
                             {cartItem.name}
