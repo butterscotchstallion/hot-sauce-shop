@@ -88,7 +88,9 @@ export default function ProductCard(props: IProductCardProps) {
                                 <NavLink
                                     to={`/products/${props.product.slug}#reviews`}>
                                     <img
-                                        src="/images/hot-pepper.png"
+                                        width="16"
+                                        height="16"
+                                        src="/images/hot-pepper-tiny.png"
                                         className="w-[16px] h-[16px] mr-2 inline"
                                         alt="Average Spice Rating"/>
                                     {props.product.averageSpiceRating.toFixed(1)} ({props.product.reviewCount})

@@ -9,6 +9,8 @@ interface IProductImageProps {
 export default function ProductImage(props: IProductImageProps): ReactElement {
     return (
         <Card><img
+            width="128"
+            height="128"
             className="text-center mx-auto"
             src="/images/hot-pepper.png"
             alt={props.product.shortDescription}
