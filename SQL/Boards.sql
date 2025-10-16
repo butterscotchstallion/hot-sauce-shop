@@ -1,0 +1,1 @@
+INSERT INTO boards(display_name, slug, created_at) VALUES('Sauces', 'sauces', NOW());
