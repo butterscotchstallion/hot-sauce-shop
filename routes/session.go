@@ -5,9 +5,10 @@ import (
 	"log/slog"
 	"net/http"
 
+	"hotsauceshop/lib"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"hotsauceshop/lib"
 )
 
 func Session(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {

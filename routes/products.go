@@ -10,13 +10,14 @@ import (
 	"strings"
 	"time"
 
+	"hotsauceshop/lib"
+
 	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/gosimple/slug"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"hotsauceshop/lib"
 )
 
 type InventoryItemUpdateRequest struct {

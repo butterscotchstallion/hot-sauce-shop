@@ -5,11 +5,12 @@ import (
 	"net/http"
 	"time"
 
+	"hotsauceshop/lib"
+
 	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"hotsauceshop/lib"
 )
 
 func Tags(r *gin.Engine, dbPool *pgxpool.Pool, store *persistence.InMemoryStore) {

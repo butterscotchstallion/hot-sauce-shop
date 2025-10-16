@@ -7,11 +7,12 @@ import (
 	"os"
 	"time"
 
+	"hotsauceshop/routes"
+
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"hotsauceshop/routes"
 )
 
 var dbPool *pgxpool.Pool
@@ -46,7 +47,8 @@ func main() {
 	routes.Session(r, dbPool, logger)
 	routes.Admin(r, dbPool, logger, store)
 	routes.Orders(r, dbPool, logger)
-
+	routes.Boards(r, dbPool, logger, store)
+	
 	defer func(conn *websocket.Conn) {
 		err := conn.Close()
 		if err != nil {
