@@ -10,6 +10,7 @@ import {Sidebar} from "primereact/sidebar";
 import {ConfirmDialog} from "primereact/confirmdialog";
 import {NavigateFunction, useNavigate} from "react-router";
 import {CartItemsDataTable} from "./CartItemsDataTable.tsx";
+import {IUser} from "../User/IUser.ts";
 
 export default function CartSidebar() {
     const [sidebarVisible, setSidebarVisible] = React.useState<boolean>(false);
@@ -18,6 +19,7 @@ export default function CartSidebar() {
     const toast: RefObject<Toast | null> = useRef<Toast>(null);
     const [cartItemsQuantity, setCartItemsQuantity] = React.useState<number>(0);
     const navigate: NavigateFunction = useNavigate();
+    const user: IUser = useSelector((state: RootState) => state.user.user);
 
     useEffect(() => {
         const newTotal: number = calculateCartItemsTotal(cartState.items);
@@ -37,37 +39,35 @@ export default function CartSidebar() {
     }
     return (
         <>
-            <Button
-                label="Cart"
-                icon="pi pi-shopping-cart"
-                className="mr-2"
-                badge={cartItemsQuantity.toString()}
-                onClick={() => setSidebarVisible(true)}
-                aria-controls="popup_menu_right"
-                aria-haspopup/>
-
-            <Sidebar
-                style={{width: '33rem'}}
-                position={"right"}
-                visible={sidebarVisible}
-                onHide={() => setSidebarVisible(false)}
-            >
-                <h2 className="text-2xl font-bold">Cart</h2>
-                <section className="mt-4 cart-table-area">
-                    <CartItemsDataTable/>
-                </section>
-
-                <section className="mt-4 mb-4 flex justify-between">
+            {user && (
+                <>
                     <Button
-                        onClick={() => goToCheckOut()}
-                        label="Checkout"
+                        label="Cart"
                         icon="pi pi-shopping-cart"
-                        className="p-button-rounded"/>
-                </section>
-            </Sidebar>
+                        className="mr-2"
+                        badge={cartItemsQuantity.toString()}
+                        onClick={() => setSidebarVisible(true)}
+                        aria-controls="popup_menu_right"
+                        aria-haspopup/><Sidebar
+                    style={{width: '33rem'}}
+                    position={"right"}
+                    visible={sidebarVisible}
+                    onHide={() => setSidebarVisible(false)}
+                >
+                    <h2 className="text-2xl font-bold">Cart</h2>
+                    <section className="mt-4 cart-table-area">
+                        <CartItemsDataTable/>
+                    </section>
 
-            <Toast ref={toast}/>
-            <ConfirmDialog/>
+                    <section className="mt-4 mb-4 flex justify-between">
+                        <Button
+                            onClick={() => goToCheckOut()}
+                            label="Checkout"
+                            icon="pi pi-shopping-cart"
+                            className="p-button-rounded"/>
+                    </section>
+                </Sidebar><Toast ref={toast}/><ConfirmDialog/></>
+            )}
         </>
     )
 }
