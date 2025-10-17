@@ -11,6 +11,7 @@ import {AdminUserDetailPage} from "./pages/Admin/AdminUserDetailPage.tsx";
 import {OrderCheckoutPage} from "./pages/OrderCheckoutPage.tsx";
 import {AccountPage} from "./pages/Account/AccountPage.tsx";
 import {AccountSignInPage} from "./pages/Account/AccountSignInPage.tsx";
+import BoardsListPage from "./pages/Boards/BoardsListPage.tsx";
 
 const HomePage = React.lazy(() => import("./pages/HomePage.tsx"));
 const ProductListPage = React.lazy(() => import("./pages/ProductListPage.tsx"));
@@ -32,6 +33,7 @@ createRoot(document.getElementById('root')!).render(
                     <Route path="orders/checkout" element={<OrderCheckoutPage/>}/>
                     <Route path="account" element={<AccountPage/>}/>
                     <Route path="account/sign-in" element={<AccountSignInPage/>}/>
+                    <Route path="boards" element={<BoardsListPage/>}/>
                 </Route>
                 <Route path="*" element={<Navigate to="/"/>}/>
             </Routes>

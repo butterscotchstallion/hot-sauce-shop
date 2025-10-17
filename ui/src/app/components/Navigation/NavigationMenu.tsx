@@ -27,10 +27,10 @@ export default function NavigationMenu(): ReactElement {
             template: itemRenderer,
         },
         {
-            label: 'Contact',
+            label: 'Message Boards',
             icon: 'pi pi-envelope',
             template: itemRenderer,
-            url: "/contact"
+            url: "/boards"
         }
     ];
 
