@@ -7,7 +7,8 @@ interface IBoardsListProps {
     boards: IBoard[];
 }
 
-export const BoardsList = (props: IBoardsListProps) => {
+export const BoardsList = ({boards}: IBoardsListProps) => {
+    console.log("boards: ", boards);
     const boardTemplate = (board: IBoard, index: number) => {
         return (
             <div className="col-12" key={board.id}>
@@ -35,14 +36,14 @@ export const BoardsList = (props: IBoardsListProps) => {
     };
     const listTemplate = (items: IBoard[]) => {
         if (!items || items.length === 0) return null;
-        const list: ReactElement[] = items.map((product, index) => {
-            return boardTemplate(product, index);
+        const list: ReactElement[] = items.map((board: IBoard, index: number) => {
+            return boardTemplate(board, index);
         });
         return <div className="grid grid-nogutter">{list}</div>;
     };
     return (
         <>
-            <DataView value={props.boards} listTemplate={listTemplate} emptyMessage={"No boards available."}/>
+            <DataView value={boards} listTemplate={listTemplate} emptyMessage={"No boards available."}/>
         </>
     )
 }

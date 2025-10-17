@@ -16,14 +16,14 @@ export default function BoardsListPage() {
                 console.error(err);
             }
         });
-    }, [])
+    }, []);
 
     return (
         <>
             <h1 className="text-3xl font-bold mb-4">Message Boards</h1>
             <section className="mt-4">
                 <Suspense fallback={<ProgressSpinner/>}>
-                    <BoardsList boards={boards}/>
+                    {boards && (<BoardsList boards={boards}/>)}
                 </Suspense>
             </section>
         </>
