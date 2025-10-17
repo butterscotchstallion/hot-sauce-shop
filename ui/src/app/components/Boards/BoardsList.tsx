@@ -2,13 +2,13 @@ import {IBoard} from "./IBoard.ts";
 import {classNames} from "primereact/utils";
 import {DataView} from 'primereact/dataview';
 import {ReactElement} from "react";
+import {NavLink} from "react-router";
 
 interface IBoardsListProps {
     boards: IBoard[];
 }
 
 export const BoardsList = ({boards}: IBoardsListProps) => {
-    console.log("boards: ", boards);
     const boardTemplate = (board: IBoard, index: number) => {
         return (
             <div className="col-12" key={board.id}>
@@ -20,7 +20,9 @@ export const BoardsList = ({boards}: IBoardsListProps) => {
                     <div
                         className="flex flex-column sm:flex-row justify-content-between align-items-center xl:align-items-start flex-1 gap-4">
                         <div className="flex flex-column align-items-center sm:align-items-start gap-3">
-                            <div className="text-2xl font-bold text-900">{board.displayName}</div>
+                            <div className="text-2xl font-bold text-900">
+                                <NavLink to={`/boards/${board.slug}`}>{board.displayName}</NavLink>
+                            </div>
 
                             <div className="flex align-items-center gap-3">
                                 <span className="flex align-items-center gap-2">

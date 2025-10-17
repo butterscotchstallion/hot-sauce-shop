@@ -2,7 +2,7 @@ import {BoardsList} from "../../components/Boards/BoardsList.tsx";
 import {Suspense, useEffect, useState} from "react";
 import {getBoards} from "../../components/Boards/BoardsService.ts";
 import {IBoard} from "../../components/Boards/IBoard.ts";
-import {ProgressSpinner} from "primereact/progressspinner";
+import Throbber from "../../components/Shared/Throbber.tsx";
 
 export default function BoardsListPage() {
     const [boards, setBoards] = useState<IBoard[]>([]);
@@ -22,8 +22,8 @@ export default function BoardsListPage() {
         <>
             <h1 className="text-3xl font-bold mb-4">Message Boards</h1>
             <section className="mt-4">
-                <Suspense fallback={<ProgressSpinner/>}>
-                    {boards && (<BoardsList boards={boards}/>)}
+                <Suspense fallback={<Throbber/>}>
+                    <BoardsList boards={boards}/>
                 </Suspense>
             </section>
         </>

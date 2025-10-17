@@ -1,6 +1,7 @@
 import {IBoard} from "./IBoard.ts";
 import {Subject} from "rxjs";
-import {BOARDS_URL} from "../Shared/Api.ts";
+import {BOARD_DETAILS_URL, BOARD_POSTS_URL, BOARDS_URL, POSTS_URL} from "../Shared/Api.ts";
+import {IBoardPost} from "./IBoardPost.ts";
 
 export function getBoards(): Subject<IBoard[]> {
     const boards$ = new Subject<IBoard[]>();
@@ -18,4 +19,58 @@ export function getBoards(): Subject<IBoard[]> {
         boards$.error(err);
     });
     return boards$;
+}
+
+export function getPostsByBoardSlug(boardSlug: string): Subject<IBoardPost[]> {
+    const posts$ = new Subject<IBoardPost[]>();
+    fetch(BOARD_POSTS_URL.replace(':slug', boardSlug), {
+        credentials: 'include'
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                posts$.next(resp.results.posts);
+            });
+        } else {
+            posts$.error(res.statusText);
+        }
+    }).catch((err) => {
+        posts$.error(err);
+    });
+    return posts$;
+}
+
+export function getPosts(): Subject<IBoardPost[]> {
+    const posts$ = new Subject<IBoardPost[]>();
+    fetch(POSTS_URL, {
+        credentials: 'include'
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                posts$.next(resp.results.posts);
+            });
+        } else {
+            posts$.error(res.statusText);
+        }
+    }).catch((err) => {
+        posts$.error(err);
+    });
+    return posts$;
+}
+
+export function getBoardByBoardSlug(boardSlug: string): Subject<IBoard> {
+    const board$ = new Subject<IBoard>();
+    fetch(BOARD_DETAILS_URL.replace(':slug', boardSlug), {
+        credentials: 'include'
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                board$.next(resp.results.board);
+            });
+        } else {
+            board$.error(res.statusText);
+        }
+    }).catch((err) => {
+        board$.error(err);
+    });
+    return board$;
 }

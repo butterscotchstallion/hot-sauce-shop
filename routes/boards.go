@@ -15,6 +15,7 @@ import (
 )
 
 func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *persistence.InMemoryStore) {
+	// Board list
 	r.GET("/api/v1/boards", cache.CachePage(store, time.Minute*1, func(c *gin.Context) {
 		boards, getBoardsErr := lib.GetBoards(dbPool)
 		if getBoardsErr != nil {
@@ -28,7 +29,79 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 
 		c.JSON(http.StatusOK, gin.H{
 			"status": "OK",
-			"boards": boards,
+			"results": gin.H{
+				"boards": boards,
+			},
+		})
+	}))
+
+	// Board posts
+	r.GET("/api/v1/boards/:slug/posts", cache.CachePage(store, time.Minute*1, func(c *gin.Context) {
+		boardSlug := c.Param("slug")
+		posts, getPostsErr := lib.GetBoardPostsBySlug(dbPool, boardSlug)
+		if getPostsErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching posts: %v", getPostsErr.Error()))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": getPostsErr.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "OK",
+			"results": gin.H{
+				"posts": posts,
+			},
+		})
+	}))
+
+	// Board detail
+	r.GET("/api/v1/boards/:slug", cache.CachePage(store, time.Minute*1, func(c *gin.Context) {
+		boardSlug := c.Param("slug")
+		board, getBoardErr := lib.GetBoardBySlug(dbPool, boardSlug)
+		if getBoardErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching board details: %v", getBoardErr.Error()))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": getBoardErr.Error(),
+			})
+			return
+		}
+
+		if board == (lib.Board{}) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"status":  "ERROR",
+				"message": "Board not found",
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "OK",
+			"results": gin.H{
+				"board": board,
+			},
+		})
+	}))
+
+	// All posts
+	r.GET("/api/v1/posts", cache.CachePage(store, time.Minute*1, func(c *gin.Context) {
+		posts, getPostsErr := lib.GetPosts(dbPool)
+		if getPostsErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching posts: %v", getPostsErr.Error()))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": getPostsErr.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "OK",
+			"results": gin.H{
+				"posts": posts,
+			},
 		})
 	}))
 }

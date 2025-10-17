@@ -10,3 +10,6 @@ export const ADMIN_USER_ROLE_LIST: string = BASE_API_URL + '/admin/roles';
 export const ORDERS_COUPON_CODE_URL: string = BASE_API_URL + '/coupons';
 export const ORDERS_SHIPPING_OPTIONS_URL: string = BASE_API_URL + '/orders/shipping-options';
 export const BOARDS_URL: string = BASE_API_URL + '/boards';
+export const BOARD_DETAILS_URL: string = BASE_API_URL + '/boards/:slug';
+export const BOARD_POSTS_URL: string = BOARD_DETAILS_URL + '/posts';
+export const POSTS_URL: string = BASE_API_URL + '/posts';
