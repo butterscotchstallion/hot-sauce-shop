@@ -62,6 +62,7 @@ export default function CartSidebar() {
                     <section className="mt-4 mb-4 flex justify-between">
                         <Button
                             onClick={() => goToCheckOut()}
+                            disabled={cartItemsQuantity === 0}
                             label="Checkout"
                             icon="pi pi-shopping-cart"
                             className="p-button-rounded"/>
