@@ -38,7 +38,7 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 	// Board posts
 	r.GET("/api/v1/boards/:slug/posts", cache.CachePage(store, time.Minute*1, func(c *gin.Context) {
 		boardSlug := c.Param("slug")
-		posts, getPostsErr := lib.GetBoardPostsBySlug(dbPool, boardSlug)
+		posts, getPostsErr := lib.GetPosts(dbPool, boardSlug)
 		if getPostsErr != nil {
 			logger.Error(fmt.Sprintf("Error fetching posts: %v", getPostsErr.Error()))
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -87,7 +87,7 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 
 	// All posts
 	r.GET("/api/v1/posts", cache.CachePage(store, time.Minute*1, func(c *gin.Context) {
-		posts, getPostsErr := lib.GetPosts(dbPool)
+		posts, getPostsErr := lib.GetPosts(dbPool, "")
 		if getPostsErr != nil {
 			logger.Error(fmt.Sprintf("Error fetching posts: %v", getPostsErr.Error()))
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -106,6 +106,7 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 	}))
 
 	// Add post
+	// for a reply: reuse this function for reply route and add parentId as parameter
 	var newPost lib.AddPostRequest
 	r.POST("/api/v1/boards/:slug/posts", func(c *gin.Context) {
 		// Check user
@@ -142,7 +143,7 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			return
 		}
 
-		// All good, add post
+		// Add post
 		_, addPostErr := lib.AddPost(dbPool, newPost, userId, board.Id)
 		if addPostErr != nil {
 			logger.Error(fmt.Sprintf("Error adding post: %v", addPostErr.Error()))
