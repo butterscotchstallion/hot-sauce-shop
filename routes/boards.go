@@ -104,4 +104,61 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			},
 		})
 	}))
+
+	// Add post
+	var newPost lib.AddPostRequest
+	r.POST("/api/v1/boards/:slug/posts", func(c *gin.Context) {
+		// Check user
+		userId, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
+		if userSessionErr != nil || userId == 0 {
+			return
+		}
+
+		// Check request
+		if err := c.ShouldBindJSON(&newPost); err != nil {
+			logger.Error(err.Error())
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "ERROR",
+				"message": err.Error(),
+			})
+			return
+		}
+
+		// Check board
+		board, getBoardErr := lib.GetBoardBySlug(dbPool, newPost.Slug)
+		if getBoardErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching board: %v", getBoardErr.Error()))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": getBoardErr.Error(),
+			})
+			return
+		}
+		if board == (lib.Board{}) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"status":  "ERROR",
+				"message": "Board not found",
+			})
+			return
+		}
+
+		// All good, add post
+		_, addPostErr := lib.AddPost(dbPool, newPost, userId, board.Id)
+		if addPostErr != nil {
+			logger.Error(fmt.Sprintf("Error adding post: %v", addPostErr.Error()))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": addPostErr.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusCreated, gin.H{
+			"status":  "OK",
+			"message": "Post added",
+			"results": gin.H{
+				"post": newPost,
+			},
+		})
+	})
 }

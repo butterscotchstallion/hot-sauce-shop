@@ -2,6 +2,7 @@ import {IBoard} from "./IBoard.ts";
 import {Subject} from "rxjs";
 import {BOARD_DETAILS_URL, BOARD_POSTS_URL, BOARDS_URL, POSTS_URL} from "../Shared/Api.ts";
 import {IBoardPost} from "./IBoardPost.ts";
+import {INewBoardPost} from "./INewBoardPost.ts";
 
 export function getBoards(): Subject<IBoard[]> {
     const boards$ = new Subject<IBoard[]>();
@@ -73,4 +74,27 @@ export function getBoardByBoardSlug(boardSlug: string): Subject<IBoard> {
         board$.error(err);
     });
     return board$;
+}
+
+export function addPost(post: INewBoardPost): Subject<IBoardPost> {
+    const addPost$ = new Subject<IBoardPost>();
+    fetch(BOARD_POSTS_URL, {
+        credentials: 'include',
+        method: 'POST',
+        body: JSON.stringify(post),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                addPost$.next(resp.results.post);
+            });
+        } else {
+            addPost$.error(res.statusText);
+        }
+    }).catch((err) => {
+        addPost$.error(err);
+    });
+    return addPost$;
 }

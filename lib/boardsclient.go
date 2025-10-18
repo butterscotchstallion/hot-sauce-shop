@@ -38,6 +38,14 @@ type BoardPost struct {
 	PostText          string     `json:"postText"`
 }
 
+type AddPostRequest struct {
+	Title             string `json:"title"`
+	Slug              string `json:"slug"`
+	ThumbnailFilename string `json:"thumbnailFilename"`
+	ParentId          int    `json:"parentId"`
+	PostText          string `json:"postText"`
+}
+
 func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
 	// TODO: filter visible boards, or show everything if privileged
 	const query = `
@@ -124,4 +132,28 @@ func GetBoardBySlug(dbPool *pgxpool.Pool, slug string) (Board, error) {
 		return Board{}, collectRowsErr
 	}
 	return board, nil
+}
+
+func AddPost(dbPool *pgxpool.Pool, post AddPostRequest, userId int, boardId int) (int, error) {
+	lastInsertId := 0
+	const query = `
+		INSERT INTO board_posts (title, thumbnail_filename, created_by_user_id, board_id, parent_id, slug, post_text) 
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id
+	`
+	insertErr := dbPool.QueryRow(
+		context.Background(),
+		query,
+		post.Title,
+		post.ThumbnailFilename,
+		userId,
+		boardId,
+		post.ParentId,
+		post.Slug,
+		post.PostText,
+	).Scan(&lastInsertId)
+	if insertErr != nil {
+		return 0, insertErr
+	}
+	return lastInsertId, nil
 }

@@ -14,16 +14,13 @@ import {addOrUpdateItem} from "../Products/ProductService.ts";
 import {Toast} from "primereact/toast";
 import {MultiSelect, MultiSelectChangeEvent} from "primereact/multiselect";
 import {ITag} from "../Tag/ITag.ts";
+import {IFormErrata} from "../Shared/IFormErrata.ts";
 
 interface IAdminInventoryItemFormProps {
     product: IProduct | undefined;
     productTags: ITag[];
     availableTags: ITag[];
     isNewProduct: boolean;
-}
-
-interface IFormErrata {
-    [key: string]: string
 }
 
 export default function AdminInventoryItemForm(props: IAdminInventoryItemFormProps): ReactElement {

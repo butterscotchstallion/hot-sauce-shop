@@ -24,7 +24,7 @@ export default function BoardPostListPage() {
 
     return (
         <>
-            <PostList posts={boardPosts} boardSlug={boardSlug}/>
+            <PostList posts={boardPosts}/>
         </>
     )
 }
