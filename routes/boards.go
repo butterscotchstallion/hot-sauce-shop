@@ -107,7 +107,7 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 	}))
 
 	// Add post
-	// for a reply: reuse this function for reply route and add parentId as parameter
+	// for a reply: reuse this function for the reply route and add parentId as a parameter
 	var newPost lib.AddPostRequest
 	r.POST("/api/v1/boards/:slug/posts", func(c *gin.Context) {
 		// Check user
@@ -118,7 +118,7 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 
 		// Check request
 		if err := c.ShouldBindJSON(&newPost); err != nil {
-			logger.Error(err.Error())
+			logger.Error(fmt.Sprintf("AddPost: error binding requets JSON: %v", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status":  "ERROR",
 				"message": err.Error(),

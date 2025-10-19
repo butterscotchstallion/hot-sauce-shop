@@ -76,9 +76,9 @@ export function getBoardByBoardSlug(boardSlug: string): Subject<IBoard> {
     return board$;
 }
 
-export function addPost(post: INewBoardPost): Subject<IBoardPost> {
+export function addPost(post: INewBoardPost, boardSlug: string): Subject<IBoardPost> {
     const addPost$ = new Subject<IBoardPost>();
-    fetch(BOARD_POSTS_URL, {
+    fetch(BOARD_POSTS_URL.replace(':slug', boardSlug), {
         credentials: 'include',
         method: 'POST',
         body: JSON.stringify(post),
@@ -91,7 +91,9 @@ export function addPost(post: INewBoardPost): Subject<IBoardPost> {
                 addPost$.next(resp.results.post);
             });
         } else {
-            addPost$.error(res.statusText);
+            res.json().then(resp => {
+                addPost$.error(resp?.message || "Unknown error");
+            });
         }
     }).catch((err) => {
         addPost$.error(err);

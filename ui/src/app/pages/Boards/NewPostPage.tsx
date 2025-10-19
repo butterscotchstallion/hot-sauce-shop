@@ -15,7 +15,10 @@ export default function NewPostPage() {
         if (boardSlug) {
             board$.current = getBoardByBoardSlug(boardSlug);
             board$.current.subscribe({
-                next: (board: IBoard) => setBoard(board),
+                next: (board: IBoard) => {
+                    setBoard(board);
+                    console.info("Board set to " + board.displayName);
+                },
                 error: (error: Error) => console.error(error),
             });
         }
@@ -26,10 +29,12 @@ export default function NewPostPage() {
 
     return (
         <>
-            <h1 className="text-3xl font-bold mb-4">New Post</h1>
+            <h1 className="text-3xl font-bold mb-4">
+                {board && `${board.displayName} -`} New Post
+            </h1>
             <section className="mt-4 w-1/2">
                 {board && (
-                    <AddEditPostForm boardId={board.id}/>
+                    <AddEditPostForm boardSlug={board.slug}/>
                 )}
             </section>
         </>

@@ -14,10 +14,10 @@ import {INewBoardPost} from "./INewBoardPost.ts";
 
 interface AddEditPostFormProps {
     post?: IBoardPost;
-    boardId: number;
+    boardSlug: string;
 }
 
-export default function AddEditPostForm({post, boardId}: AddEditPostFormProps) {
+export default function AddEditPostForm({post, boardSlug}: AddEditPostFormProps) {
     let addPost$: Subject<IBoardPost>;
     const [isValid, setIsValid] = useState<boolean>(false);
     const toast: RefObject<Toast | null> = useRef<Toast>(null);
@@ -32,14 +32,15 @@ export default function AddEditPostForm({post, boardId}: AddEditPostFormProps) {
         setFormErrata(defaultErrata);
         setIsValid(true);
     }
-    const onSubmit = () => {
+    const onSubmit = (e) => {
+        e.preventDefault();
         const valid: boolean = validate();
         const post: INewBoardPost = {
             title: postTitle,
             postText: postText
         }
         if (valid) {
-            addPost$ = addPost(post);
+            addPost$ = addPost(post, boardSlug);
             addPost$.subscribe({
                 next: () => {
                     if (toast.current) {
@@ -63,6 +64,15 @@ export default function AddEditPostForm({post, boardId}: AddEditPostFormProps) {
                     }
                 }
             });
+        } else {
+            if (toast.current) {
+                toast?.current.show({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'Error adding post: ' + formErrata.name + '.',
+                    life: 3000,
+                })
+            }
         }
     }
     const validate = (): boolean => {
@@ -100,27 +110,40 @@ export default function AddEditPostForm({post, boardId}: AddEditPostFormProps) {
     }, [post]);
 
     return (
-        <form onSubmit={onSubmit} className="w-full m-0 p-0">
-            <div className="w-full mb-4">
-                <label className="mb-2 block" htmlFor="post-title">Title</label>
-                <InputText
-                    className="w-full"
-                    maxLength={150}
-                    id="post-title"/>
-            </div>
+        <>
+            <form onSubmit={onSubmit} className="w-full m-0 p-0">
+                <div className="w-full mb-4">
+                    <label className="mb-2 block" htmlFor="post-title">Title</label>
+                    <InputText
+                        className="w-full"
+                        onChange={(e) => {
+                            setPostTitle(e.target.value);
+                            validate();
+                        }}
+                        maxLength={150}
+                        invalid={!!formErrata.postTitle}
+                        id="post-title"/>
+                </div>
 
-            <div className="w-full">
-                <label className="mb-2 block" htmlFor="post-text">Post text</label>
-                <InputTextarea
-                    className="w-full"
-                    rows={5}
-                    cols={30}
-                    id="post-text"/>
-            </div>
+                <div className="w-full">
+                    <label className="mb-2 block" htmlFor="post-text">Post text</label>
+                    <InputTextarea
+                        className="w-full"
+                        onChange={(e) => {
+                            setPostText(e.target.value);
+                            validate();
+                        }}
+                        invalid={!!formErrata.postText}
+                        rows={5}
+                        cols={30}
+                        id="post-text"/>
+                </div>
 
-            <div className="w-full flex mt-4 justify-end">
-                <Button type="submit" disabled={!isValid}><i className="pi pi-plus mr-2"></i> Post</Button>
-            </div>
-        </form>
+                <div className="w-full flex mt-4 justify-end">
+                    <Button type="submit" disabled={!isValid}><i className="pi pi-plus mr-2"></i> Post</Button>
+                </div>
+            </form>
+            <Toast ref={toast}/>
+        </>
     )
 }
