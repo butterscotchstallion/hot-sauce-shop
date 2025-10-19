@@ -14,9 +14,10 @@ import {INewBoardPost} from "./INewBoardPost.ts";
 
 interface AddEditPostFormProps {
     post?: IBoardPost;
+    boardId: number;
 }
 
-export default function AddEditPostForm({post}: AddEditPostFormProps) {
+export default function AddEditPostForm({post, boardId}: AddEditPostFormProps) {
     let addPost$: Subject<IBoardPost>;
     const [isValid, setIsValid] = useState<boolean>(false);
     const toast: RefObject<Toast | null> = useRef<Toast>(null);

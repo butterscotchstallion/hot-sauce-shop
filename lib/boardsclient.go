@@ -2,6 +2,8 @@ package lib
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -107,7 +109,7 @@ func GetPosts(dbPool *pgxpool.Pool, boardSlug string) ([]BoardPost, error) {
 	return posts, nil
 }
 
-func GetBoardBySlug(dbPool *pgxpool.Pool, slug string) (Board, error) {
+func GetBoardBySlug(dbPool *pgxpool.Pool, logger *slog.Logger, slug string) (Board, error) {
 	const query = `
 		SELECT b.*,
 		       u.username AS created_by_username
@@ -117,10 +119,12 @@ func GetBoardBySlug(dbPool *pgxpool.Pool, slug string) (Board, error) {
 	`
 	row, err := dbPool.Query(context.Background(), query, slug)
 	if err != nil {
+		logger.Error(fmt.Sprintf("Error running GetBoardBySlug query: %v", err))
 		return Board{}, err
 	}
 	board, collectRowsErr := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[Board])
 	if collectRowsErr != nil {
+		logger.Error(fmt.Sprintf("GetBoardBySlug: error collecting board: %v", collectRowsErr))
 		return Board{}, collectRowsErr
 	}
 	return board, nil

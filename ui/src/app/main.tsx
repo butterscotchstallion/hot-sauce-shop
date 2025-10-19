@@ -39,7 +39,7 @@ createRoot(document.getElementById('root')!).render(
                     <Route path="boards" element={<BoardsListPage/>}/>
                     <Route path="boards/:slug" element={<BoardPostListPage/>}/>
                     <Route path="posts" element={<PostsListPage/>}/>
-                    <Route path="posts/new" element={<NewPostPage/>}/>
+                    <Route path="boards/:slug/posts/new" element={<NewPostPage/>}/>
                 </Route>
                 <Route path="*" element={<Navigate to="/"/>}/>
             </Routes>

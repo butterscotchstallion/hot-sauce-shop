@@ -59,7 +59,8 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 	// Board detail
 	r.GET("/api/v1/boards/:slug", cache.CachePage(store, time.Minute*1, func(c *gin.Context) {
 		boardSlug := c.Param("slug")
-		board, getBoardErr := lib.GetBoardBySlug(dbPool, boardSlug)
+		logger.Info("GetBoardBySlug: fetching board by slug: " + boardSlug)
+		board, getBoardErr := lib.GetBoardBySlug(dbPool, logger, boardSlug)
 		if getBoardErr != nil {
 			logger.Error(fmt.Sprintf("Error fetching board details: %v", getBoardErr.Error()))
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -126,7 +127,8 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 		}
 
 		// Check board
-		board, getBoardErr := lib.GetBoardBySlug(dbPool, newPost.Slug)
+		logger.Info("GetBoardBySlug: fetching board by slug: " + newPost.Slug)
+		board, getBoardErr := lib.GetBoardBySlug(dbPool, logger, newPost.Slug)
 		if getBoardErr != nil {
 			logger.Error(fmt.Sprintf("Error fetching board: %v", getBoardErr.Error()))
 			c.JSON(http.StatusInternalServerError, gin.H{
