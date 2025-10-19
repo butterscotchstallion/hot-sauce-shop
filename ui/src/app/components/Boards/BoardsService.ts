@@ -1,6 +1,6 @@
 import {IBoard} from "./IBoard.ts";
 import {Subject} from "rxjs";
-import {BOARD_DETAILS_URL, BOARD_POSTS_URL, BOARDS_URL, POSTS_URL} from "../Shared/Api.ts";
+import {BOARD_DETAILS_URL, BOARD_POSTS_URL, BOARDS_URL, POST_DETAILS_URL, POSTS_URL} from "../Shared/Api.ts";
 import {IBoardPost} from "./IBoardPost.ts";
 import {INewBoardPost} from "./INewBoardPost.ts";
 
@@ -56,6 +56,28 @@ export function getPosts(): Subject<IBoardPost[]> {
         posts$.error(err);
     });
     return posts$;
+}
+
+export function getPostDetail(boardSlug: string, postSlug: string): Subject<IBoardPost> {
+    const post$ = new Subject<IBoardPost>();
+    let url: string = POST_DETAILS_URL.replace(':boardSlug', boardSlug);
+    url = url.replace(':postSlug', postSlug);
+    fetch(url, {
+        credentials: 'include'
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                post$.next(resp.results.post);
+            });
+        } else {
+            res.json().then(resp => {
+                post$.error(resp?.message || "Unknown error");
+            });
+        }
+    }).catch((err) => {
+        post$.error(err);
+    });
+    return post$;
 }
 
 export function getBoardByBoardSlug(boardSlug: string): Subject<IBoard> {

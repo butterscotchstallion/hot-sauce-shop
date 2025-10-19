@@ -5,12 +5,14 @@ import {Button} from "primereact/button";
 import * as z from "zod";
 import {ZodIssue} from "zod";
 import {IFormErrata} from "../Shared/IFormErrata.ts";
+import * as React from "react";
 import {RefObject, useEffect, useRef, useState} from "react";
 import {PostSchema} from "./PostSchema.ts";
 import {Subject} from "rxjs";
 import {addPost} from "./BoardsService.ts";
 import {Toast} from "primereact/toast";
 import {INewBoardPost} from "./INewBoardPost.ts";
+import {NavigateFunction, useNavigate} from "react-router";
 
 interface AddEditPostFormProps {
     post?: IBoardPost;
@@ -19,10 +21,15 @@ interface AddEditPostFormProps {
 
 export default function AddEditPostForm({post, boardSlug}: AddEditPostFormProps) {
     let addPost$: Subject<IBoardPost>;
+    const boardSlugRef = useRef<string>(boardSlug);
     const [isValid, setIsValid] = useState<boolean>(false);
     const toast: RefObject<Toast | null> = useRef<Toast>(null);
     const [postTitle, setPostTitle] = useState<string>("");
     const [postText, setPostText] = useState<string>("");
+    const navigate: NavigateFunction = useNavigate();
+    const navigateToNewPost = (newPost: IBoardPost) => {
+        navigate(`/boards/${boardSlug}/posts/${newPost.slug}`);
+    };
     const defaultErrata: IFormErrata = {
         name: '',
         postText: '',
@@ -32,7 +39,13 @@ export default function AddEditPostForm({post, boardSlug}: AddEditPostFormProps)
         setFormErrata(defaultErrata);
         setIsValid(true);
     }
-    const onSubmit = (e) => {
+    const resetForm = () => {
+        setPostText("");
+        setPostTitle("");
+        setFormErrata(defaultErrata);
+        setIsValid(false);
+    }
+    const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const valid: boolean = validate();
         const post: INewBoardPost = {
@@ -40,9 +53,9 @@ export default function AddEditPostForm({post, boardSlug}: AddEditPostFormProps)
             postText: postText
         }
         if (valid) {
-            addPost$ = addPost(post, boardSlug);
+            addPost$ = addPost(post, boardSlugRef.current);
             addPost$.subscribe({
-                next: () => {
+                next: (newPost: IBoardPost) => {
                     if (toast.current) {
                         toast?.current.show({
                             severity: 'success',
@@ -51,6 +64,8 @@ export default function AddEditPostForm({post, boardSlug}: AddEditPostFormProps)
                             life: 3000,
                         })
                     }
+                    resetForm();
+                    navigateToNewPost(newPost);
                 },
                 error: (err) => {
                     console.log(err);

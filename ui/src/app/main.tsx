@@ -15,6 +15,7 @@ import BoardsListPage from "./pages/Boards/BoardsListPage.tsx";
 import BoardPostListPage from "./pages/Boards/BoardPostListPage.tsx";
 import PostsListPage from "./pages/Boards/PostsListPage.tsx";
 import NewPostPage from "./pages/Boards/NewPostPage.tsx";
+import PostDetailPage from "./pages/Boards/PostDetailPage.tsx";
 
 const HomePage = React.lazy(() => import("./pages/HomePage.tsx"));
 const ProductListPage = React.lazy(() => import("./pages/ProductListPage.tsx"));
@@ -40,6 +41,7 @@ createRoot(document.getElementById('root')!).render(
                     <Route path="boards/:slug" element={<BoardPostListPage/>}/>
                     <Route path="posts" element={<PostsListPage/>}/>
                     <Route path="boards/:slug/posts/new" element={<NewPostPage/>}/>
+                    <Route path="boards/:boardSlug/posts/:postSlug" element={<PostDetailPage/>}/>
                 </Route>
                 <Route path="*" element={<Navigate to="/"/>}/>
             </Routes>

@@ -130,6 +130,31 @@ func GetBoardBySlug(dbPool *pgxpool.Pool, logger *slog.Logger, slug string) (Boa
 	return board, nil
 }
 
+func GetPostDetail(dbPool *pgxpool.Pool, boardSlug string, postSlug string) (BoardPost, error) {
+	query := `
+		SELECT 
+		    bp.*,
+			u.username AS created_by_username,
+			u.slug AS created_by_user_slug,
+			b.display_name AS boardName,
+			b.slug AS boardSlug
+		FROM board_posts bp
+		JOIN users u on u.id = bp.created_by_user_id
+		JOIN boards b ON b.id = bp.board_id
+		WHERE b.slug = $1
+		AND bp.slug = $2
+	`
+	row, err := dbPool.Query(context.Background(), query, boardSlug, postSlug)
+	if err != nil {
+		return BoardPost{}, err
+	}
+	post, collectRowsErr := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[BoardPost])
+	if collectRowsErr != nil {
+		return BoardPost{}, collectRowsErr
+	}
+	return post, nil
+}
+
 func AddPost(dbPool *pgxpool.Pool, post AddPostRequest, userId int, boardId int) (int, error) {
 	lastInsertId := 0
 	const query = `
