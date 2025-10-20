@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 
 	"hotsauceshop/lib"
@@ -119,7 +120,26 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 
 	// All posts
 	r.GET("/api/v1/posts", cache.CachePage(store, time.Minute*1, func(c *gin.Context) {
-		posts, getPostsErr := lib.GetPosts(dbPool, "")
+		var posts []lib.BoardPost
+		var getPostsErr error
+
+		parentIdParam := c.DefaultQuery("parentId", "0")
+		parentId, err := strconv.Atoi(parentIdParam)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Error parsing parentId: %v", err.Error()))
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "ERROR",
+				"message": "Invalid parentId",
+			})
+			return
+		}
+
+		if parentId > 0 {
+			posts, getPostsErr = lib.GetPostReplies(dbPool, parentId)
+		} else {
+			posts, getPostsErr = lib.GetPosts(dbPool, "")
+		}
+
 		if getPostsErr != nil {
 			logger.Error(fmt.Sprintf("Error fetching posts: %v", getPostsErr.Error()))
 			c.JSON(http.StatusInternalServerError, gin.H{

@@ -71,14 +71,8 @@ func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
 	return boards, nil
 }
 
-// GetPosts
-// Gets posts, optionally filtered by boardSlug
-func GetPosts(dbPool *pgxpool.Pool, boardSlug string) ([]BoardPost, error) {
-	boardSlugClause := ""
-	if len(boardSlug) > 0 {
-		boardSlugClause = " WHERE b.slug = $1"
-	}
-	query := `
+func getPostsQuery(whereClause string) string {
+	return `
 		SELECT 
 		    bp.*,
 			u.username AS created_by_username,
@@ -88,9 +82,35 @@ func GetPosts(dbPool *pgxpool.Pool, boardSlug string) ([]BoardPost, error) {
 		FROM board_posts bp
 		JOIN users u on u.id = bp.created_by_user_id
 		JOIN boards b ON b.id = bp.board_id
-		` + boardSlugClause + `
+		` + whereClause + `
 		ORDER BY bp.created_at DESC
 	`
+}
+
+func GetPostReplies(dbPool *pgxpool.Pool, parentId int) ([]BoardPost, error) {
+	whereClause := "WHERE bp.parent_id = $1"
+	query := getPostsQuery(whereClause)
+	var rows pgx.Rows
+	var err error
+	rows, err = dbPool.Query(context.Background(), query, parentId)
+	if err != nil {
+		return nil, err
+	}
+	posts, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[BoardPost])
+	if collectRowsErr != nil {
+		return nil, collectRowsErr
+	}
+	return posts, nil
+}
+
+// GetPosts
+// Gets posts, optionally filtered by boardSlug
+func GetPosts(dbPool *pgxpool.Pool, boardSlug string) ([]BoardPost, error) {
+	boardSlugClause := ""
+	if len(boardSlug) > 0 {
+		boardSlugClause = " WHERE b.slug = $1"
+	}
+	query := getPostsQuery(boardSlugClause)
 	var rows pgx.Rows
 	var err error
 	if len(boardSlug) > 0 {
@@ -98,7 +118,6 @@ func GetPosts(dbPool *pgxpool.Pool, boardSlug string) ([]BoardPost, error) {
 	} else {
 		rows, err = dbPool.Query(context.Background(), query)
 	}
-
 	if err != nil {
 		return nil, err
 	}

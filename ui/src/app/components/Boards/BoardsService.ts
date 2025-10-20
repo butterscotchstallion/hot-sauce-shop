@@ -40,9 +40,15 @@ export function getPostsByBoardSlug(boardSlug: string): Subject<IBoardPost[]> {
     return posts$;
 }
 
-export function getPosts(): Subject<IBoardPost[]> {
+export function getPosts(parentId: number = 0): Subject<IBoardPost[]> {
     const posts$ = new Subject<IBoardPost[]>();
-    fetch(POSTS_URL, {
+    let url: string = POSTS_URL;
+
+    if (parentId > 0) {
+        url += `?parentId=${parentId}`;
+    }
+
+    fetch(url, {
         credentials: 'include'
     }).then((res: Response) => {
         if (res.ok) {

@@ -1,5 +1,5 @@
 export interface IBoardPost {
-    id: string;
+    id: number;
     title: string;
     thumbnailFilename: string;
     postText: string;
