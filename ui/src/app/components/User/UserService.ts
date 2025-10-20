@@ -1,4 +1,4 @@
-import {SESSION_URL, USER_URL} from "../Shared/Api.ts";
+import {SESSION_URL, USER_PROFILE_URL, USER_URL} from "../Shared/Api.ts";
 import {Subject} from "rxjs";
 import Cookies from "js-cookie";
 import {IUser} from "./IUser.ts";
@@ -124,4 +124,26 @@ export function ValidateUsernameAndPassword(username: string, password: string):
         });
     });
     return validate$;
+}
+
+export function getUserProfileBySlug(slug: string) {
+    const user$ = new Subject<IUserDetails>();
+    fetch(`${USER_PROFILE_URL}/${slug}`, {
+        credentials: 'include'
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                if (resp?.status === "OK") {
+                    user$.next(resp.results);
+                } else {
+                    res.json().then(resp => {
+                        user$.error(resp?.message || "Unknown error");
+                    });
+                }
+            })
+        } else {
+            user$.error(res.statusText);
+        }
+    });
+    return user$;
 }

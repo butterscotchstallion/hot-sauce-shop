@@ -52,6 +52,51 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		})
 	})
 
+	r.GET("/api/v1/user/profile/:userSlug", func(c *gin.Context) {
+		userSlug := c.Param("userSlug")
+		if len(userSlug) == 0 {
+			c.JSON(http.StatusNotFound, gin.H{
+				"status":  "ERROR",
+				"message": "User not found",
+			})
+			return
+		}
+
+		user, err := lib.GetUserBySlug(dbPool, logger, userSlug)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": err.Error(),
+			})
+			return
+		}
+
+		// TODO: maybe restrict this to certain roles?
+		roles, rolesErr := lib.GetRolesByUserId(dbPool, logger, user.Id)
+		if rolesErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching roles: %v", rolesErr.Error()))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": rolesErr.Error(),
+			})
+			return
+		}
+
+		userPostCount, userPostCountErr := lib.GetNumPostsByUserId(dbPool, user.Id)
+		if userPostCountErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching user post count: %v", userPostCountErr.Error()))
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "OK",
+			"results": gin.H{
+				"user":          user,
+				"roles":         roles,
+				"userPostCount": userPostCount,
+			},
+		})
+	})
+
 	r.POST("/api/v1/user/sign-in", func(c *gin.Context) {
 		loginRequest := LoginRequest{}
 		if err := c.ShouldBindJSON(&loginRequest); err != nil {

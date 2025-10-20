@@ -22,10 +22,9 @@ export default function PostsListPage() {
             $posts.unsubscribe();
         }
     }, []);
-    
+
     return (
         <>
-
             <PostList posts={posts}/>
         </>
     )

@@ -17,7 +17,9 @@ export function UserRoleList(props: IUserRoleListProps) {
         <>
             <ul>
                 {roleNames.current.map((roleName: string) => (
-                    <li className="mb-2"><Tag key={roleName} value={roleName}></Tag></li>
+                    <li className="mb-2 inline-block mr-2" key={roleName}>
+                        <Tag value={roleName} severity="info"></Tag>
+                    </li>
                 ))}
             </ul>
         </>

@@ -44,7 +44,6 @@ export default function PostDetailPage() {
             getPost$.current.subscribe({
                 next: (post: IBoardPost) => {
                     setPost(post);
-                    getReplies();
                 },
                 error: (err) => {
                     console.error(err);
@@ -58,18 +57,22 @@ export default function PostDetailPage() {
         }
     }, []);
 
+    useEffect(() => {
+        getReplies();
+    }, [post])
+
     return (
         <>
             {post && <BoardPost post={post}/>}
-            {replies && replies.length > 0 && (
+            {replies.length > 0 && (
                 <Suspense fallback={<Throbber/>}>
                     <PostList posts={replies}/>
                 </Suspense>
             )}
             {replies.length === 0 && (
                 <section>
-                    <h1 className="text-2xl font-bold mb-4">No replies yet.</h1>
-                    <p>Be the first to reply!</p>
+                    <h1 className="text-2xl font-bold mb-4">No comments yet.</h1>
+                    <p>Be the first to comment!</p>
                 </section>
             )}
             {user && boardSlug && post && (

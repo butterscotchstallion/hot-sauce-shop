@@ -128,6 +128,20 @@ func GetPosts(dbPool *pgxpool.Pool, boardSlug string) ([]BoardPost, error) {
 	return posts, nil
 }
 
+func GetNumPostsByUserId(dbPool *pgxpool.Pool, userId int) (int, error) {
+	const query = `
+		SELECT COUNT(*)
+		FROM board_posts
+		WHERE created_by_user_id = $1
+	`
+	var count int
+	err := dbPool.QueryRow(context.Background(), query, userId).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 func GetBoardBySlug(dbPool *pgxpool.Pool, logger *slog.Logger, slug string) (Board, error) {
 	const query = `
 		SELECT b.*,
