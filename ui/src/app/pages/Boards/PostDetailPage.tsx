@@ -72,12 +72,14 @@ export default function PostDetailPage() {
                     <p>Be the first to reply!</p>
                 </section>
             )}
-            {user && boardSlug && (
+            {user && boardSlug && post && (
                 <>
                     <section className="mt-4">
                         <Card>
                             <h1 className="text-2xl font-bold mb-4">Comment</h1>
-                            <AddEditPostForm boardSlug={boardSlug} addPostCallback={() => getReplies()}/>
+                            <AddEditPostForm boardSlug={boardSlug}
+                                             parentId={post.id}
+                                             addPostCallback={() => getReplies()}/>
                         </Card>
                     </section>
                 </>

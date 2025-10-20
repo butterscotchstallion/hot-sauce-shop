@@ -143,6 +143,7 @@ export default function AddEditPostForm({post, boardSlug, parentId, addPostCallb
                             setPostTitle(e.target.value);
                             validate();
                         }}
+                        value={postTitle}
                         maxLength={150}
                         invalid={!!formErrata.postTitle}
                         id="post-title"/>
@@ -157,6 +158,7 @@ export default function AddEditPostForm({post, boardSlug, parentId, addPostCallb
                             setPostText(e.target.value);
                             validate();
                         }}
+                        value={postText}
                         invalid={!!formErrata.postText}
                         rows={5}
                         cols={30}
