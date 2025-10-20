@@ -8,7 +8,7 @@ interface IPostListProps {
 
 export default function PostList({posts}: IPostListProps) {
     const postList = posts?.map((post: IBoardPost): ReactElement => {
-        return <BoardPost post={post}/>
+        return <BoardPost post={post} key={`post-${post.id}`}/>
     });
     return (
         <>

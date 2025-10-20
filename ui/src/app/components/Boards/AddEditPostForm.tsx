@@ -17,9 +17,11 @@ import {NavigateFunction, useNavigate} from "react-router";
 interface AddEditPostFormProps {
     post?: IBoardPost;
     boardSlug: string;
+    parentId?: number;
+    addPostCallback?: () => void;
 }
 
-export default function AddEditPostForm({post, boardSlug}: AddEditPostFormProps) {
+export default function AddEditPostForm({post, boardSlug, parentId, addPostCallback}: AddEditPostFormProps) {
     let addPost$: Subject<IBoardPost>;
     const boardSlugRef = useRef<string>(boardSlug);
     const [isValid, setIsValid] = useState<boolean>(false);
@@ -52,6 +54,9 @@ export default function AddEditPostForm({post, boardSlug}: AddEditPostFormProps)
             title: postTitle,
             postText: postText
         }
+        if (parentId) {
+            post.parentId = parentId;
+        }
         if (valid) {
             addPost$ = addPost(post, boardSlugRef.current);
             addPost$.subscribe({
@@ -66,6 +71,9 @@ export default function AddEditPostForm({post, boardSlug}: AddEditPostFormProps)
                     }
                     resetForm();
                     navigateToNewPost(newPost);
+                    if (addPostCallback) {
+                        addPostCallback();
+                    }
                 },
                 error: (err) => {
                     console.log(err);
@@ -138,6 +146,7 @@ export default function AddEditPostForm({post, boardSlug}: AddEditPostFormProps)
                         maxLength={150}
                         invalid={!!formErrata.postTitle}
                         id="post-title"/>
+                    <p className="text-red-500 pt-2">{formErrata.postTitle}</p>
                 </div>
 
                 <div className="w-full">
@@ -152,6 +161,7 @@ export default function AddEditPostForm({post, boardSlug}: AddEditPostFormProps)
                         rows={5}
                         cols={30}
                         id="post-text"/>
+                    <p className="text-red-500 pt-2">{formErrata.postText}</p>
                 </div>
 
                 <div className="w-full flex mt-4 justify-end">
