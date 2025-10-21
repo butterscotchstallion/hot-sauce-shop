@@ -38,6 +38,7 @@ type BoardPost struct {
 	BoardName         string     `json:"boardName"`
 	ParentId          int        `json:"parentId"`
 	PostText          string     `json:"postText"`
+	VoteSum           int        `json:"voteSum"`
 }
 
 type AddPostRequest struct {
@@ -78,7 +79,8 @@ func getPostsQuery(whereClause string) string {
 			u.username AS created_by_username,
 			u.slug AS created_by_user_slug,
 			b.display_name AS boardName,
-			b.slug AS boardSlug
+			b.slug AS boardSlug,
+			COALESCE((SELECT SUM(v.value) FROM votes v WHERE v.post_id = bp.id), 0) AS voteSum
 		FROM board_posts bp
 		JOIN users u on u.id = bp.created_by_user_id
 		JOIN boards b ON b.id = bp.board_id

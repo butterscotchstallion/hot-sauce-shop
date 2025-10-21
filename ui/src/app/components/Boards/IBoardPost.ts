@@ -13,4 +13,5 @@ export interface IBoardPost {
     createdByUsername: string;
     createdByUserSlug: string;
     slug: string;
+    voteSum: number;
 }
