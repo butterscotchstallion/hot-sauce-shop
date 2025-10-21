@@ -50,7 +50,6 @@ func GetCartItems(dbPool *pgxpool.Pool, userId int, logger *slog.Logger) ([]Cart
 		return nil, err
 	}
 	cartItems, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[CartItem])
-	logger.Info(fmt.Sprintf("cart items: %v", rows))
 	if collectRowsErr != nil {
 		return nil, collectRowsErr
 	}
@@ -59,9 +58,9 @@ func GetCartItems(dbPool *pgxpool.Pool, userId int, logger *slog.Logger) ([]Cart
 
 /*
 validateAddCartItemRequest
-1. Check if inventory item exists
-2. Check if user exists
-3. Check if quantity is > 0
+1. Check if the inventory item exists
+2. Check if the user exists
+3. Check if the quantity is > 0
 */
 func validateAddCartItemRequest(dbPool *pgxpool.Pool, req AddCartItemRequest) (bool, error) {
 	itemExists, itemExistsErr := InventoryItemExists(dbPool, req.InventoryItemId)

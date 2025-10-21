@@ -60,8 +60,9 @@ export default function UserProfilePage() {
                                 <ul>
                                     <li className="mb-2">
                                         <strong
-                                            className="pr-2 mb-1 block">Created</strong> {<TimeAgo date={user.createdAt}
-                                                                                                   title={createdAtFormatted.current}/>}
+                                            className="pr-2 mb-1 block">Created</strong>
+                                        {<TimeAgo date={user.createdAt}
+                                                  title={createdAtFormatted.current}/>}
                                     </li>
                                     {/*<li className="mb-2">*/}
                                     {/*    <strong*/}
