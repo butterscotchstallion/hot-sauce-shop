@@ -26,11 +26,13 @@ export default function BoardPost({boardPost, voteMap}: IBoardPostProps) {
 
     const onUpvoteClicked = () => {
         setHasUpVoted(true);
+        setHasDownVoted(false);
         vote(VoteValue.Upvote);
     }
 
     const onDownvoteClicked = () => {
         setHasDownVoted(true);
+        setHasUpVoted(false);
         vote(VoteValue.Downvote);
     }
 
@@ -38,8 +40,6 @@ export default function BoardPost({boardPost, voteMap}: IBoardPostProps) {
         vote$.current = addUpdateVote(post.id, voteValue);
         vote$.current.subscribe({
             next: (_) => {
-                setHasUpVoted(VoteValue.Upvote === voteValue);
-                setHasDownVoted(VoteValue.Downvote === voteValue);
                 post$.current = getPostDetail(post.boardSlug, post.slug);
                 post$.current.subscribe({
                     next: (updatedPost: IBoardPost) => {
@@ -63,6 +63,9 @@ export default function BoardPost({boardPost, voteMap}: IBoardPostProps) {
         setCreatedAtFormatted(dayjs(post.createdAt).format('MMMM D, YYYY'))
     }, [post]);
 
+    /**
+     * Updates posts on load
+     */
     useEffect(() => {
         setPost(boardPost);
 
@@ -87,7 +90,7 @@ export default function BoardPost({boardPost, voteMap}: IBoardPostProps) {
                 post$.current.unsubscribe();
             }
         }
-    }, [post, boardPost, voteMap]);
+    }, [boardPost, voteMap]);
 
     return (
         <Card key={`post-${post.id}`}
