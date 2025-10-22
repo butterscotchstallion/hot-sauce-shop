@@ -8,21 +8,21 @@ import {useEffect, useRef, useState} from "react";
 import {Subject} from "rxjs";
 import {addUpdateVote} from "./VoteService.ts";
 import {VoteValue} from "./VoteValue.ts";
+import {getPostDetail} from "./BoardsService.ts";
 
 interface IBoardPostProps {
-    post: IBoardPost;
+    boardPost: IBoardPost;
+    voteMap: Map<number, number>;
 }
 
-export default function BoardPost({post}: IBoardPostProps) {
-    const createdAtFormatted = dayjs(post.createdAt).format('MMM DD, YYYY hh:mm A');
+export default function BoardPost({boardPost, voteMap}: IBoardPostProps) {
+    const [createdAtFormatted, setCreatedAtFormatted] = useState<string>(dayjs(boardPost.createdAt).format('MMMM D, YYYY'));
     const [hasUpVoted, setHasUpVoted] = useState<boolean>(false);
     const [hasDownVoted, setHasDownVoted] = useState<boolean>(false);
     const vote$ = useRef<Subject<number>>(null);
-
-    let postImagePath: string = '/images/hot-pepper.png';
-    if (post.thumbnailFilename) {
-        postImagePath = `/images/posts/${post.thumbnailFilename}`;
-    }
+    const post$ = useRef<Subject<IBoardPost>>(null);
+    const postImagePath = useRef<string>('/images/hot-pepper.png');
+    const [post, setPost] = useState<IBoardPost>(boardPost);
 
     const onUpvoteClicked = () => {
         setHasUpVoted(true);
@@ -40,6 +40,16 @@ export default function BoardPost({post}: IBoardPostProps) {
             next: (_) => {
                 setHasUpVoted(VoteValue.Upvote === voteValue);
                 setHasDownVoted(VoteValue.Downvote === voteValue);
+                post$.current = getPostDetail(post.boardSlug, post.slug);
+                post$.current.subscribe({
+                    next: (updatedPost: IBoardPost) => {
+                        console.info(`Updated post #${post.id} with vote value ${voteValue}: ${JSON.stringify(updatedPost, null, 2)}`);
+                        setPost(updatedPost);
+                    },
+                    error: (err: string) => {
+                        console.log('Error getting post: ' + err);
+                    }
+                })
             },
             error: (err: string) => {
                 setHasUpVoted(false);
@@ -50,12 +60,34 @@ export default function BoardPost({post}: IBoardPostProps) {
     }
 
     useEffect(() => {
+        setCreatedAtFormatted(dayjs(post.createdAt).format('MMMM D, YYYY'))
+    }, [post]);
+
+    useEffect(() => {
+        setPost(boardPost);
+
+        if (boardPost.thumbnailFilename) {
+            postImagePath.current = `/images/posts/${boardPost.thumbnailFilename}`;
+        }
+
+        if (voteMap.has(post.id)) {
+            const voteValue = voteMap.get(post.id);
+            if (voteValue === VoteValue.Upvote) {
+                setHasUpVoted(true);
+            } else if (voteValue === VoteValue.Downvote) {
+                setHasDownVoted(true);
+            }
+        }
+
         return () => {
             if (vote$.current) {
                 vote$.current.unsubscribe();
             }
+            if (post$.current) {
+                post$.current.unsubscribe();
+            }
         }
-    }, []);
+    }, [post, boardPost, voteMap]);
 
     return (
         <Card key={`post-${post.id}`}
@@ -63,7 +95,7 @@ export default function BoardPost({post}: IBoardPostProps) {
               className="mb-4">
             <div>
                 <div className="flex flex-column">
-                    <img src={postImagePath} alt={post.title}/>
+                    <img src={postImagePath.current} alt={post.title}/>
                     <div className="ml-6 min-h-[2rem]">
                         {post.postText}
                     </div>

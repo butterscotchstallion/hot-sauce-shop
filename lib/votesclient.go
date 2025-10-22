@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -50,6 +51,11 @@ func AddUpdateVote(dbPool *pgxpool.Pool, userId int, postId int, voteValue int) 
 	return lastInsertId, nil
 }
 
+type VoteMap struct {
+	PostId int
+	Value  int
+}
+
 // GetUserVoteMap
 // Returns a map of post id to vote value
 // TODO: add filter for board_id
@@ -62,6 +68,33 @@ func GetUserVoteMap(dbPool *pgxpool.Pool, userId int) (map[int]int, error) {
 	if err != nil {
 		return voteMap, err
 	}
+	votes, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[VoteMap])
+	if collectRowsErr != nil {
+		return nil, collectRowsErr
+	}
 	defer rows.Close()
+	for vote := range votes {
+		voteMap[votes[vote].PostId] = votes[vote].Value
+	}
 	return voteMap, nil
+}
+
+func GetVoteSumMapByPostId(dbPool *pgxpool.Pool, postId int) (map[int]int, error) {
+	voteSumMap := make(map[int]int)
+	const query = `
+		SELECT post_id, value FROM votes WHERE post_id = $1
+	`
+	rows, err := dbPool.Query(context.Background(), query, postId)
+	if err != nil {
+		return voteSumMap, err
+	}
+	votes, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[VoteMap])
+	if collectRowsErr != nil {
+		return nil, collectRowsErr
+	}
+	defer rows.Close()
+	for vote := range votes {
+		voteSumMap[votes[vote].PostId] = votes[vote].Value
+	}
+	return voteSumMap, nil
 }

@@ -12,10 +12,8 @@ import {OrderCheckoutPage} from "./pages/OrderCheckoutPage.tsx";
 import {AccountPage} from "./pages/Account/AccountPage.tsx";
 import {AccountSignInPage} from "./pages/Account/AccountSignInPage.tsx";
 import BoardsListPage from "./pages/Boards/BoardsListPage.tsx";
-import BoardPostListPage from "./pages/Boards/BoardPostListPage.tsx";
 import PostsListPage from "./pages/Boards/PostsListPage.tsx";
 import NewPostPage from "./pages/Boards/NewPostPage.tsx";
-import PostDetailPage from "./pages/Boards/PostDetailPage.tsx";
 import UserProfilePage from "./pages/Users/UserProfilePage.tsx";
 
 const HomePage = React.lazy(() => import("./pages/HomePage.tsx"));
@@ -39,10 +37,10 @@ createRoot(document.getElementById('root')!).render(
                     <Route path="account" element={<AccountPage/>}/>
                     <Route path="account/sign-in" element={<AccountSignInPage/>}/>
                     <Route path="boards" element={<BoardsListPage/>}/>
-                    <Route path="boards/:slug" element={<BoardPostListPage/>}/>
+                    <Route path="boards/:boardSlug" element={<PostsListPage/>}/>
                     <Route path="posts" element={<PostsListPage/>}/>
                     <Route path="boards/:slug/posts/new" element={<NewPostPage/>}/>
-                    <Route path="boards/:boardSlug/posts/:postSlug" element={<PostDetailPage/>}/>
+                    <Route path="boards/:boardSlug/posts/:postSlug" element={<PostsListPage/>}/>
                     <Route path="users/:slug" element={<UserProfilePage/>}/>
                 </Route>
                 <Route path="*" element={<Navigate to="/"/>}/>

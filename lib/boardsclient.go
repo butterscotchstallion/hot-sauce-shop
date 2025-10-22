@@ -84,6 +84,7 @@ func getPostsQuery(whereClause string) string {
 		FROM board_posts bp
 		JOIN users u on u.id = bp.created_by_user_id
 		JOIN boards b ON b.id = bp.board_id
+		WHERE 1=1
 		` + whereClause + `
 		ORDER BY bp.created_at DESC
 	`
@@ -106,17 +107,26 @@ func GetPostReplies(dbPool *pgxpool.Pool, parentId int) ([]BoardPost, error) {
 }
 
 // GetPosts
-// Gets posts, optionally filtered by boardSlug
-func GetPosts(dbPool *pgxpool.Pool, boardSlug string) ([]BoardPost, error) {
-	boardSlugClause := ""
+// Gets posts, optionally filtered by boardSlug/postSlug
+func GetPosts(dbPool *pgxpool.Pool, boardSlug string, postSlug string, logger *slog.Logger) ([]BoardPost, error) {
+	whereClause := ""
 	if len(boardSlug) > 0 {
-		boardSlugClause = " WHERE b.slug = $1"
+		whereClause += " AND b.slug = $1"
 	}
-	query := getPostsQuery(boardSlugClause)
+	// If the post slug is here, there will also be a board slug
+	if len(postSlug) > 0 {
+		whereClause += " AND bp.slug = $2"
+	}
+	query := getPostsQuery(whereClause)
+	logger.Info(fmt.Sprintf("GetPosts query: %s", query))
 	var rows pgx.Rows
 	var err error
-	if len(boardSlug) > 0 {
+	if len(boardSlug) > 0 && len(postSlug) == 0 {
 		rows, err = dbPool.Query(context.Background(), query, boardSlug)
+		logger.Info("GetPosts query boardSlug")
+	} else if len(postSlug) > 0 {
+		rows, err = dbPool.Query(context.Background(), query, boardSlug, postSlug)
+		logger.Info("GetPosts query boardSlug and postSlug")
 	} else {
 		rows, err = dbPool.Query(context.Background(), query)
 	}
@@ -172,7 +182,8 @@ func GetPostDetail(dbPool *pgxpool.Pool, boardSlug string, postSlug string) (Boa
 			u.username AS created_by_username,
 			u.slug AS created_by_user_slug,
 			b.display_name AS boardName,
-			b.slug AS boardSlug
+			b.slug AS boardSlug,
+			COALESCE((SELECT SUM(v.value) FROM votes v WHERE v.post_id = bp.id), 0) AS voteSum
 		FROM board_posts bp
 		JOIN users u on u.id = bp.created_by_user_id
 		JOIN boards b ON b.id = bp.board_id

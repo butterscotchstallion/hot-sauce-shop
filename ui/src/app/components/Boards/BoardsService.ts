@@ -22,30 +22,32 @@ export function getBoards(): Subject<IBoard[]> {
     return boards$;
 }
 
-export function getPostsByBoardSlug(boardSlug: string): Subject<IBoardPost[]> {
-    const posts$ = new Subject<IBoardPost[]>();
-    fetch(BOARD_POSTS_URL.replace(':slug', boardSlug), {
-        credentials: 'include'
-    }).then((res: Response) => {
-        if (res.ok) {
-            res.json().then(resp => {
-                posts$.next(resp.results.posts);
-            });
-        } else {
-            posts$.error(res.statusText);
-        }
-    }).catch((err) => {
-        posts$.error(err);
-    });
-    return posts$;
+interface IGetPostParameters {
+    parentId?: number;
+    boardSlug?: string;
+    postSlug?: string;
 }
 
-export function getPosts(parentId: number = 0): Subject<IBoardPost[]> {
+export function getPosts({parentId, boardSlug, postSlug}: IGetPostParameters): Subject<IBoardPost[]> {
     const posts$ = new Subject<IBoardPost[]>();
     let url: string = POSTS_URL;
 
-    if (parentId > 0) {
+    /**
+     * - If there's a parentId, we're getting replies to a post.
+     * - If there's a boardSlug, we're getting posts from a board.
+     * - If there's a postSlug, we're getting a single post.
+     */
+    if (parentId && parentId > 0) {
         url += `?parentId=${parentId}`;
+    } else {
+        // All posts on board
+        if (boardSlug && !postSlug) {
+            url += `?boardSlug=${boardSlug}`;
+        }
+        // Post detail
+        if (boardSlug && postSlug) {
+            url += `?boardSlug=${boardSlug}&postSlug=${postSlug}`;
+        }
     }
 
     fetch(url, {

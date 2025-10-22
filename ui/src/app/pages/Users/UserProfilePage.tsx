@@ -45,7 +45,7 @@ export default function UserProfilePage() {
                 user$.current?.unsubscribe();
             }
         }
-    }, []);
+    }, [userSlug]);
 
     return (
         <>
