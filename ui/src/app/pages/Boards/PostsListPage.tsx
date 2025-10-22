@@ -64,7 +64,7 @@ export default function PostsListPage() {
 
     return (
         <>
-            {user && (
+            {user && boardSlug && (
                 <section>
                     <div className="flex w-full justify-end">
                         <Button onClick={() => navigateToNewPostPage()}>
