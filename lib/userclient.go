@@ -22,6 +22,27 @@ type User struct {
 	UpdatedAt      *time.Time `json:"updatedAt"`
 }
 
+func GetUserPostVoteSum(dbPool *pgxpool.Pool, userId int) (int, error) {
+	const query = `
+		SELECT COALESCE(SUM(v.value), 0) AS voteSum
+		FROM votes v
+		WHERE v.user_id = $1
+	`
+	type UserPostVoteSum struct {
+		VoteSum int
+	}
+	rows, err := dbPool.Query(context.Background(), query, userId)
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+	userPostVoteSum, collectRowErr := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[UserPostVoteSum])
+	if collectRowErr != nil {
+		return 0, err
+	}
+	return userPostVoteSum.VoteSum, nil
+}
+
 func GetUsers(dbPool *pgxpool.Pool, logger *slog.Logger) ([]User, error) {
 	const query = `
 		SELECT *

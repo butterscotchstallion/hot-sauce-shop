@@ -5,4 +5,6 @@ export interface IUserDetails {
     user: IUser;
     roles: IUserRole[];
     userPostCount: number;
+    postVoteSum: number;
+    userPostVoteSum: number;
 }

@@ -121,7 +121,7 @@ export default function BoardPost({boardPost, voteMap}: IBoardPostProps) {
                                 disabled={hasUpVoted}
                                 onClick={() => onUpvoteClicked()}
                             />
-                            {post.voteSum}
+                            <strong>{post.voteSum}</strong>
                             <Button
                                 icon={hasDownVoted ? 'pi pi-thumbs-down-fill' : 'pi pi-thumbs-down'}
                                 title="This is a low-quality post"

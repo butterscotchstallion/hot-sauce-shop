@@ -87,12 +87,20 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			logger.Error(fmt.Sprintf("Error fetching user post count: %v", userPostCountErr.Error()))
 		}
 
+		userPostVoteSum, userPostVoteSumErr := lib.GetUserPostVoteSum(dbPool, user.Id)
+		if userPostVoteSumErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching user post vote sum: %v", userPostVoteSumErr.Error()))
+		}
+
+		logger.Info(fmt.Sprintf("User post vote sum: %v", userPostVoteSum))
+
 		c.JSON(http.StatusOK, gin.H{
 			"status": "OK",
 			"results": gin.H{
-				"user":          user,
-				"roles":         roles,
-				"userPostCount": userPostCount,
+				"user":            user,
+				"roles":           roles,
+				"userPostCount":   userPostCount,
+				"userPostVoteSum": userPostVoteSum,
 			},
 		})
 	})
