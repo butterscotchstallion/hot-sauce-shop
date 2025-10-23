@@ -73,9 +73,8 @@ export default function UserProfilePage() {
                                             className="pr-2 mb-1 block">Posts</strong> {details.userPostCount}
                                     </li>
                                     <li className="mb-2">
-                                        <strong
-                                            className="pr-2 mb-1 block">Roles</strong> <UserRoleList
-                                        roles={details.roles}/>
+                                        <strong className="pr-2 mb-1 block">Roles</strong>
+                                        {details.roles ? <UserRoleList roles={details.roles}/> : 'No rules assigned'}
                                     </li>
                                 </ul>
 
