@@ -186,3 +186,38 @@ func GetUserBySlug(dbPool *pgxpool.Pool, logger *slog.Logger, slug string) (User
 	}
 	return user, nil
 }
+
+func GetJoinedBoardsByUserId(dbPool *pgxpool.Pool, userId int) ([]Board, error) {
+	const query = `
+		SELECT b.id, b.display_name, b.created_at, b.updated_at, b.slug, b.visible, 
+		CASE WHEN b.thumbnail_filename IS NULL THEN '' ELSE b.thumbnail_filename END AS thumbnail_filename,
+		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description,
+		b.created_by_user_id,
+		u.username AS created_by_username,
+		u.slug AS created_by_user_slug
+		FROM boards b
+		JOIN users u on u.id = b.created_by_user_id
+		JOIN boards_users bu ON bu.board_id = b.id
+		WHERE bu.user_id = $1
+		ORDER BY b.display_name
+	`
+	rows, err := dbPool.Query(context.Background(), query, userId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	boards, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[Board])
+	if collectRowsErr != nil {
+		return nil, collectRowsErr
+	}
+	return boards, nil
+}
+
+func AddBoardUser(dbPool *pgxpool.Pool, userId int, boardId int) error {
+	const query = "INSERT INTO boards_users (user_id, board_id) VALUES ($1, $2)"
+	_, err := dbPool.Exec(context.Background(), query, userId, boardId)
+	if err != nil {
+		return err
+	}
+	return nil
+}

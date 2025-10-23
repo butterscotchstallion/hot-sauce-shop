@@ -11,7 +11,7 @@ import {UserRoleList} from "../../components/User/UserRoleList.tsx";
 export default function UserProfilePage() {
     const params: Readonly<Params<string>> = useParams();
     const userSlug: string | undefined = params?.slug;
-    const createdAtFormatted = useRef<string | null>(null);
+    const createdAtFormatted = useRef<string>(undefined);
     const user$ = useRef<Subject<IUserDetails> | null>(null);
     const [details, setDetails] = useState<IUserDetails>();
 
@@ -59,11 +59,6 @@ export default function UserProfilePage() {
                                         {<TimeAgo date={details.user.createdAt}
                                                   title={createdAtFormatted.current}/>}
                                     </li>
-                                    {/*<li className="mb-2">*/}
-                                    {/*    <strong*/}
-                                    {/*        className="pr-2 mb-1 block">Last*/}
-                                    {/*        Updated</strong> {user?.updatedAt ? createdAtFormatted.current : 'never'}*/}
-                                    {/*</li>*/}
                                     <li className="mb-2">
                                         <strong
                                             className="pr-2 mb-1 block">Karma</strong> {details.userPostVoteSum}

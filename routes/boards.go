@@ -67,6 +67,36 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 		})
 	}))
 
+	// Board total posts
+	r.GET("/api/v1/total-posts/:boardSlug", func(c *gin.Context) {
+		boardSlug := c.Param("boardSlug")
+
+		if boardSlug == "" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"status":  "ERROR",
+				"message": "Board not found",
+			})
+			return
+		}
+
+		totalPosts, totalPostsErr := lib.GetTotalPostsByBoardSlug(dbPool, boardSlug)
+		if totalPostsErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching total posts: %v", totalPostsErr.Error()))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": totalPostsErr.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "OK",
+			"results": gin.H{
+				"totalPosts": totalPosts,
+			},
+		})
+	})
+
 	// Post detail
 	r.GET("/api/v1/posts/:boardSlug/:postSlug", func(c *gin.Context) {
 		boardSlug := c.Param("boardSlug")

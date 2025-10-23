@@ -6,6 +6,7 @@ export interface IBoard {
     thumbnailFilename: string;
     createdAt: Date;
     updatedAt: Date;
-    createdAtByUsername: string;
+    createdByUsername: string;
     createdAtByUserId: number;
+    createdByUserSlug: string;
 }

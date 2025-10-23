@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"hotsauceshop/lib"
 
@@ -67,6 +68,13 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",
 				"message": err.Error(),
+			})
+			return
+		}
+		if user == (lib.User{}) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"status":  "ERROR",
+				"message": "User not found",
 			})
 			return
 		}
@@ -153,6 +161,71 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 				"sessionId": sessionId,
 				"user":      verifiedUser,
 			},
+		})
+	})
+
+	r.GET("/api/v1/user/boards", func(c *gin.Context) {
+		// Check user
+		userId, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
+		if userSessionErr != nil || userId == 0 {
+			return
+		}
+
+		boards, boardsErr := lib.GetJoinedBoardsByUserId(dbPool, userId)
+		if boardsErr != nil {
+			logger.Error(fmt.Sprintf("user/boards error: %v", boardsErr.Error()))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": boardsErr.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "OK",
+			"results": gin.H{
+				"boards": boards,
+			},
+		})
+	})
+
+	r.POST("/api/v1/user/boards/:boardId", func(c *gin.Context) {
+		boardIdSlug := c.Param("boardId")
+		if len(boardIdSlug) == 0 {
+			c.JSON(http.StatusNotFound, gin.H{
+				"status": "ERROR",
+			})
+			return
+		}
+
+		boardId, err := strconv.Atoi(boardIdSlug)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Error parsing boardIdSlug: %v", err.Error()))
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "ERROR",
+				"message": "Invalid boardId",
+			})
+			return
+		}
+
+		// Check user
+		userId, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
+		if userSessionErr != nil || userId == 0 {
+			return
+		}
+
+		boardsErr := lib.AddBoardUser(dbPool, userId, boardId)
+		if boardsErr != nil {
+			logger.Error(fmt.Sprintf("AddBoardUser error: %v", boardsErr.Error()))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": boardsErr.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "OK",
 		})
 	})
 }

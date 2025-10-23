@@ -1,6 +1,13 @@
 import {IBoard} from "./IBoard.ts";
 import {Subject} from "rxjs";
-import {BOARD_DETAILS_URL, BOARD_POSTS_URL, BOARDS_URL, POST_DETAILS_URL, POSTS_URL} from "../Shared/Api.ts";
+import {
+    BOARD_DETAILS_URL,
+    BOARD_POSTS_URL,
+    BOARD_TOTAL_POSTS_URL,
+    BOARDS_URL,
+    POST_DETAILS_URL,
+    POSTS_URL
+} from "../Shared/Api.ts";
 import {IBoardPost} from "./IBoardPost.ts";
 import {INewBoardPost} from "./INewBoardPost.ts";
 
@@ -129,4 +136,22 @@ export function addPost(post: INewBoardPost, boardSlug: string): Subject<IBoardP
         addPost$.error(err);
     });
     return addPost$;
+}
+
+export function getTotalPostsByBoardSlug(boardSlug: string): Subject<number> {
+    const totalPosts$ = new Subject<number>();
+    fetch(`${BOARD_TOTAL_POSTS_URL}/${boardSlug}`, {
+        credentials: 'include'
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                totalPosts$.next(resp.results.totalPosts);
+            });
+        } else {
+            totalPosts$.error(res.statusText);
+        }
+    }).catch((err) => {
+        totalPosts$.error(err);
+    });
+    return totalPosts$;
 }

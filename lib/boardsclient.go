@@ -20,6 +20,7 @@ type Board struct {
 	ThumbnailFilename string     `json:"thumbnailFilename"`
 	CreatedByUserId   int        `json:"createdByUserId"`
 	CreatedByUsername string     `json:"createdByUsername"`
+	CreatedByUserSlug string     `json:"createdByUserSlug"`
 	Description       string     `json:"description"`
 }
 
@@ -56,7 +57,8 @@ func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
 		CASE WHEN b.thumbnail_filename IS NULL THEN '' ELSE b.thumbnail_filename END AS thumbnail_filename,
 		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description,
 		b.created_by_user_id,
-		u.username AS created_by_username
+		u.username AS created_by_username,
+		u.slug AS created_by_user_slug
 		FROM boards b
 		JOIN users u on u.id = b.created_by_user_id
 		ORDER BY b.display_name
@@ -65,6 +67,7 @@ func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	boards, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[Board])
 	if collectRowsErr != nil {
 		return nil, collectRowsErr
@@ -99,6 +102,7 @@ func GetPostReplies(dbPool *pgxpool.Pool, parentId int) ([]BoardPost, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	posts, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[BoardPost])
 	if collectRowsErr != nil {
 		return nil, collectRowsErr
@@ -118,7 +122,6 @@ func GetPosts(dbPool *pgxpool.Pool, boardSlug string, postSlug string, logger *s
 		whereClause += " AND bp.slug = $2"
 	}
 	query := getPostsQuery(whereClause)
-	logger.Info(fmt.Sprintf("GetPosts query: %s", query))
 	var rows pgx.Rows
 	var err error
 	if len(boardSlug) > 0 && len(postSlug) == 0 {
@@ -133,6 +136,7 @@ func GetPosts(dbPool *pgxpool.Pool, boardSlug string, postSlug string, logger *s
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	posts, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[BoardPost])
 	if collectRowsErr != nil {
 		return nil, collectRowsErr
@@ -157,7 +161,8 @@ func GetNumPostsByUserId(dbPool *pgxpool.Pool, userId int) (int, error) {
 func GetBoardBySlug(dbPool *pgxpool.Pool, logger *slog.Logger, slug string) (Board, error) {
 	const query = `
 		SELECT b.*,
-		       u.username AS created_by_username
+		       u.username AS created_by_username,
+		       u.slug AS created_by_user_slug
 		FROM boards b
 		JOIN users u on u.id = b.created_by_user_id
 		WHERE b.slug = $1
@@ -167,6 +172,7 @@ func GetBoardBySlug(dbPool *pgxpool.Pool, logger *slog.Logger, slug string) (Boa
 		logger.Error(fmt.Sprintf("Error running GetBoardBySlug query: %v", err))
 		return Board{}, err
 	}
+	defer row.Close()
 	board, collectRowsErr := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[Board])
 	if collectRowsErr != nil {
 		logger.Error(fmt.Sprintf("GetBoardBySlug: error collecting board: %v", collectRowsErr))
@@ -194,9 +200,32 @@ func GetPostDetail(dbPool *pgxpool.Pool, boardSlug string, postSlug string) (Boa
 	if err != nil {
 		return BoardPost{}, err
 	}
+	defer row.Close()
 	post, collectRowsErr := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[BoardPost])
 	if collectRowsErr != nil {
 		return BoardPost{}, collectRowsErr
 	}
 	return post, nil
+}
+
+func GetTotalPostsByBoardSlug(dbPool *pgxpool.Pool, boardSlug string) (int, error) {
+	const query = `SELECT 
+    	COUNT(bp.*) AS totalPosts
+		FROM board_posts bp
+		JOIN boards b ON b.id = bp.board_id
+		WHERE b.slug = $1
+	`
+	row, err := dbPool.Query(context.Background(), query, boardSlug)
+	if err != nil {
+		return 0, err
+	}
+	defer row.Close()
+	type totalPostsResult struct {
+		TotalPosts int
+	}
+	result, collectRowsErr := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[totalPostsResult])
+	if collectRowsErr != nil {
+		return 0, collectRowsErr
+	}
+	return result.TotalPosts, err
 }

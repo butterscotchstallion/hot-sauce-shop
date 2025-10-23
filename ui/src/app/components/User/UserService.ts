@@ -1,9 +1,11 @@
-import {SESSION_URL, USER_PROFILE_URL, USER_URL} from "../Shared/Api.ts";
+import {SESSION_URL, USER_BOARDS_URL, USER_PROFILE_URL, USER_URL} from "../Shared/Api.ts";
 import {Subject} from "rxjs";
 import Cookies from "js-cookie";
 import {IUser} from "./IUser.ts";
 import {IUserDetails} from "./IUserDetails.ts";
 import {IUserRole} from "./IUserRole.ts";
+import {IBoard} from "../Boards/IBoard.ts";
+import {IUserSessionDetails} from "./IUserSessionDetails.ts";
 
 export enum UserRole {
     USER_ADMIN = "User Admin",
@@ -61,8 +63,8 @@ export function getUsers(): Subject<IUser[]> {
     return users$;
 }
 
-export function getUserDetailsBySessionId(): Subject<IUserDetails> {
-    const user$ = new Subject<IUserDetails>();
+export function getUserDetailsBySessionId(): Subject<IUserSessionDetails> {
+    const user$ = new Subject<IUserSessionDetails>();
     fetch(`${SESSION_URL}`, {
         credentials: 'include'
     }).then((res: Response) => {
@@ -146,4 +148,55 @@ export function getUserProfileBySlug(slug: string) {
         }
     });
     return user$;
+}
+
+export function getJoinedBoards(): Subject<IBoard[]> {
+    const boards$ = new Subject<IBoard[]>();
+    fetch(USER_BOARDS_URL, {
+        credentials: 'include'
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                if (resp?.status === "OK") {
+                    boards$.next(resp.results.boards);
+                } else {
+                    res.json().then(resp => {
+                        boards$.error(resp?.message || "Unknown error");
+                    });
+                }
+            })
+        } else {
+            boards$.error(res.statusText);
+        }
+    });
+    return boards$;
+}
+
+export function userJoinBoard(boardId: number): Subject<boolean> {
+    const joinBoard$ = new Subject<boolean>();
+    fetch(`${USER_BOARDS_URL}/${boardId}`, {
+        method: 'POST',
+        credentials: 'include'
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                if (resp?.status === "OK") {
+                    joinBoard$.next(true);
+                } else {
+                    joinBoard$.error({
+                        error: resp?.message || "Unknown error"
+                    });
+                }
+            });
+        } else {
+            joinBoard$.error({
+                error: res.statusText
+            });
+        }
+    }).catch((err) => {
+        joinBoard$.error({
+            error: err
+        });
+    });
+    return joinBoard$;
 }
