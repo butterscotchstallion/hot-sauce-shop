@@ -59,6 +59,12 @@ export default function BoardPost({boardPost, voteMap}: IBoardPostProps) {
         });
     }
 
+    const header = () => {
+        return (
+            <i className="pi pi-ellipsis-h cursor-pointer float-right inline-block mt-4 mr-4"></i>
+        )
+    }
+
     useEffect(() => {
         setCreatedAtFormatted(dayjs(post.createdAt).format('MMMM D, YYYY'))
     }, [post]);
@@ -94,6 +100,7 @@ export default function BoardPost({boardPost, voteMap}: IBoardPostProps) {
 
     return (
         <Card key={`post-${post.id}`}
+              header={header}
               title={<NavLink to={`/boards/${post.boardSlug}/posts/${post.slug}`}>{post.title}</NavLink>}
               className="mb-4">
             <div>

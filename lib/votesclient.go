@@ -82,7 +82,10 @@ func GetUserVoteMap(dbPool *pgxpool.Pool, userId int) (map[int]int, error) {
 func GetVoteSumMapByPostId(dbPool *pgxpool.Pool, postId int) (map[int]int, error) {
 	voteSumMap := make(map[int]int)
 	const query = `
-		SELECT post_id, value FROM votes WHERE post_id = $1
+		SELECT post_id, COALESCE((SELECT SUM(v.value) FROM votes v WHERE v.post_id = $1), 0) AS value
+		FROM votes
+		WHERE post_id = $1
+		GROUP BY post_id
 	`
 	rows, err := dbPool.Query(context.Background(), query, postId)
 	if err != nil {

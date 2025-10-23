@@ -68,7 +68,7 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 	}))
 
 	// Post detail
-	r.GET("/api/v1/posts/:boardSlug/:postSlug", cache.CachePage(store, time.Minute*1, func(c *gin.Context) {
+	r.GET("/api/v1/posts/:boardSlug/:postSlug", func(c *gin.Context) {
 		boardSlug := c.Param("boardSlug")
 		postSlug := c.Param("postSlug")
 		post, getPostDetailErr := lib.GetPostDetail(dbPool, boardSlug, postSlug)
@@ -95,7 +95,7 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 				"post": post,
 			},
 		})
-	}))
+	})
 
 	// All posts
 	r.GET("/api/v1/posts", cache.CachePage(store, time.Minute*1, func(c *gin.Context) {
