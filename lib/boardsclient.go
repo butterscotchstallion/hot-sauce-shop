@@ -144,6 +144,8 @@ func GetPosts(dbPool *pgxpool.Pool, boardSlug string, postSlug string, parentId 
 	}
 	if parentId > 0 {
 		whereClause += " AND bp.parent_id = $1"
+	} else {
+		whereClause += " AND bp.parent_id = 0"
 	}
 	query := getPostsQuery(whereClause)
 	var rows pgx.Rows
