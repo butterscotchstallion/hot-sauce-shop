@@ -39,9 +39,9 @@
 ## Admin - Edit Item
 ![admin edit item](screenshots/admin-edit-item.png)
 ## Message Board
-[!message board post](screenshots/message-board-post.png)
+![message board post](screenshots/message-board-post.png)
 ## New Post
-[!message board new post](screenshots/message-board-new-post.png)
+![message board new post](screenshots/message-board-new-post.png)
 ## Error page
 This page demonstrates use of [error boundaries](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary), 
 a technique which captures rendering errors and presents users with a more friendly user
