@@ -19,3 +19,4 @@ export const POST_DETAILS_URL: string = BASE_API_URL + '/posts/:boardSlug/:postS
 export const VOTE_ADD_UPDATE_URL: string = BASE_API_URL + '/votes';
 export const USER_VOTE_MAP_URL: string = BASE_API_URL + '/vote-map';
 export const BOARD_TOTAL_POSTS_URL: string = BASE_API_URL + '/total-posts';
+export const BOARD_TOTAL_REPLIES: string = BASE_API_URL + '/total-replies';

@@ -11,6 +11,8 @@ import Cookies from "js-cookie";
 import {getUserDetailsBySessionId} from "../components/User/UserService.ts";
 import {setSignedIn, setUser, setUserRoles} from "../components/User/User.slice.ts";
 import {IUserDetails} from "../components/User/IUserDetails.ts";
+import {ErrorBoundary} from "react-error-boundary";
+import {Card} from "primereact/card";
 
 type Props = {
     children: React.ReactNode
@@ -51,11 +53,18 @@ export default function BaseLayout({children}: Props) {
     }, [dispatch]);
 
     return (
+
         <PrimeReactProvider>
             <NavigationMenu/>
             <main className="container mx-auto max-w-7xl mb-10">
                 <section className="mt-4">
-                    {children}
+                    <ErrorBoundary fallback={(
+                        <>
+                            <Card title="Something went wrong">
+                                <img src="/images/dumpster-fire.jpg" alt="Something went wrong"/>
+                            </Card>
+                        </>
+                    )}>{children}</ErrorBoundary>
                 </section>
             </main>
         </PrimeReactProvider>

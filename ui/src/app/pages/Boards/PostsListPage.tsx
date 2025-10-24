@@ -4,6 +4,7 @@ import {
     getBoardByBoardSlug,
     getBoards,
     getPosts,
+    getTotalPostReplyMap,
     getTotalPostsByBoardSlug
 } from "../../components/Boards/BoardsService.ts";
 import PostList from "../../components/Boards/PostList.tsx";
@@ -29,8 +30,8 @@ import {BoardListSidebar} from "../../components/Boards/BoardListSidebar.tsx";
 export default function PostsListPage() {
     const toast: RefObject<Toast | null> = useRef(null);
     const params: Readonly<Params<string>> = useParams();
-    const boardSlug: string | undefined = params?.boardSlug;
-    const postSlug: string | undefined = params?.postSlug;
+    const boardSlug: string = params?.boardSlug || '';
+    const postSlug: string = params?.postSlug || '';
     const [posts, setPosts] = useState<IBoardPost[]>([]);
     const [board, setBoard] = useState<IBoard>();
     const [boardTotalPosts, setBoardTotalPosts] = useState<number>(0);
@@ -45,6 +46,7 @@ export default function PostsListPage() {
     const joinBoard$ = useRef<Subject<boolean>>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [boards, setBoards] = useState<IBoard[]>([]);
+    const [totalPostReplyMap, setTotalPostReplyMap] = useState<Map<number, number>>(new Map());
 
     const joinBoard = () => {
         if (board) {
@@ -98,6 +100,13 @@ export default function PostsListPage() {
         let board$: Subject<IBoard>;
         let boardTotalPosts$: Subject<number>;
         let getBoards$: Subject<IBoard[]>;
+        const replyMap$: Subject<Map<number, number>> = getTotalPostReplyMap(boardSlug);
+        replyMap$.subscribe({
+            next: (totalPostReplyMap: Map<number, number>) => {
+                setTotalPostReplyMap(totalPostReplyMap)
+            },
+            error: (err) => console.error(err)
+        })
         if (boardSlug) {
             board$ = getBoardByBoardSlug(boardSlug);
             board$.subscribe({
@@ -122,6 +131,7 @@ export default function PostsListPage() {
             board$?.unsubscribe();
             boardTotalPosts$?.unsubscribe();
             getBoards$?.unsubscribe();
+            //replyMap$.unsubscribe();
             if (joinBoard$.current) {
                 joinBoard$.current.unsubscribe();
             }
@@ -136,12 +146,8 @@ export default function PostsListPage() {
         if (user) {
             userVoteMap$.current = getUserVoteMap();
             userVoteMap$.current.subscribe({
-                next: (voteMap: Map<number, number>) => {
-                    setUserVoteMap(voteMap);
-                },
-                error: (err) => {
-                    console.error(err);
-                }
+                next: (voteMap: Map<number, number>) => setUserVoteMap(voteMap),
+                error: (err) => console.error(err)
             })
         }
     }, [posts, user])
@@ -188,7 +194,7 @@ export default function PostsListPage() {
             )}
             <section className="flex justify-space-between gap-2 w-full">
                 <section className="w-3/4">
-                    <PostList posts={posts} voteMap={userVoteMap}/>
+                    <PostList posts={posts} voteMap={userVoteMap} replyMap={totalPostReplyMap}/>
                 </section>
                 <section className="w-1/4 mt-4">
                     {boardSlug ? (

@@ -13,9 +13,10 @@ import {getPostDetail} from "./BoardsService.ts";
 interface IBoardPostProps {
     boardPost: IBoardPost;
     voteMap: Map<number, number>;
+    replyMap: Map<number, number>;
 }
 
-export default function BoardPost({boardPost, voteMap}: IBoardPostProps) {
+export default function BoardPost({boardPost, voteMap, replyMap}: IBoardPostProps) {
     const [createdAtFormatted, setCreatedAtFormatted] = useState<string>(dayjs(boardPost.createdAt).format('MMMM D, YYYY'));
     const [hasUpVoted, setHasUpVoted] = useState<boolean>(false);
     const [hasDownVoted, setHasDownVoted] = useState<boolean>(false);
@@ -66,7 +67,7 @@ export default function BoardPost({boardPost, voteMap}: IBoardPostProps) {
     }
 
     useEffect(() => {
-        setCreatedAtFormatted(dayjs(post.createdAt).format('MMMM D, YYYY'))
+        setCreatedAtFormatted(dayjs(post.createdAt).format('MMMM D, YYYY'));
     }, [post]);
 
     /**
@@ -129,6 +130,12 @@ export default function BoardPost({boardPost, voteMap}: IBoardPostProps) {
                                 onClick={() => onDownvoteClicked()}
                             />
                         </div>
+                    </li>
+                    <li className="ml-4 mr-4">&bull;</li>
+                    <li>
+                        <NavLink to={`/boards/${post.boardSlug}/posts/${post.slug}`}>
+                            <i className="pi pi-reply"></i> {replyMap?.get(post.id) || 0}
+                        </NavLink>
                     </li>
                     <li className="ml-4 mr-4">&bull;</li>
                     <li>

@@ -120,17 +120,14 @@ func GetInventoryItemsOrderedBySortKey(
 	} else {
 		rows, err = dbPool.Query(context.Background(), query)
 	}
-	defer rows.Close()
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error running inventory item query: %v", err))
 		return nil, err
 	}
-
 	inventoryItems, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[InventoryItem])
 	if collectRowsErr != nil {
 		return nil, collectRowsErr
 	}
-
 	return inventoryItems, err
 }
 

@@ -97,6 +97,27 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 		})
 	})
 
+	// Total post reply map
+	r.GET("/api/v1/total-replies", func(c *gin.Context) {
+		boardSlug := c.DefaultQuery("boardSlug", "")
+		totalPostReplyMap, replyMapErr := lib.GetTotalPostReplyCountByBoardSlug(dbPool, boardSlug)
+		if replyMapErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching total post replies: %v", replyMapErr.Error()))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": replyMapErr.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "OK",
+			"results": gin.H{
+				"totalPostReplyMap": totalPostReplyMap,
+			},
+		})
+	})
+
 	// Post detail
 	r.GET("/api/v1/posts/:boardSlug/:postSlug", func(c *gin.Context) {
 		boardSlug := c.Param("boardSlug")
@@ -155,12 +176,7 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			),
 		)
 
-		if parentId > 0 {
-			// TODO: refactor GetPosts to accept a parentId parameter
-			posts, getPostsErr = lib.GetPostReplies(dbPool, parentId)
-		} else {
-			posts, getPostsErr = lib.GetPosts(dbPool, boardSlug, postSlug, logger)
-		}
+		posts, getPostsErr = lib.GetPosts(dbPool, boardSlug, postSlug, parentId)
 
 		if getPostsErr != nil {
 			logger.Error(fmt.Sprintf("Error fetching posts: %v", getPostsErr.Error()))

@@ -4,6 +4,7 @@ import {
     BOARD_DETAILS_URL,
     BOARD_POSTS_URL,
     BOARD_TOTAL_POSTS_URL,
+    BOARD_TOTAL_REPLIES,
     BOARDS_URL,
     POST_DETAILS_URL,
     POSTS_URL
@@ -154,4 +155,26 @@ export function getTotalPostsByBoardSlug(boardSlug: string): Subject<number> {
         totalPosts$.error(err);
     });
     return totalPosts$;
+}
+
+export function getTotalPostReplyMap(boardSlug: string): Subject<Map<number, number>> {
+    const replyMap$ = new Subject<Map<number, number>>();
+    let url = BOARD_TOTAL_REPLIES;
+    if (boardSlug) {
+        url += `?boardSlug=${boardSlug}`;
+    }
+    fetch(url, {
+        credentials: 'include'
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                replyMap$.next(resp.results.totalPostReplyMap);
+            });
+        } else {
+            replyMap$.error(res.statusText);
+        }
+    }).catch((err) => {
+        replyMap$.error(err);
+    });
+    return replyMap$;
 }
