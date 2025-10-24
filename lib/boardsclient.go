@@ -103,15 +103,20 @@ func GetTotalPostReplyCountByBoardSlug(dbPool *pgxpool.Pool, boardSlug string) (
 	if len(boardSlug) > 0 {
 		boardSlugClause = " AND b.slug = $1 "
 	}
-	query := `SELECT bp.id,
+	query := `
+		SELECT bp.id,
 			  COALESCE(COUNT(bp.*), 0) AS total_post_reply_count
 		FROM board_posts bp
 		JOIN boards b ON b.id = bp.board_id
-		WHERE 1=1
-		` + boardSlugClause + `
-		AND bp.parent_id > 0
-		GROUP BY bp.id`
-	rows, err := dbPool.Query(context.Background(), query, boardSlug)
+		WHERE 1=1 ` + boardSlugClause + `  AND bp.parent_id > 0 GROUP BY bp.id
+	`
+	var rows pgx.Rows
+	var err error
+	if len(boardSlug) > 0 {
+		rows, err = dbPool.Query(context.Background(), query, boardSlug)
+	} else {
+		rows, err = dbPool.Query(context.Background(), query)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +143,7 @@ func GetPosts(dbPool *pgxpool.Pool, boardSlug string, postSlug string, parentId 
 		whereClause += " AND bp.slug = $2"
 	}
 	if parentId > 0 {
-		whereClause += " AND b.parent_id = $1"
+		whereClause += " AND bp.parent_id = $1"
 	}
 	query := getPostsQuery(whereClause)
 	var rows pgx.Rows
@@ -147,6 +152,8 @@ func GetPosts(dbPool *pgxpool.Pool, boardSlug string, postSlug string, parentId 
 		rows, err = dbPool.Query(context.Background(), query, boardSlug)
 	} else if len(postSlug) > 0 {
 		rows, err = dbPool.Query(context.Background(), query, boardSlug, postSlug)
+	} else if parentId > 0 {
+		rows, err = dbPool.Query(context.Background(), query, parentId)
 	} else {
 		rows, err = dbPool.Query(context.Background(), query)
 	}

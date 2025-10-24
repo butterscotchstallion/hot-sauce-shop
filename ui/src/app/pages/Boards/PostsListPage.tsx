@@ -20,6 +20,7 @@ import {getJoinedBoards, userJoinBoard} from "../../components/User/UserService.
 import {Toast} from "primereact/toast";
 import {BoardDetailsSidebar} from "../../components/Boards/BoardDetailsSidebar.tsx";
 import {BoardListSidebar} from "../../components/Boards/BoardListSidebar.tsx";
+import {setPageTitle} from "../../components/Shared/PageTitle.ts";
 
 /**
  * Handles multiple scenarios where post(s) are displayed:
@@ -33,6 +34,7 @@ export default function PostsListPage() {
     const boardSlug: string = params?.boardSlug || '';
     const postSlug: string = params?.postSlug || '';
     const [posts, setPosts] = useState<IBoardPost[]>([]);
+    const [postReplies, setPostReplies] = useState<IBoardPost[]>([]);
     const [board, setBoard] = useState<IBoard>();
     const [boardTotalPosts, setBoardTotalPosts] = useState<number>(0);
     const [userIsBoardMember, setUserIsBoardMember] = useState<boolean>(false);
@@ -41,7 +43,14 @@ export default function PostsListPage() {
     const user: IUser | null = useSelector((state: RootState) => state.user.user);
     const navigate: NavigateFunction = useNavigate();
     const navigateToNewPostPage = () => {
-        navigate(`/boards/${boardSlug}/posts/new`)
+        let replyParam: string = "";
+        // If there is a post slug, we're viewing a specific post and there should
+        // only be one post in the list
+        if (postSlug) {
+            replyParam += "?parentId=" + posts[0].id;
+        }
+        const url = `/boards/${boardSlug}/posts/new${replyParam}`;
+        navigate(url);
     }
     const joinBoard$ = useRef<Subject<boolean>>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -100,6 +109,7 @@ export default function PostsListPage() {
         let board$: Subject<IBoard>;
         let boardTotalPosts$: Subject<number>;
         let getBoards$: Subject<IBoard[]>;
+
         const replyMap$: Subject<Map<number, number>> = getTotalPostReplyMap(boardSlug);
         replyMap$.subscribe({
             next: (totalPostReplyMap: Map<number, number>) => {
@@ -110,7 +120,10 @@ export default function PostsListPage() {
         if (boardSlug) {
             board$ = getBoardByBoardSlug(boardSlug);
             board$.subscribe({
-                next: (board: IBoard) => setBoard(board),
+                next: (board: IBoard) => {
+                    setPageTitle(board.displayName);
+                    setBoard(board)
+                },
                 error: (err) => console.error(err),
             });
             boardTotalPosts$ = getTotalPostsByBoardSlug(boardSlug);
@@ -126,12 +139,14 @@ export default function PostsListPage() {
                 error: (err) => console.error(err),
             })
         }
+
         return () => {
             posts$.unsubscribe();
             board$?.unsubscribe();
             boardTotalPosts$?.unsubscribe();
             getBoards$?.unsubscribe();
-            //replyMap$.unsubscribe();
+            replyMap$.unsubscribe();
+
             if (joinBoard$.current) {
                 joinBoard$.current.unsubscribe();
             }
@@ -140,6 +155,26 @@ export default function PostsListPage() {
             )
         }
     }, [boardSlug, postSlug]);
+
+    useEffect(() => {
+        let getPostReplies$: Subject<IBoardPost[]>;
+        // Viewing a specific post
+        if (postSlug && posts.length === 1) {
+            setPageTitle(posts[0].title);
+            const postID: number = posts[0].id;
+            console.info(`Fetching replies for ${postID}`)
+            getPostReplies$ = getPosts({
+                parentId: postID
+            })
+            getPostReplies$.subscribe({
+                next: (replies: IBoardPost[]) => setPostReplies(replies),
+                error: (err) => console.error(err),
+            })
+        }
+        return () => {
+            getPostReplies$?.unsubscribe();
+        }
+    }, [posts])
 
     // When posts/user changes, get the posts the user has voted on
     useEffect(() => {
@@ -208,6 +243,18 @@ export default function PostsListPage() {
                     )}
                 </section>
             </section>
+
+            {postReplies.length > 0 ? (
+                <section className="mt-4">
+                    <h1 className="text-3xl font-bold mb-4">Comments</h1>
+                    <section className="w-3/4">
+                        <PostList posts={postReplies} voteMap={userVoteMap} replyMap={totalPostReplyMap}/>
+                    </section>
+                </section>
+            ) : (
+                <p>No comments on this post yet. Be the first!</p>
+            )}
+
             <Toast ref={toast}/>
         </>
     )

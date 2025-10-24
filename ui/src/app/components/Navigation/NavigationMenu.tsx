@@ -17,7 +17,7 @@ export default function NavigationMenu(): ReactElement {
         {
             label: 'Home',
             icon: 'pi pi-home',
-            url: "/",
+            url: "/posts",
             template: itemRenderer,
         },
         {

@@ -1,5 +1,5 @@
 import AddEditPostForm from "../../components/Boards/AddEditPostForm.tsx";
-import {Params, useParams} from "react-router";
+import {Params, useParams, useSearchParams} from "react-router";
 import {IBoard} from "../../components/Boards/IBoard.ts";
 import {RefObject, useEffect, useRef, useState} from "react";
 import {getBoardByBoardSlug} from "../../components/Boards/BoardsService.ts";
@@ -8,10 +8,16 @@ import {Subject} from "rxjs";
 export default function NewPostPage() {
     const params: Readonly<Params<string>> = useParams();
     const boardSlug: string | undefined = params?.slug;
+    const [searchParams] = useSearchParams();
     const [board, setBoard] = useState<IBoard>();
     const board$: RefObject<Subject<IBoard> | null> = useRef<Subject<IBoard>>(null);
+    const parentId = useRef<number | null>(0);
 
     useEffect(() => {
+        const parentIdParam: string | null = searchParams.get("parentId");
+        if (parentIdParam && parentIdParam.length > 0) {
+            parentId.current = parseInt(parentIdParam);
+        }
         if (boardSlug) {
             board$.current = getBoardByBoardSlug(boardSlug);
             board$.current.subscribe({
@@ -25,7 +31,7 @@ export default function NewPostPage() {
         return () => {
             board$?.current?.unsubscribe();
         }
-    }, []);
+    }, [boardSlug]);
 
     return (
         <>
@@ -34,7 +40,10 @@ export default function NewPostPage() {
             </h1>
             <section className="mt-4 w-1/2">
                 {board && (
-                    <AddEditPostForm boardSlug={board.slug}/>
+                    <AddEditPostForm
+                        boardSlug={board.slug}
+                        parentId={parentId.current || 0}
+                    />
                 )}
             </section>
         </>

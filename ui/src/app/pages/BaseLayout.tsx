@@ -53,7 +53,6 @@ export default function BaseLayout({children}: Props) {
     }, [dispatch]);
 
     return (
-
         <PrimeReactProvider>
             <NavigationMenu/>
             <main className="container mx-auto max-w-7xl mb-10">
@@ -61,7 +60,10 @@ export default function BaseLayout({children}: Props) {
                     <ErrorBoundary fallback={(
                         <>
                             <Card title="Something went wrong">
-                                <img src="/images/dumpster-fire.jpg" alt="Something went wrong"/>
+                                <section className="min-h-[344px]">
+                                    <img src="/images/dumpster-fire.jpg" width="612" height="344"
+                                         alt="Something went wrong"/>
+                                </section>
                             </Card>
                         </>
                     )}>{children}</ErrorBoundary>

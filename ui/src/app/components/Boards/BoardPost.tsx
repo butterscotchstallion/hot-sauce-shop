@@ -24,6 +24,7 @@ export default function BoardPost({boardPost, voteMap, replyMap}: IBoardPostProp
     const post$ = useRef<Subject<IBoardPost>>(null);
     const postImagePath = useRef<string>('/images/hot-pepper.png');
     const [post, setPost] = useState<IBoardPost>(boardPost);
+    const [postNumReplies, setPostNumReplies] = useState<number>(0);
 
     const onUpvoteClicked = () => {
         setHasUpVoted(true);
@@ -66,9 +67,16 @@ export default function BoardPost({boardPost, voteMap, replyMap}: IBoardPostProp
         )
     }
 
+    const getType = (obj: unknown) => Object.prototype.toString.call(obj).slice(8, -1);
+    const isMap = (obj: unknown) => getType(obj) === 'Map';
+
     useEffect(() => {
         setCreatedAtFormatted(dayjs(post.createdAt).format('MMMM D, YYYY'));
-    }, [post]);
+        const isMapType: boolean = isMap(replyMap)
+        if (replyMap && isMapType) {
+            setPostNumReplies(replyMap.get(post.id) || 0);
+        }
+    }, [post, replyMap]);
 
     /**
      * Updates posts on load
@@ -133,8 +141,9 @@ export default function BoardPost({boardPost, voteMap, replyMap}: IBoardPostProp
                     </li>
                     <li className="ml-4 mr-4">&bull;</li>
                     <li>
-                        <NavLink to={`/boards/${post.boardSlug}/posts/${post.slug}`}>
-                            <i className="pi pi-reply"></i> {replyMap?.get(post.id) || 0}
+                        <NavLink to={`/boards/${post.boardSlug}/posts/${post.slug}`}
+                                 title={`This post has ${postNumReplies} replies`}>
+                            <i className="pi pi-reply"></i> {postNumReplies}
                         </NavLink>
                     </li>
                     <li className="ml-4 mr-4">&bull;</li>
