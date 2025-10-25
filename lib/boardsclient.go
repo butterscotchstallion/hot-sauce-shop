@@ -163,7 +163,6 @@ func GetPosts(dbPool *pgxpool.Pool, boardSlug string, postSlug string, parentId 
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 	posts, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[BoardPost])
 	if collectRowsErr != nil {
 		return nil, collectRowsErr
@@ -246,7 +245,6 @@ func GetTotalPostsByBoardSlug(dbPool *pgxpool.Pool, boardSlug string) (int, erro
 	if err != nil {
 		return 0, err
 	}
-	defer row.Close()
 	type totalPostsResult struct {
 		TotalPosts int
 	}
@@ -255,4 +253,26 @@ func GetTotalPostsByBoardSlug(dbPool *pgxpool.Pool, boardSlug string) (int, erro
 		return 0, collectRowsErr
 	}
 	return result.TotalPosts, err
+}
+
+func GetBoardModerators(dbPool *pgxpool.Pool, boardSlug string) ([]User, error) {
+	const query = `SELECT u.*
+		FROM users u
+        JOIN user_roles_boards urb ON urb.user_id = u.id
+		JOIN user_roles ur ON ur.role_id = urb.role_id
+        JOIN roles r ON r.id = urb.role_id
+        JOIN boards b ON b.id = urb.board_id
+		WHERE 1=1
+		AND b.slug = $1
+		AND r.slug = 'message-board-moderator'
+	`
+	rows, err := dbPool.Query(context.Background(), query, boardSlug)
+	if err != nil {
+		return []User{}, err
+	}
+	moderators, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[User])
+	if collectRowsErr != nil {
+		return nil, collectRowsErr
+	}
+	return moderators, err
 }

@@ -51,6 +51,11 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			return
 		}
 
+		mods, modsErr := lib.GetBoardModerators(dbPool, boardSlug)
+		if modsErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching mods: %v", modsErr.Error()))
+		}
+
 		if board == (lib.Board{}) {
 			c.JSON(http.StatusNotFound, gin.H{
 				"status":  "ERROR",
@@ -62,7 +67,8 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 		c.JSON(http.StatusOK, gin.H{
 			"status": "OK",
 			"results": gin.H{
-				"board": board,
+				"board":      board,
+				"moderators": mods,
 			},
 		})
 	}))

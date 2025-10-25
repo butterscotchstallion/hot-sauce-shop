@@ -11,6 +11,7 @@ import {
 } from "../Shared/Api.ts";
 import {IBoardPost} from "./IBoardPost.ts";
 import {INewBoardPost} from "./INewBoardPost.ts";
+import {IBoardDetails} from "./IBoardDetails.ts";
 
 export function getBoards(): Subject<IBoard[]> {
     const boards$ = new Subject<IBoard[]>();
@@ -96,14 +97,17 @@ export function getPostDetail(boardSlug: string, postSlug: string): Subject<IBoa
     return post$;
 }
 
-export function getBoardByBoardSlug(boardSlug: string): Subject<IBoard> {
-    const board$ = new Subject<IBoard>();
+export function getBoardByBoardSlug(boardSlug: string): Subject<IBoardDetails> {
+    const board$ = new Subject<IBoardDetails>();
     fetch(BOARD_DETAILS_URL.replace(':slug', boardSlug), {
         credentials: 'include'
     }).then((res: Response) => {
         if (res.ok) {
             res.json().then(resp => {
-                board$.next(resp.results.board);
+                board$.next({
+                    board: resp.results.board,
+                    moderators: resp.results.moderators,
+                });
             });
         } else {
             board$.error(res.statusText);

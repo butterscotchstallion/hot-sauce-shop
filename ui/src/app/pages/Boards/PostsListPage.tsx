@@ -21,6 +21,7 @@ import {Toast} from "primereact/toast";
 import {BoardDetailsSidebar} from "../../components/Boards/BoardDetailsSidebar.tsx";
 import {BoardListSidebar} from "../../components/Boards/BoardListSidebar.tsx";
 import {setPageTitle} from "../../components/Shared/PageTitle.ts";
+import {IBoardDetails} from "../../components/Boards/IBoardDetails.ts";
 
 /**
  * Handles multiple scenarios where post(s) are displayed:
@@ -56,6 +57,7 @@ export default function PostsListPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [boards, setBoards] = useState<IBoard[]>([]);
     const [totalPostReplyMap, setTotalPostReplyMap] = useState<Map<number, number>>(new Map());
+    const [boardMods, setBoardMods] = useState<IUser[]>([]);
 
     const joinBoard = () => {
         if (board) {
@@ -106,7 +108,7 @@ export default function PostsListPage() {
             }
         });
         // When viewing a specific board...
-        let board$: Subject<IBoard>;
+        let board$: Subject<IBoardDetails>;
         let boardTotalPosts$: Subject<number>;
         let getBoards$: Subject<IBoard[]>;
 
@@ -120,9 +122,10 @@ export default function PostsListPage() {
         if (boardSlug) {
             board$ = getBoardByBoardSlug(boardSlug);
             board$.subscribe({
-                next: (board: IBoard) => {
-                    setPageTitle(board.displayName);
-                    setBoard(board)
+                next: (boardDetails: IBoardDetails) => {
+                    setPageTitle(boardDetails.board.displayName);
+                    setBoard(boardDetails.board);
+                    setBoardMods(boardDetails.moderators);
                 },
                 error: (err) => console.error(err),
             });
@@ -237,6 +240,7 @@ export default function PostsListPage() {
                         <>
                             {board ?
                                 <BoardDetailsSidebar board={board}
+                                                     moderators={boardMods}
                                                      totalPosts={boardTotalPosts}/> : 'Loading board info...'}
                         </>
                     ) : (

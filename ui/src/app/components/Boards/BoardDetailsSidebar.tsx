@@ -4,13 +4,15 @@ import TimeAgo from "react-timeago";
 import {useEffect, useState} from "react";
 import dayjs from "dayjs";
 import {NavLink} from "react-router";
+import {IUser} from "../User/IUser.ts";
 
 interface IBoardSidebarProps {
     board: IBoard;
     totalPosts: number;
+    moderators: IUser[];
 }
 
-export function BoardDetailsSidebar({board, totalPosts}: IBoardSidebarProps) {
+export function BoardDetailsSidebar({board, totalPosts, moderators}: IBoardSidebarProps) {
     const [createdAtFormatted, setCreatedAtFormatted] = useState<string>();
 
     useEffect(() => {
@@ -42,6 +44,19 @@ export function BoardDetailsSidebar({board, totalPosts}: IBoardSidebarProps) {
                         <strong
                             className="pr-2 mb-1 block">Total Posts</strong>
                         {totalPosts}
+                    </li>
+                    <li className="mb-2">
+                        <strong
+                            className="pr-2 mb-1 block">Moderators</strong>
+                        {moderators.length > 0 ? (
+                            <ul>
+                                {moderators.map((moderator: IUser) => (
+                                    <li key={moderator.id}>
+                                        <NavLink to={`/users/${moderator.slug}`}>{moderator.username}</NavLink>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : "No moderators assigned."}
                     </li>
                 </ul>
             </Card>
