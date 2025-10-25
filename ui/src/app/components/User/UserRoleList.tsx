@@ -7,18 +7,18 @@ interface IUserRoleListProps {
 }
 
 export function UserRoleList({roles}: IUserRoleListProps) {
-    const [roleNames, setRoleNames] = useState<string[]>([]);
+    const [allRoles, setAllRoles] = useState<IUserRole[]>([]);
 
     useEffect(() => {
-        setRoleNames(roles.map((role: IUserRole) => role.name));
+        setAllRoles(roles);
     }, [roles]);
 
     return (
         <>
             <ul>
-                {roleNames.map((roleName: string) => (
-                    <li className="mb-2 inline-block mr-2" key={roleName}>
-                        <Tag value={roleName} severity="info"></Tag>
+                {allRoles.map((role: IUserRole) => (
+                    <li className="mb-2 inline-block mr-2" key={role.name}>
+                        <Tag value={role.name} severity={role.colorClass}></Tag>
                     </li>
                 ))}
             </ul>

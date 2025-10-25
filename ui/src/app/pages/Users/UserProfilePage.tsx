@@ -7,6 +7,7 @@ import TimeAgo from "react-timeago";
 import {Card} from "primereact/card";
 import {Button} from "primereact/button";
 import {UserRoleList} from "../../components/User/UserRoleList.tsx";
+import {setPageTitle} from "../../components/Shared/PageTitle.ts";
 
 export default function UserProfilePage() {
     const params: Readonly<Params<string>> = useParams();
@@ -27,6 +28,7 @@ export default function UserProfilePage() {
     )
 
     useEffect(() => {
+        setPageTitle("User Profile");
         if (userSlug) {
             user$.current = getUserProfileBySlug(userSlug);
             user$.current.subscribe({

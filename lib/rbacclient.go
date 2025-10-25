@@ -11,10 +11,11 @@ import (
 )
 
 type Role struct {
-	Id        int       `json:"id"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"createdAt"`
-	Slug      string    `json:"slug"`
+	Id         int       `json:"id"`
+	Name       string    `json:"name"`
+	CreatedAt  time.Time `json:"createdAt"`
+	Slug       string    `json:"slug"`
+	ColorClass string    `json:"colorClass"`
 }
 
 type Permission struct {
@@ -58,7 +59,7 @@ func deleteUserRoles(dbPool *pgxpool.Pool, userId int) (bool, error) {
 
 func GetRoleList(dbPool *pgxpool.Pool, logger *slog.Logger) ([]Role, error) {
 	const query = `
-		SELECT r.id, r.name, r.created_at, r.slug
+		SELECT *
 		FROM roles r
 		ORDER BY r.name
 	`
@@ -67,7 +68,6 @@ func GetRoleList(dbPool *pgxpool.Pool, logger *slog.Logger) ([]Role, error) {
 		logger.Error(fmt.Sprintf("Error getting role list: %v", err))
 		return nil, err
 	}
-	defer rows.Close()
 	roles, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[Role])
 	if collectRowsErr != nil {
 		logger.Error(fmt.Sprintf("Error collecting roles: %v", collectRowsErr))
@@ -78,7 +78,7 @@ func GetRoleList(dbPool *pgxpool.Pool, logger *slog.Logger) ([]Role, error) {
 
 func GetRolesByUserId(dbPool *pgxpool.Pool, logger *slog.Logger, userId int) ([]Role, error) {
 	const query = `
-		SELECT r.id, r.name, r.created_at, r.slug
+		SELECT r.*
 		FROM roles r
 		LEFT JOIN user_roles ur ON ur.role_id = r.id
 		WHERE ur.user_id = $1
@@ -88,7 +88,6 @@ func GetRolesByUserId(dbPool *pgxpool.Pool, logger *slog.Logger, userId int) ([]
 		logger.Error(fmt.Sprintf("Error getting roles by user id: %v", err))
 		return nil, err
 	}
-	defer rows.Close()
 	roles, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[Role])
 	if collectRowsErr != nil {
 		logger.Error(fmt.Sprintf("Error collecting roles by user id: %v", collectRowsErr))
