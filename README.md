@@ -14,7 +14,7 @@
 # Tech Stack
 - Go, Gin
 - Postgres
-- React, Typescript, PrimeReact, Redux, Tailwind, RXJS
+- React, Typescript, PrimeReact, Redux, Tailwind, RxJS
 
 # Running the application
 - Front end: `cd ui/src; npm run dev`

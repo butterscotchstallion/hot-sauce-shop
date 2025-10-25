@@ -1,22 +1,22 @@
 import {IUserRole} from "./IUserRole.ts";
-import {RefObject, useEffect, useRef} from "react";
+import {useEffect, useState} from "react";
 import {Tag} from "primereact/tag";
 
 interface IUserRoleListProps {
     roles: IUserRole[];
 }
 
-export function UserRoleList(props: IUserRoleListProps) {
-    const roleNames: RefObject<string[]> = useRef<string[]>([]);
+export function UserRoleList({roles}: IUserRoleListProps) {
+    const [roleNames, setRoleNames] = useState<string[]>([]);
 
     useEffect(() => {
-        roleNames.current = props.roles.map((role: IUserRole) => role.name);
-    }, [props.roles]);
+        setRoleNames(roles.map((role: IUserRole) => role.name));
+    }, [roles]);
 
     return (
         <>
             <ul>
-                {roleNames.current.map((roleName: string) => (
+                {roleNames.map((roleName: string) => (
                     <li className="mb-2 inline-block mr-2" key={roleName}>
                         <Tag value={roleName} severity="info"></Tag>
                     </li>
