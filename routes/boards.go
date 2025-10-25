@@ -51,7 +51,7 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			return
 		}
 
-		mods, modsErr := lib.GetBoardModerators(dbPool, boardSlug)
+		mods, modsErr := lib.GetBoardModerators(dbPool, boardSlug, 0)
 		if modsErr != nil {
 			logger.Error(fmt.Sprintf("Error fetching mods: %v", modsErr.Error()))
 		}
@@ -200,6 +200,50 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			},
 		})
 	}))
+
+	r.POST("/api/v1/boards/pin/:boardSlug/:postSlug", func(c *gin.Context) {
+		boardSlug := c.Param("boardSlug")
+		postSlug := c.Param("postSlug")
+
+		// Check user
+		userId, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
+		if userSessionErr != nil || userId == 0 {
+			return
+		}
+
+		mods, modsErr := lib.GetBoardModerators(dbPool, boardSlug, userId)
+		if modsErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching mods: %v", modsErr.Error()))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": modsErr.Error(),
+			})
+			return
+		}
+
+		if len(mods) == 0 {
+			logger.Error(fmt.Sprintf("Error pinning post: %v is not a moderator", userId))
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"status":  "ERROR",
+				"message": "Permission denied",
+			})
+			return
+		}
+
+		pinPostErr := lib.PinBoardPost(dbPool, postSlug)
+		if pinPostErr != nil {
+			logger.Error(fmt.Sprintf("Error pinning post: %v", pinPostErr.Error()))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": pinPostErr.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "OK",
+		})
+	})
 
 	// Add post
 	// for a reply: reuse this function for the reply route and add parentId as a parameter

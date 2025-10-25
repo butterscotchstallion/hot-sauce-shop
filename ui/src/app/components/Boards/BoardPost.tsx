@@ -4,12 +4,14 @@ import {NavLink} from "react-router";
 import TimeAgo from "react-timeago";
 import {IBoardPost} from "./IBoardPost.ts";
 import {Button} from "primereact/button";
-import {useEffect, useRef, useState} from "react";
+import {RefObject, useEffect, useRef, useState} from "react";
 import {Subject} from "rxjs";
 import {addUpdateVote} from "./VoteService.ts";
 import {VoteValue} from "./VoteValue.ts";
-import {getPostDetail} from "./BoardsService.ts";
+import {getPostDetail, pinPost} from "./BoardsService.ts";
 import {Menu} from "primereact/menu";
+import {Toast} from "primereact/toast";
+import {MenuItem} from "primereact/menuitem";
 
 interface IBoardPostProps {
     boardPost: IBoardPost;
@@ -18,7 +20,7 @@ interface IBoardPostProps {
     isCurrentUserBoardMod: boolean;
 }
 
-export default function BoardPost({boardPost, voteMap, replyMap}: IBoardPostProps) {
+export default function BoardPost({boardPost, voteMap, replyMap, isCurrentUserBoardMod}: IBoardPostProps) {
     const [createdAtFormatted, setCreatedAtFormatted] = useState<string>(dayjs(boardPost.createdAt).format('MMMM D, YYYY'));
     const [hasUpVoted, setHasUpVoted] = useState<boolean>(false);
     const [hasDownVoted, setHasDownVoted] = useState<boolean>(false);
@@ -28,13 +30,49 @@ export default function BoardPost({boardPost, voteMap, replyMap}: IBoardPostProp
     const [post, setPost] = useState<IBoardPost>(boardPost);
     const [postNumReplies, setPostNumReplies] = useState<number>(0);
     const menu = useRef<Menu>(null);
+    const pinPost$ = useRef<Subject<boolean>>(null);
+    const toast: RefObject<Toast | null> = useRef<Toast>(null);
+    const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
-    const menuItems = [
-        {
-            label: "Pin post",
-            icon: "pi pi-thumbtack"
+    const populateMenu = () => {
+        const items: MenuItem[] = [];
+        if (!post.isPinned) {
+            items.push(
+                {
+                    label: "Pin post",
+                    icon: "pi pi-thumbtack",
+                    command: () => {
+                        pinPost$.current = pinPost(post, boardPost.slug);
+                        pinPost$.current.subscribe({
+                            next: () => {
+                                if (toast.current) {
+                                    toast.current.show({
+                                        severity: 'success',
+                                        summary: 'Success',
+                                        detail: 'Post has been pinned',
+                                        life: 3000,
+                                    })
+                                }
+                            },
+                            error: (err) => {
+                                if (toast.current) {
+                                    toast.current.show({
+                                        severity: 'error',
+                                        summary: 'Error',
+                                        detail: 'Error pinning post: ' + err,
+                                        life: 3000,
+                                    })
+                                }
+                            }
+                        })
+                    }
+                }
+            );
         }
-    ];
+        if (items.length > 0) {
+            setMenuItems(items);
+        }
+    };
 
     const onUpvoteClicked = () => {
         setHasUpVoted(true);
@@ -72,7 +110,7 @@ export default function BoardPost({boardPost, voteMap, replyMap}: IBoardPostProp
     }
 
     const header = () => {
-        return (
+        return isCurrentUserBoardMod && menuItems.length > 0 ? (
             <i
                 aria-controls="popup_menu_left"
                 aria-haspopup
@@ -81,7 +119,7 @@ export default function BoardPost({boardPost, voteMap, replyMap}: IBoardPostProp
                     menu?.current?.toggle(event)
                 }}
             ></i>
-        )
+        ) : <></>
     }
 
     const getType = (obj: unknown) => Object.prototype.toString.call(obj).slice(8, -1);
@@ -93,6 +131,7 @@ export default function BoardPost({boardPost, voteMap, replyMap}: IBoardPostProp
         if (replyMap && isMapType) {
             setPostNumReplies(replyMap.get(post.id) || 0);
         }
+        populateMenu();
     }, [post, replyMap]);
 
     /**
@@ -120,6 +159,9 @@ export default function BoardPost({boardPost, voteMap, replyMap}: IBoardPostProp
             }
             if (post$.current) {
                 post$.current.unsubscribe();
+            }
+            if (pinPost$.current) {
+                pinPost$.current.unsubscribe();
             }
         }
     }, [boardPost, voteMap]);
@@ -192,7 +234,8 @@ export default function BoardPost({boardPost, voteMap, replyMap}: IBoardPostProp
                     </ul>
                 </div>
             </Card>
-            <Menu model={menuItems} popup key={post.id} popupAlignment={"right"} ref={menu}/>
+            <Menu model={menuItems} popup key={`menu-${post.id}`} popupAlignment={"right"} ref={menu}/>
+            <Toast ref={toast} key={`toast-${post.id}`}/>
         </>
     )
 }

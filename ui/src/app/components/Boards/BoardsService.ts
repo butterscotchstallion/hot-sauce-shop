@@ -2,6 +2,7 @@ import {IBoard} from "./IBoard.ts";
 import {Subject} from "rxjs";
 import {
     BOARD_DETAILS_URL,
+    BOARD_PIN_POST_URL,
     BOARD_POSTS_URL,
     BOARD_TOTAL_POSTS_URL,
     BOARD_TOTAL_REPLIES,
@@ -181,4 +182,28 @@ export function getTotalPostReplyMap(boardSlug: string): Subject<Map<number, num
         replyMap$.error(err);
     });
     return replyMap$;
+}
+
+export function pinPost(post: IBoardPost, boardSlug: string): Subject<boolean> {
+    const pinPost$ = new Subject<boolean>();
+    fetch(`${BOARD_PIN_POST_URL}/${boardSlug}/${post.slug}`, {
+        credentials: 'include',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(_ => {
+                pinPost$.next(true);
+            });
+        } else {
+            res.json().then(resp => {
+                pinPost$.error(resp?.message || "Unknown error");
+            });
+        }
+    }).catch((err) => {
+        pinPost$.error(err);
+    });
+    return pinPost$;
 }

@@ -255,8 +255,12 @@ func GetTotalPostsByBoardSlug(dbPool *pgxpool.Pool, boardSlug string) (int, erro
 	return result.TotalPosts, err
 }
 
-func GetBoardModerators(dbPool *pgxpool.Pool, boardSlug string) ([]User, error) {
-	const query = `SELECT u.*
+func GetBoardModerators(dbPool *pgxpool.Pool, boardSlug string, userId int) ([]User, error) {
+	userFilterClause := ""
+	if userId > 0 {
+		userFilterClause = " AND urb.user_id = $2"
+	}
+	query := `SELECT u.*
 		FROM users u
         JOIN user_roles_boards urb ON urb.user_id = u.id
 		JOIN user_roles ur ON ur.role_id = urb.role_id
@@ -265,8 +269,14 @@ func GetBoardModerators(dbPool *pgxpool.Pool, boardSlug string) ([]User, error) 
 		WHERE 1=1
 		AND b.slug = $1
 		AND r.slug = 'message-board-moderator'
-	`
-	rows, err := dbPool.Query(context.Background(), query, boardSlug)
+	` + userFilterClause
+	var rows pgx.Rows
+	var err error
+	if userId > 0 {
+		rows, err = dbPool.Query(context.Background(), query, boardSlug, userId)
+	} else {
+		rows, err = dbPool.Query(context.Background(), query, boardSlug)
+	}
 	if err != nil {
 		return []User{}, err
 	}
@@ -275,4 +285,13 @@ func GetBoardModerators(dbPool *pgxpool.Pool, boardSlug string) ([]User, error) 
 		return nil, collectRowsErr
 	}
 	return moderators, err
+}
+
+func PinBoardPost(dbPool *pgxpool.Pool, postSlug string) error {
+	const query = `UPDATE board_posts SET is_pinned = true WHERE slug = $1`
+	_, err := dbPool.Exec(context.Background(), query, postSlug)
+	if err != nil {
+		return err
+	}
+	return nil
 }
