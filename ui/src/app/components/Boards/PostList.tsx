@@ -6,9 +6,10 @@ interface IPostListProps {
     posts: IBoardPost[];
     voteMap: Map<number, number>;
     replyMap: Map<number, number>;
+    isCurrentUserBoardMod: boolean;
 }
 
-export default function PostList({posts, voteMap, replyMap}: IPostListProps) {
+export default function PostList({posts, voteMap, replyMap, isCurrentUserBoardMod}: IPostListProps) {
     const postList = posts?.map((post: IBoardPost): ReactElement => {
         return (
             <BoardPost
@@ -16,6 +17,7 @@ export default function PostList({posts, voteMap, replyMap}: IPostListProps) {
                 key={`post-${post.id}`}
                 voteMap={voteMap}
                 replyMap={replyMap}
+                isCurrentUserBoardMod={isCurrentUserBoardMod}
             />
         )
     });

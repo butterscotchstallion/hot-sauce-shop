@@ -58,6 +58,7 @@ export default function PostsListPage() {
     const [boards, setBoards] = useState<IBoard[]>([]);
     const [totalPostReplyMap, setTotalPostReplyMap] = useState<Map<number, number>>(new Map());
     const [boardMods, setBoardMods] = useState<IUser[]>([]);
+    const [isCurrentUserBoardMod, setIsCurrentUserBoardMod] = useState<boolean>(false);
 
     const joinBoard = () => {
         if (board) {
@@ -90,6 +91,15 @@ export default function PostsListPage() {
                 }
             });
         }
+    }
+
+    const isCurrentUserInBoardMods = (mods: IUser[]): boolean => {
+        for (const mod of mods) {
+            if (mod.id === user?.id) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // When the board/post changes, get filtered posts based on the scenario
@@ -126,6 +136,7 @@ export default function PostsListPage() {
                     setPageTitle(boardDetails.board.displayName);
                     setBoard(boardDetails.board);
                     setBoardMods(boardDetails.moderators);
+                    setIsCurrentUserBoardMod(isCurrentUserInBoardMods(boardDetails.moderators));
                 },
                 error: (err) => console.error(err),
             });
@@ -233,7 +244,12 @@ export default function PostsListPage() {
             )}
             <section className="flex justify-space-between gap-2 w-full">
                 <section className="w-3/4">
-                    <PostList posts={posts} voteMap={userVoteMap} replyMap={totalPostReplyMap}/>
+                    <PostList
+                        posts={posts}
+                        voteMap={userVoteMap}
+                        replyMap={totalPostReplyMap}
+                        isCurrentUserBoardMod={isCurrentUserBoardMod}
+                    />
                 </section>
                 <section className="w-1/4 mt-4">
                     {boardSlug ? (
@@ -253,7 +269,12 @@ export default function PostsListPage() {
                 <section className="mt-4">
                     <h1 className="text-3xl font-bold mb-4">Comments</h1>
                     <section className="w-3/4">
-                        <PostList posts={postReplies} voteMap={userVoteMap} replyMap={totalPostReplyMap}/>
+                        <PostList
+                            posts={postReplies}
+                            voteMap={userVoteMap}
+                            replyMap={totalPostReplyMap}
+                            isCurrentUserBoardMod={isCurrentUserBoardMod}
+                        />
                     </section>
                 </section>
             )}
