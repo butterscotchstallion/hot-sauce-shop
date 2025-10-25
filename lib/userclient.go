@@ -205,7 +205,6 @@ func GetJoinedBoardsByUserId(dbPool *pgxpool.Pool, userId int) ([]Board, error) 
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 	boards, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[Board])
 	if collectRowsErr != nil {
 		return nil, collectRowsErr
@@ -220,4 +219,29 @@ func AddBoardUser(dbPool *pgxpool.Pool, userId int, boardId int) error {
 		return err
 	}
 	return nil
+}
+
+// GetUserModeratedBoards
+// Returns boards the user is a moderator on
+func GetUserModeratedBoards(dbPool *pgxpool.Pool, userId int) ([]Board, error) {
+	const query = `SELECT b.id, b.display_name, b.created_at, b.updated_at, b.slug, b.visible, 
+		CASE WHEN b.thumbnail_filename IS NULL THEN '' ELSE b.thumbnail_filename END AS thumbnail_filename,
+		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description,
+		b.created_by_user_id,
+		u.username AS created_by_username,
+		u.slug AS created_by_user_slug
+		FROM boards b
+		JOIN user_roles_boards urb ON urb.board_id = b.id
+		JOIN users u on urb.user_id = u.id
+		WHERE urb.user_id = $1
+		ORDER BY b.display_name`
+	rows, err := dbPool.Query(context.Background(), query, userId)
+	if err != nil {
+		return nil, err
+	}
+	boards, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[Board])
+	if collectRowsErr != nil {
+		return nil, collectRowsErr
+	}
+	return boards, nil
 }

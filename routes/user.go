@@ -90,6 +90,11 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			return
 		}
 
+		userModeratedBoards, userModeratedBoardsErr := lib.GetUserModeratedBoards(dbPool, user.Id)
+		if userModeratedBoardsErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching moderated boards: %v", userModeratedBoardsErr.Error()))
+		}
+
 		userPostCount, userPostCountErr := lib.GetNumPostsByUserId(dbPool, user.Id)
 		if userPostCountErr != nil {
 			logger.Error(fmt.Sprintf("Error fetching user post count: %v", userPostCountErr.Error()))
@@ -105,10 +110,11 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "OK",
 			"results": gin.H{
-				"user":            user,
-				"roles":           roles,
-				"userPostCount":   userPostCount,
-				"userPostVoteSum": userPostVoteSum,
+				"user":                user,
+				"roles":               roles,
+				"userPostCount":       userPostCount,
+				"userPostVoteSum":     userPostVoteSum,
+				"userModeratedBoards": userModeratedBoards,
 			},
 		})
 	})

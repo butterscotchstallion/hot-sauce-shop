@@ -1,4 +1,4 @@
-import {Params, useParams} from "react-router";
+import {NavLink, Params, useParams} from "react-router";
 import {ReactElement, useEffect, useRef, useState} from "react";
 import {Subject} from "rxjs";
 import {getUserProfileBySlug} from "../../components/User/UserService.ts";
@@ -8,6 +8,7 @@ import {Card} from "primereact/card";
 import {Button} from "primereact/button";
 import {UserRoleList} from "../../components/User/UserRoleList.tsx";
 import {setPageTitle} from "../../components/Shared/PageTitle.ts";
+import {IUserRole} from "../../components/User/IUserRole.ts";
 
 export default function UserProfilePage() {
     const params: Readonly<Params<string>> = useParams();
@@ -15,6 +16,7 @@ export default function UserProfilePage() {
     const createdAtFormatted = useRef<string>(undefined);
     const user$ = useRef<Subject<IUserDetails> | null>(null);
     const [details, setDetails] = useState<IUserDetails>();
+    const [isMessageBoardMod, setIsMessageBoardMod] = useState(false);
 
     const userAvatar: ReactElement = (
         details?.user && details.user.avatarFilename ? <>
@@ -27,6 +29,15 @@ export default function UserProfilePage() {
         </> : <></>
     )
 
+    const hasModeratorRole = (roles: IUserRole[]): boolean => {
+        for (const role of roles) {
+            if (role.slug === "message-board-moderator") {
+                return true;
+            }
+        }
+        return false;
+    }
+
     useEffect(() => {
         setPageTitle("User Profile");
         if (userSlug) {
@@ -34,6 +45,7 @@ export default function UserProfilePage() {
             user$.current.subscribe({
                 next: (details: IUserDetails) => {
                     setDetails(details);
+                    setIsMessageBoardMod(hasModeratorRole(details.roles));
                     createdAtFormatted.current = new Date(details.user.createdAt).toLocaleDateString();
                 },
                 error: (error: Error) => console.error(error),
@@ -73,6 +85,23 @@ export default function UserProfilePage() {
                                         <strong className="pr-2 mb-1 block">Roles</strong>
                                         {details.roles ? <UserRoleList roles={details.roles}/> : 'No rules assigned'}
                                     </li>
+
+                                    {isMessageBoardMod && (
+                                        <li className="mb-2">
+                                            <strong className="pr-2 mb-1 block">Message Board Moderator on
+                                                Boards</strong>
+                                            {details.userModeratedBoards ? (
+                                                <ul>
+                                                    {details.userModeratedBoards.map((board) => (
+                                                        <li key={board.id}>
+                                                            <NavLink
+                                                                to={`/boards/${board.slug}`}>{board.displayName}</NavLink>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : "No boards assigned."}
+                                        </li>
+                                    )}
                                 </ul>
 
                                 <div>
