@@ -222,7 +222,7 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 		}
 
 		if len(mods) == 0 {
-			logger.Error(fmt.Sprintf("Error pinning post: %v is not a moderator", userId))
+			logger.Error(fmt.Sprintf("Error pinning post: user %v is not a moderator", userId))
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"status":  "ERROR",
 				"message": "Permission denied",

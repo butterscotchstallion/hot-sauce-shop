@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import {Card} from "primereact/card";
-import {NavLink} from "react-router";
+import {NavLink, Params, useParams} from "react-router";
 import TimeAgo from "react-timeago";
 import {IBoardPost} from "./IBoardPost.ts";
 import {Button} from "primereact/button";
@@ -21,6 +21,8 @@ interface IBoardPostProps {
 }
 
 export default function BoardPost({boardPost, voteMap, replyMap, isCurrentUserBoardMod}: IBoardPostProps) {
+    const params: Readonly<Params<string>> = useParams();
+    const boardSlug: string = params?.boardSlug || '';
     const [createdAtFormatted, setCreatedAtFormatted] = useState<string>(dayjs(boardPost.createdAt).format('MMMM D, YYYY'));
     const [hasUpVoted, setHasUpVoted] = useState<boolean>(false);
     const [hasDownVoted, setHasDownVoted] = useState<boolean>(false);
@@ -42,7 +44,7 @@ export default function BoardPost({boardPost, voteMap, replyMap, isCurrentUserBo
                     label: "Pin post",
                     icon: "pi pi-thumbtack",
                     command: () => {
-                        pinPost$.current = pinPost(post, boardPost.slug);
+                        pinPost$.current = pinPost(post, boardSlug);
                         pinPost$.current.subscribe({
                             next: () => {
                                 if (toast.current) {
