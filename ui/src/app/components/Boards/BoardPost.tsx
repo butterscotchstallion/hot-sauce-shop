@@ -162,6 +162,15 @@ export default function BoardPost({boardPost, voteMap, replyMap}: IBoardPostProp
                     <li className="cursor-help">
                         <TimeAgo date={post.createdAt} title={createdAtFormatted}/>
                     </li>
+
+                    {post.isPinned && (
+                        <>
+                            <li className="ml-4 mr-4">&bull;</li>
+                            <li>
+                                <i className="pi pi-thumbtack"></i> Pinned
+                            </li>
+                        </>
+                    )}
                 </ul>
             </div>
         </Card>

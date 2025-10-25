@@ -133,6 +133,7 @@ export default function PostsListPage() {
             });
         } else {
             // on "All posts" page
+            setPageTitle("All Posts");
             getBoards$ = getBoards();
             getBoards$.subscribe({
                 next: (boardList: IBoard[]) => setBoards(boardList),
@@ -244,14 +245,16 @@ export default function PostsListPage() {
                 </section>
             </section>
 
-            {postReplies.length > 0 ? (
+            {postReplies.length > 0 && (
                 <section className="mt-4">
                     <h1 className="text-3xl font-bold mb-4">Comments</h1>
                     <section className="w-3/4">
                         <PostList posts={postReplies} voteMap={userVoteMap} replyMap={totalPostReplyMap}/>
                     </section>
                 </section>
-            ) : (
+            )}
+
+            {postSlug && (
                 <p>No comments on this post yet. Be the first!</p>
             )}
 

@@ -14,4 +14,5 @@ export interface IBoardPost {
     createdByUserSlug: string;
     slug: string;
     voteSum: number;
+    isPinned: boolean;
 }

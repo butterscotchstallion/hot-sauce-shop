@@ -40,6 +40,7 @@ type BoardPost struct {
 	ParentId          int        `json:"parentId"`
 	PostText          string     `json:"postText"`
 	VoteSum           int        `json:"voteSum"`
+	IsPinned          bool       `json:"isPinned"`
 }
 
 type AddPostRequest struct {
@@ -89,7 +90,7 @@ func getPostsQuery(whereClause string) string {
 		JOIN boards b ON b.id = bp.board_id
 		WHERE 1=1
 		` + whereClause + `
-		ORDER BY bp.created_at DESC
+		ORDER BY bp.is_pinned DESC, bp.created_at DESC
 	`
 }
 
