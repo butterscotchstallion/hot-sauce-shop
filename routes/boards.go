@@ -64,11 +64,23 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			return
 		}
 
+		numBoardMembers, numBoardMembersErr := lib.GetNumBoardMembers(dbPool, boardSlug)
+		if numBoardMembersErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching num board members: %v", numBoardMembersErr.Error()))
+		}
+
+		totalPosts, totalPostsErr := lib.GetTotalPostsByBoardSlug(dbPool, boardSlug)
+		if totalPostsErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching total posts: %v", totalPostsErr.Error()))
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"status": "OK",
 			"results": gin.H{
-				"board":      board,
-				"moderators": mods,
+				"board":           board,
+				"moderators":      mods,
+				"numBoardMembers": numBoardMembers,
+				"totalPosts":      totalPosts,
 			},
 		})
 	}))

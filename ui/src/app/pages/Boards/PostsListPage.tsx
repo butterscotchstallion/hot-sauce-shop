@@ -1,12 +1,6 @@
 import {RefObject, useEffect, useRef, useState} from "react";
 import {IBoardPost} from "../../components/Boards/IBoardPost.ts";
-import {
-    getBoardByBoardSlug,
-    getBoards,
-    getPosts,
-    getTotalPostReplyMap,
-    getTotalPostsByBoardSlug
-} from "../../components/Boards/BoardsService.ts";
+import {getBoardByBoardSlug, getBoards, getPosts, getTotalPostReplyMap} from "../../components/Boards/BoardsService.ts";
 import PostList from "../../components/Boards/PostList.tsx";
 import {getUserVoteMap} from "../../components/Boards/VoteService.ts";
 import {Subject} from "rxjs";
@@ -37,7 +31,6 @@ export default function PostsListPage() {
     const [posts, setPosts] = useState<IBoardPost[]>([]);
     const [postReplies, setPostReplies] = useState<IBoardPost[]>([]);
     const [board, setBoard] = useState<IBoard>();
-    const [boardTotalPosts, setBoardTotalPosts] = useState<number>(0);
     const [userIsBoardMember, setUserIsBoardMember] = useState<boolean>(false);
     const userVoteMap$ = useRef<Subject<Map<number, number>> | null>(null);
     const [userVoteMap, setUserVoteMap] = useState<Map<number, number>>(new Map());
@@ -57,8 +50,8 @@ export default function PostsListPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [boards, setBoards] = useState<IBoard[]>([]);
     const [totalPostReplyMap, setTotalPostReplyMap] = useState<Map<number, number>>(new Map());
-    const [boardMods, setBoardMods] = useState<IUser[]>([]);
     const [isCurrentUserBoardMod, setIsCurrentUserBoardMod] = useState<boolean>(false);
+    const [boardDetails, setBoardDetails] = useState<IBoardDetails | undefined>();
 
     const joinBoard = () => {
         if (board) {
@@ -119,7 +112,6 @@ export default function PostsListPage() {
         });
         // When viewing a specific board...
         let board$: Subject<IBoardDetails>;
-        let boardTotalPosts$: Subject<number>;
         let getBoards$: Subject<IBoard[]>;
 
         const replyMap$: Subject<Map<number, number>> = getTotalPostReplyMap(boardSlug);
@@ -135,14 +127,9 @@ export default function PostsListPage() {
                 next: (boardDetails: IBoardDetails) => {
                     setPageTitle(boardDetails.board.displayName);
                     setBoard(boardDetails.board);
-                    setBoardMods(boardDetails.moderators);
                     setIsCurrentUserBoardMod(isCurrentUserInBoardMods(boardDetails.moderators));
+                    setBoardDetails(boardDetails);
                 },
-                error: (err) => console.error(err),
-            });
-            boardTotalPosts$ = getTotalPostsByBoardSlug(boardSlug);
-            boardTotalPosts$.subscribe({
-                next: (totalPosts: number) => setBoardTotalPosts(totalPosts),
                 error: (err) => console.error(err),
             });
         } else {
@@ -158,7 +145,6 @@ export default function PostsListPage() {
         return () => {
             posts$.unsubscribe();
             board$?.unsubscribe();
-            boardTotalPosts$?.unsubscribe();
             getBoards$?.unsubscribe();
             replyMap$.unsubscribe();
 
@@ -255,9 +241,7 @@ export default function PostsListPage() {
                     {boardSlug ? (
                         <>
                             {board ?
-                                <BoardDetailsSidebar board={board}
-                                                     moderators={boardMods}
-                                                     totalPosts={boardTotalPosts}/> : 'Loading board info...'}
+                                <BoardDetailsSidebar boardDetails={boardDetails}/> : 'Loading board info...'}
                         </>
                     ) : (
                         <BoardListSidebar boards={boards}/>

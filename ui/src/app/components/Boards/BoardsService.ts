@@ -105,10 +105,7 @@ export function getBoardByBoardSlug(boardSlug: string): Subject<IBoardDetails> {
     }).then((res: Response) => {
         if (res.ok) {
             res.json().then(resp => {
-                board$.next({
-                    board: resp.results.board,
-                    moderators: resp.results.moderators,
-                });
+                board$.next(resp.results);
             });
         } else {
             board$.error(res.statusText);

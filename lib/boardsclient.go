@@ -295,3 +295,17 @@ func PinBoardPost(dbPool *pgxpool.Pool, postSlug string) error {
 	}
 	return nil
 }
+
+func GetNumBoardMembers(dbPool *pgxpool.Pool, boardSlug string) (int, error) {
+	const query = `SELECT COUNT(*) AS num_board_members 
+		FROM boards_users bu
+		JOIN boards b on b.id = bu.board_id
+		WHERE b.slug = $1
+	`
+	var numBoardMembers int
+	scanErr := dbPool.QueryRow(context.Background(), query, boardSlug).Scan(&numBoardMembers)
+	if scanErr != nil {
+		return 0, scanErr
+	}
+	return numBoardMembers, nil
+}
