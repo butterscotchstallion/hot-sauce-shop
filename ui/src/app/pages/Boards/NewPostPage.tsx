@@ -4,13 +4,14 @@ import {IBoard} from "../../components/Boards/IBoard.ts";
 import {RefObject, useEffect, useRef, useState} from "react";
 import {getBoardByBoardSlug} from "../../components/Boards/BoardsService.ts";
 import {Subject} from "rxjs";
+import {IBoardDetails} from "../../components/Boards/IBoardDetails.ts";
 
 export default function NewPostPage() {
     const params: Readonly<Params<string>> = useParams();
     const boardSlug: string | undefined = params?.slug;
     const [searchParams] = useSearchParams();
     const [board, setBoard] = useState<IBoard>();
-    const board$: RefObject<Subject<IBoard> | null> = useRef<Subject<IBoard>>(null);
+    const board$: RefObject<Subject<IBoardDetails> | null> = useRef<Subject<IBoard>>(null);
     const parentId = useRef<number | null>(0);
 
     useEffect(() => {
@@ -21,9 +22,9 @@ export default function NewPostPage() {
         if (boardSlug) {
             board$.current = getBoardByBoardSlug(boardSlug);
             board$.current.subscribe({
-                next: (board: IBoard) => {
-                    setBoard(board);
-                    console.info("Board set to " + board.displayName);
+                next: (details: IBoardDetails) => {
+                    setBoard(details.board);
+                    console.info("Board set to " + details.board.displayName);
                 },
                 error: (error: Error) => console.error(error),
             });
