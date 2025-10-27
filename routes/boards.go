@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -259,7 +260,6 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 
 	// Add post
 	// for a reply: reuse this function for the reply route and add parentId as a parameter
-	var newPost lib.AddPostRequest
 	r.POST("/api/v1/boards/:slug/posts", func(c *gin.Context) {
 		// Check user
 		userId, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
@@ -267,9 +267,18 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			return
 		}
 
-		// Check request
-		if err := c.ShouldBindJSON(&newPost); err != nil {
-			logger.Error(fmt.Sprintf("AddPost: error binding requests JSON: %v", err.Error()))
+		// // Check request
+		// if err := c.ShouldBindJSON(&newPost); err != nil {
+		// 	logger.Error(fmt.Sprintf("AddPost: error binding requests JSON: %v", err.Error()))
+		// 	c.JSON(http.StatusBadRequest, gin.H{
+		// 		"status":  "ERROR",
+		// 		"message": err.Error(),
+		// 	})
+		// 	return
+		// }
+		var newPost lib.AddPostRequest
+		if err := c.ShouldBind(&newPost); err != nil {
+			logger.Error(fmt.Sprintf("AddPost: error binding add post request: %v", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status":  "ERROR",
 				"message": err.Error(),
@@ -325,6 +334,43 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 				"message": addPostErr.Error(),
 			})
 			return
+		}
+
+		// Add post images
+		postImagePath := "ui/src/public/images/posts/"
+		var imageFilenamesSavedSuccessfully []string
+		postImages := newPost.PostImages
+		for index, postImage := range postImages {
+			var extension = filepath.Ext(postImage.Filename)
+			postImageFilename := fmt.Sprintf("%s-%v%s", newPost.Slug, index, extension)
+			saveFileErr := c.SaveUploadedFile(postImage, postImagePath+postImageFilename)
+			if saveFileErr != nil {
+				logger.Error(fmt.Sprintf("Error saving post image: %v", saveFileErr.Error()))
+				continue
+			}
+
+			logger.Info(fmt.Sprintf("Post image saved: %v", postImageFilename))
+			imageFilenamesSavedSuccessfully = append(imageFilenamesSavedSuccessfully, postImageFilename)
+		}
+
+		for _, postImageFilename := range imageFilenamesSavedSuccessfully {
+			var extension = filepath.Ext(postImageFilename)
+			thumbnailFilename := fmt.Sprintf("%s_thumbnail%s", postImageFilename, extension)
+			addPostImagesErr := lib.AddPostImages(dbPool, newPostId, postImageFilename, thumbnailFilename)
+			if addPostImagesErr != nil {
+				logger.Error(fmt.Sprintf("Error adding post image to DB: %v", addPostImagesErr.Error()))
+			}
+			logger.Info(fmt.Sprintf("Post image saved to DB: %v", postImageFilename))
+
+			// Create thumbnail
+			createThumbnailErr := lib.CreateThumbnail(
+				postImagePath+postImageFilename,
+				postImagePath+thumbnailFilename,
+				logger,
+			)
+			if createThumbnailErr != nil {
+				logger.Error(fmt.Sprintf("Error creating thumbnail: %v", createThumbnailErr.Error()))
+			}
 		}
 
 		c.JSON(http.StatusCreated, gin.H{

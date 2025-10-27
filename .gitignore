@@ -26,3 +26,4 @@ go.work.sum
 node_modules
 tmp
 ui/src/tests/screenshots
+ui/src/public/images/posts/*

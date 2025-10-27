@@ -13,6 +13,8 @@ import {addPost} from "./BoardsService.ts";
 import {Toast} from "primereact/toast";
 import {INewBoardPost} from "./INewBoardPost.ts";
 import {NavigateFunction, useNavigate} from "react-router";
+import {FileUpload} from "primereact/fileupload";
+import "../../pages/Boards/NewPostPage.css";
 
 interface AddEditPostFormProps {
     post?: IBoardPost;
@@ -28,10 +30,12 @@ export default function AddEditPostForm({post, boardSlug, parentId, addPostCallb
     const toast: RefObject<Toast | null> = useRef<Toast>(null);
     const [postTitle, setPostTitle] = useState<string>("");
     const [postText, setPostText] = useState<string>("");
+    const [postImages, setPostImages] = useState<File[]>([]);
     const navigate: NavigateFunction = useNavigate();
     const navigateToNewPost = (newPost: IBoardPost) => {
         navigate(`/boards/${boardSlug}/posts/${newPost.slug}`);
     };
+    const uploadOptions = {icon: '', iconOnly: true, className: 'hidden-upload-button'};
     const defaultErrata: IFormErrata = {
         name: '',
         postText: '',
@@ -58,7 +62,7 @@ export default function AddEditPostForm({post, boardSlug, parentId, addPostCallb
             post.parentId = parentId;
         }
         if (valid) {
-            addPost$ = addPost(post, boardSlugRef.current);
+            addPost$ = addPost(post, boardSlugRef.current, postImages);
             addPost$.subscribe({
                 next: (newPost: IBoardPost) => {
                     if (toast.current) {
@@ -118,6 +122,11 @@ export default function AddEditPostForm({post, boardSlug, parentId, addPostCallb
             return false;
         }
     }
+
+    const onFilesSelected = (e) => {
+        setPostImages(e.files);
+    }
+
     useEffect(() => {
         if (post) {
             setPostTitle(post.title);
@@ -148,6 +157,19 @@ export default function AddEditPostForm({post, boardSlug, parentId, addPostCallb
                         invalid={!!formErrata.postTitle}
                         id="post-title"/>
                     <p className="text-red-500 pt-2">{formErrata.postTitle}</p>
+                </div>
+
+                <div className="w-full mb-4">
+                    <FileUpload name="postImages[]"
+                                url={''}
+                                multiple
+                                accept="image/*"
+                                maxFileSize={10000000}
+                                customUpload={true}
+                                uploadOptions={uploadOptions}
+                                uploadHandler={e => console.log(e)}
+                                onSelect={e => onFilesSelected(e)}
+                                emptyTemplate={<p className="m-0">Drag and drop files to here to upload.</p>}/>
                 </div>
 
                 <div className="w-full">

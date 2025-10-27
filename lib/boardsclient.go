@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"mime/multipart"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -44,11 +45,11 @@ type BoardPost struct {
 }
 
 type AddPostRequest struct {
-	Title             string `json:"title"`
-	Slug              string `json:"slug"`
-	ThumbnailFilename string `json:"thumbnailFilename"`
-	ParentId          int    `json:"parentId"`
-	PostText          string `json:"postText"`
+	Title      string                  `json:"title" form:"title"`
+	ParentId   int                     `json:"parentId" form:"parentId"`
+	PostText   string                  `json:"postText" form:"postText" binding:"required"`
+	PostImages []*multipart.FileHeader `json:"postImages" form:"postImages"`
+	Slug       string                  `json:"slug" form:"slug"`
 }
 
 func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
@@ -308,4 +309,39 @@ func GetNumBoardMembers(dbPool *pgxpool.Pool, boardSlug string) (int, error) {
 		return 0, scanErr
 	}
 	return numBoardMembers, nil
+}
+
+func AddPost(dbPool *pgxpool.Pool, post AddPostRequest, userId int, boardId int) (int, error) {
+	lastInsertId := 0
+	const query = `
+		INSERT INTO board_posts (title, created_by_user_id, board_id, parent_id, slug, post_text) 
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id
+	`
+	insertErr := dbPool.QueryRow(
+		context.Background(),
+		query,
+		post.Title,
+		userId,
+		boardId,
+		post.ParentId,
+		post.Slug,
+		post.PostText,
+	).Scan(&lastInsertId)
+	if insertErr != nil {
+		return 0, insertErr
+	}
+	return lastInsertId, nil
+}
+
+func AddPostImages(dbPool *pgxpool.Pool, postId int, filename string, thumbnailFilename string) error {
+	const query = `
+		INSERT INTO board_posts_images (filename, board_post_id, thumbnail_filename) 
+		VALUES ($1, $2, $3)
+	`
+	_, err := dbPool.Exec(context.Background(), query, filename, postId, thumbnailFilename)
+	if err != nil {
+		return err
+	}
+	return nil
 }

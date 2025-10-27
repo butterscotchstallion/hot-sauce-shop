@@ -116,15 +116,29 @@ export function getBoardByBoardSlug(boardSlug: string): Subject<IBoardDetails> {
     return board$;
 }
 
-export function addPost(post: INewBoardPost, boardSlug: string): Subject<IBoardPost> {
+export function addPost(post: INewBoardPost, boardSlug: string, postImages: File[]): Subject<IBoardPost> {
     const addPost$ = new Subject<IBoardPost>();
-    fetch(BOARD_POSTS_URL.replace(':slug', boardSlug), {
+    /*fetch(BOARD_POSTS_URL.replace(':slug', boardSlug), {
         credentials: 'include',
         method: 'POST',
         body: JSON.stringify(post),
         headers: {
             'Content-Type': 'application/json'
         }
+    })*/
+    const formData: FormData = new FormData();
+    formData.append("title", post.title);
+    formData.append("postText", post.postText);
+    postImages.forEach(image => {
+        formData.append("postImages", image);
+    });
+    if (post?.parentId) {
+        formData.append("parentId", post.parentId.toString());
+    }
+    fetch(BOARD_POSTS_URL.replace(':slug', boardSlug), {
+        credentials: 'include',
+        method: 'POST',
+        body: formData
     }).then((res: Response) => {
         if (res.ok) {
             res.json().then(resp => {

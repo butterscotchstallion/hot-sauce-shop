@@ -11,7 +11,7 @@ export default function NewPostPage() {
     const boardSlug: string | undefined = params?.slug;
     const [searchParams] = useSearchParams();
     const [board, setBoard] = useState<IBoard>();
-    const board$: RefObject<Subject<IBoardDetails> | null> = useRef<Subject<IBoard>>(null);
+    const board$: RefObject<Subject<IBoardDetails> | null> = useRef<Subject<IBoardDetails>>(null);
     const parentId = useRef<number | null>(0);
 
     useEffect(() => {

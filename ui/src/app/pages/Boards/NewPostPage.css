@@ -1,0 +1,8 @@
+/**
+ * PrimeReact's styling is more specific than the default
+ * 'hidden' class that Tailwind uses. This means we must add
+ * an override.
+ */
+.hidden-upload-button {
+    display: none !important;
+}
