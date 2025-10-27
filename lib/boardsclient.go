@@ -31,7 +31,6 @@ type BoardPost struct {
 	CreatedAt         *time.Time `json:"createdAt"`
 	UpdatedAt         *time.Time `json:"updatedAt"`
 	Slug              string     `json:"slug"`
-	ThumbnailFilename string     `json:"thumbnailFilename"`
 	CreatedByUserId   int        `json:"createdByUserId"`
 	CreatedByUsername string     `json:"createdByUsername"`
 	CreatedByUserSlug string     `json:"createdByUserSlug"`
@@ -42,6 +41,7 @@ type BoardPost struct {
 	PostText          string     `json:"postText"`
 	VoteSum           int        `json:"voteSum"`
 	IsPinned          bool       `json:"isPinned"`
+	ThumbnailFilename string     `json:"thumbnailFilename" db:"thumbnail_filename"`
 }
 
 type AddPostRequest struct {
@@ -85,14 +85,14 @@ func getPostsQuery(whereClause string) string {
 			u.slug AS created_by_user_slug,
 			b.display_name AS boardName,
 			b.slug AS boardSlug,
-			COALESCE((SELECT SUM(v.value) FROM votes v WHERE v.post_id = bp.id), 0) AS voteSum,
 			COALESCE((
 				SELECT bpi.thumbnail_filename
 			  	FROM board_posts_images bpi
 			  	WHERE bpi.board_post_id = bp.id
 			  	ORDER BY bpi.id DESC
 			  	LIMIT 1
-			), '') AS thumbnail_filename
+			), '') AS thumbnail_filename,
+			COALESCE((SELECT SUM(v.value) FROM votes v WHERE v.post_id = bp.id), 0) AS voteSum
 		FROM board_posts bp
 		JOIN users u on u.id = bp.created_by_user_id
 		JOIN boards b ON b.id = bp.board_id
@@ -142,7 +142,7 @@ func GetTotalPostReplyCountByBoardSlug(dbPool *pgxpool.Pool, boardSlug string) (
 
 // GetPosts
 // Gets posts, optionally filtered by boardSlug/postSlug
-func GetPosts(dbPool *pgxpool.Pool, boardSlug string, postSlug string, parentId int) ([]BoardPost, error) {
+func GetPosts(dbPool *pgxpool.Pool, boardSlug string, postSlug string, parentId int, logger *slog.Logger) ([]BoardPost, error) {
 	whereClause := ""
 	if len(boardSlug) > 0 {
 		whereClause += " AND b.slug = $1"
@@ -173,6 +173,7 @@ func GetPosts(dbPool *pgxpool.Pool, boardSlug string, postSlug string, parentId 
 	}
 	posts, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[BoardPost])
 	if collectRowsErr != nil {
+		logger.Info(fmt.Sprintf("GetPosts CollectRows Error: %v", collectRowsErr))
 		return nil, collectRowsErr
 	}
 	return posts, nil

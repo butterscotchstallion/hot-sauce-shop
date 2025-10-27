@@ -195,7 +195,7 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			),
 		)
 
-		posts, getPostsErr = lib.GetPosts(dbPool, boardSlug, postSlug, parentId)
+		posts, getPostsErr = lib.GetPosts(dbPool, boardSlug, postSlug, parentId, logger)
 
 		if getPostsErr != nil {
 			logger.Error(fmt.Sprintf("Error fetching posts: %v", getPostsErr.Error()))
