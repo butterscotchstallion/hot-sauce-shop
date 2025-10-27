@@ -345,3 +345,26 @@ func AddPostImages(dbPool *pgxpool.Pool, postId int, filename string, thumbnailF
 	}
 	return nil
 }
+
+type PostImages struct {
+	filename          string
+	thumbnailFilename string
+}
+
+func GetPostImages(dbPool *pgxpool.Pool, postId int) ([]PostImages, error) {
+	const query = `
+		SELECT 
+		board_post_id, filename, thumbnail_filename 
+		FROM board_posts_images
+		WHERE board_post_id = $1
+	`
+	rows, err := dbPool.Query(context.Background(), query, postId)
+	if err != nil {
+		return nil, err
+	}
+	postImagesRows, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[PostImages])
+	if collectRowsErr != nil {
+		return nil, collectRowsErr
+	}
+	return postImagesRows, nil
+}
