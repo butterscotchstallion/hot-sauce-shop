@@ -10,6 +10,7 @@ import (
 
 	"hotsauceshop/lib"
 
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
@@ -259,7 +260,6 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 	})
 
 	// Add post
-	// for a reply: reuse this function for the reply route and add parentId as a parameter
 	r.POST("/api/v1/boards/:slug/posts", func(c *gin.Context) {
 		// Check user
 		userId, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
@@ -267,15 +267,6 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			return
 		}
 
-		// // Check request
-		// if err := c.ShouldBindJSON(&newPost); err != nil {
-		// 	logger.Error(fmt.Sprintf("AddPost: error binding requests JSON: %v", err.Error()))
-		// 	c.JSON(http.StatusBadRequest, gin.H{
-		// 		"status":  "ERROR",
-		// 		"message": err.Error(),
-		// 	})
-		// 	return
-		// }
 		var newPost lib.AddPostRequest
 		if err := c.ShouldBind(&newPost); err != nil {
 			logger.Error(fmt.Sprintf("AddPost: error binding add post request: %v", err.Error()))
@@ -296,6 +287,7 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			return
 		}
 
+		// Check board
 		logger.Info("GetBoardBySlug: fetching board by slug: " + boardSlug)
 		board, getBoardErr := lib.GetBoardBySlug(dbPool, logger, boardSlug)
 		if getBoardErr != nil {
@@ -314,6 +306,7 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			return
 		}
 
+		// Create post slug
 		newPostSlug, err := uuid.NewRandom()
 		if err != nil {
 			logger.Error(fmt.Sprintf("Error generating new post slug: %v", err.Error()))
@@ -336,36 +329,55 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			return
 		}
 
+		type SavedPostImageInfo struct {
+			filename string
+			mimeType string
+		}
+
 		// Add post images
 		postImagePath := "ui/src/public/images/posts/"
-		var imageFilenamesSavedSuccessfully []string
+		var savedPostImageInfo []SavedPostImageInfo
 		postImages := newPost.PostImages
 		for index, postImage := range postImages {
 			var extension = filepath.Ext(postImage.Filename)
 			postImageFilename := fmt.Sprintf("%s-%v%s", newPost.Slug, index, extension)
-			saveFileErr := c.SaveUploadedFile(postImage, postImagePath+postImageFilename)
+			fullImagePath := postImagePath + postImageFilename
+
+			saveFileErr := c.SaveUploadedFile(postImage, fullImagePath)
 			if saveFileErr != nil {
 				logger.Error(fmt.Sprintf("Error saving post image: %v", saveFileErr.Error()))
 				continue
 			}
 
+			// Get mime type
+			mimeType, mimeTypeErr := mimetype.DetectFile(fullImagePath)
+			if mimeTypeErr != nil {
+				logger.Error(fmt.Sprintf("Error detecting file type: %v", mimeTypeErr.Error()))
+				continue
+			}
+			logger.Info(fmt.Sprintf("%v has mime type %v", postImagePath, mimeType.String()))
+
 			logger.Info(fmt.Sprintf("Post image saved: %v", postImageFilename))
-			imageFilenamesSavedSuccessfully = append(imageFilenamesSavedSuccessfully, postImageFilename)
+			savedPostImageInfo = append(savedPostImageInfo, SavedPostImageInfo{
+				filename: postImageFilename,
+				mimeType: mimeType.String(),
+			})
 		}
 
-		for _, postImageFilename := range imageFilenamesSavedSuccessfully {
-			var extension = filepath.Ext(postImageFilename)
-			thumbnailFilename := fmt.Sprintf("%s_thumbnail%s", postImageFilename, extension)
-			addPostImagesErr := lib.AddPostImages(dbPool, newPostId, postImageFilename, thumbnailFilename)
+		for _, imageInfo := range savedPostImageInfo {
+			var extension = filepath.Ext(imageInfo.filename)
+			thumbnailFilename := fmt.Sprintf("%s_thumbnail%s", imageInfo, extension)
+			addPostImagesErr := lib.AddPostImages(dbPool, newPostId, imageInfo.filename, thumbnailFilename)
 			if addPostImagesErr != nil {
 				logger.Error(fmt.Sprintf("Error adding post image to DB: %v", addPostImagesErr.Error()))
 			}
-			logger.Info(fmt.Sprintf("Post image saved to DB: %v", postImageFilename))
+			logger.Info(fmt.Sprintf("Post image saved to DB: %v", imageInfo))
 
 			// Create thumbnail
 			createThumbnailErr := lib.CreateThumbnail(
-				postImagePath+postImageFilename,
+				postImagePath+imageInfo.filename,
 				postImagePath+thumbnailFilename,
+				imageInfo.mimeType,
 				logger,
 			)
 			if createThumbnailErr != nil {

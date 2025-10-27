@@ -10,7 +10,20 @@ import (
 	"golang.org/x/image/draw"
 )
 
-func CreateThumbnail(originalFilename string, destinationFilename string, logger *slog.Logger) error {
+func GetExtensionByMimeType(mimeType string) (string, error) {
+	switch mimeType {
+	case "image/png":
+		return "png", nil
+	case "image/jpeg":
+		return "jpeg", nil
+	case "image/gif":
+		return "gif", nil
+	default:
+		return "", fmt.Errorf("unknown image mime type: %v", mimeType)
+	}
+}
+
+func CreateThumbnail(originalFilename string, destinationFilename string, mimeType string, logger *slog.Logger) error {
 	logger.Info(fmt.Sprintf("Creating thumbnail from %v with filename %v", originalFilename, destinationFilename))
 
 	input, openErr := os.Open(originalFilename)
