@@ -85,7 +85,14 @@ func getPostsQuery(whereClause string) string {
 			u.slug AS created_by_user_slug,
 			b.display_name AS boardName,
 			b.slug AS boardSlug,
-			COALESCE((SELECT SUM(v.value) FROM votes v WHERE v.post_id = bp.id), 0) AS voteSum
+			COALESCE((SELECT SUM(v.value) FROM votes v WHERE v.post_id = bp.id), 0) AS voteSum,
+			COALESCE((
+				SELECT bpi.thumbnail_filename
+			  	FROM board_posts_images bpi
+			  	WHERE bpi.board_post_id = bp.id
+			  	ORDER BY bpi.id DESC
+			  	LIMIT 1
+			), '') AS thumbnail_filename
 		FROM board_posts bp
 		JOIN users u on u.id = bp.created_by_user_id
 		JOIN boards b ON b.id = bp.board_id
@@ -346,25 +353,26 @@ func AddPostImages(dbPool *pgxpool.Pool, postId int, filename string, thumbnailF
 	return nil
 }
 
-type PostImages struct {
-	filename          string
-	thumbnailFilename string
-}
-
-func GetPostImages(dbPool *pgxpool.Pool, postId int) ([]PostImages, error) {
-	const query = `
-		SELECT 
-		board_post_id, filename, thumbnail_filename 
-		FROM board_posts_images
-		WHERE board_post_id = $1
-	`
-	rows, err := dbPool.Query(context.Background(), query, postId)
-	if err != nil {
-		return nil, err
-	}
-	postImagesRows, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[PostImages])
-	if collectRowsErr != nil {
-		return nil, collectRowsErr
-	}
-	return postImagesRows, nil
-}
+// type PostImages struct {
+// 	filename          string
+// 	thumbnailFilename string
+// 	boardPostId       int
+// }
+//
+// func GetPostImages(dbPool *pgxpool.Pool, postId int) ([]PostImages, error) {
+// 	const query = `
+// 		SELECT
+// 		board_post_id, filename, thumbnail_filename
+// 		FROM board_posts_images
+// 		WHERE board_post_id = $1
+// 	`
+// 	rows, err := dbPool.Query(context.Background(), query, postId)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	postImagesRows, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[PostImages])
+// 	if collectRowsErr != nil {
+// 		return nil, collectRowsErr
+// 	}
+// 	return postImagesRows, nil
+// }

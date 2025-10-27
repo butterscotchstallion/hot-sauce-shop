@@ -212,8 +212,9 @@ export default function PostsListPage() {
     return (
         <>
             {user && boardSlug && (
-                <section>
-                    <div className="flex w-full justify-end">
+                <section className="flex justify-between">
+                    {board && <h1 className="text-3xl font-bold mb-4">{board.displayName}</h1>}
+                    <div className="justify-end">
                         {userIsBoardMember ? (
                             <Button onClick={() => navigateToNewPostPage()}>
                                 <i className="pi pi-envelope mr-2"></i> Create Post
@@ -230,12 +231,14 @@ export default function PostsListPage() {
             )}
             <section className="flex justify-space-between gap-2 w-full">
                 <section className="w-3/4">
-                    <PostList
-                        posts={posts}
-                        voteMap={userVoteMap}
-                        replyMap={totalPostReplyMap}
-                        isCurrentUserBoardMod={isCurrentUserBoardMod}
-                    />
+                    {posts.length > 0 ? (
+                        <PostList
+                            posts={posts}
+                            voteMap={userVoteMap}
+                            replyMap={totalPostReplyMap}
+                            isCurrentUserBoardMod={isCurrentUserBoardMod}
+                        />
+                    ) : "No posts available."}
                 </section>
                 <section className="w-1/4 mt-4">
                     {boardSlug ? (
