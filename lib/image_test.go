@@ -10,6 +10,8 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 )
 
+const ImagePath = "../testdata"
+
 func getImageWidthAndHeight(imagePath string) (width int, height int) {
 	reader, openErr := os.Open(imagePath)
 	if openErr != nil {
@@ -25,19 +27,16 @@ func getImageWidthAndHeight(imagePath string) (width int, height int) {
 	return w, h
 }
 
-func TestCreateThumbnail(t *testing.T) {
-	const imagePath = "../testdata"
-	originalFilename := fmt.Sprintf("%s/purple.jpg", imagePath)
+func createThumbnail(t *testing.T, originalFilename string) {
 	destinationFilename := GetThumbnailFilename(originalFilename)
 
+	// If thumbnail exists already, remove it
 	_, existsErr := os.Stat(destinationFilename)
-	if existsErr != nil {
-		t.Error("failed to check destination thumbnail")
-	}
-
-	removeErr := os.Remove(destinationFilename)
-	if removeErr != nil {
-		t.Error(removeErr)
+	if existsErr == nil {
+		removeErr := os.Remove(destinationFilename)
+		if removeErr != nil {
+			t.Error(removeErr)
+		}
 	}
 
 	mimeType, mimeTypeErr := mimetype.DetectFile(originalFilename)
@@ -60,4 +59,19 @@ func TestCreateThumbnail(t *testing.T) {
 	if w != ThumbnailMaxWidth {
 		t.Error("destination thumbnail width should be ", ThumbnailMaxWidth)
 	}
+}
+
+func TestCreateThumbnailJpg(t *testing.T) {
+	originalFilename := fmt.Sprintf("%s/purple.jpg", ImagePath)
+	createThumbnail(t, originalFilename)
+}
+
+func TestCreateThumbnailPng(t *testing.T) {
+	originalFilename := fmt.Sprintf("%s/red.png", ImagePath)
+	createThumbnail(t, originalFilename)
+}
+
+func TestCreateThumbnailGif(t *testing.T) {
+	originalFilename := fmt.Sprintf("%s/samurai-doge.gif", ImagePath)
+	createThumbnail(t, originalFilename)
 }
