@@ -35,29 +35,29 @@ func createThumbnail(t *testing.T, originalFilename string) {
 	if existsErr == nil {
 		removeErr := os.Remove(destinationFilename)
 		if removeErr != nil {
-			t.Error(removeErr)
+			t.Fatal(removeErr)
 		}
 	}
 
 	mimeType, mimeTypeErr := mimetype.DetectFile(originalFilename)
 	if mimeTypeErr != nil {
-		t.Error(mimeTypeErr)
+		t.Fatal(mimeTypeErr)
 	}
 
 	thumbnailErr := CreateThumbnail(originalFilename, destinationFilename, mimeType.String())
 	if thumbnailErr != nil {
-		t.Error(thumbnailErr)
+		t.Fatal(thumbnailErr)
 	}
 
 	_, err := os.Stat(destinationFilename)
 	if err != nil {
-		t.Error("failed to create destination thumbnail")
+		t.Fatal("failed to create destination thumbnail")
 	}
 
 	w, _ := getImageWidthAndHeight(destinationFilename)
 
 	if w != ThumbnailMaxWidth {
-		t.Error("destination thumbnail width should be ", ThumbnailMaxWidth)
+		t.Fatal("destination thumbnail width should be ", ThumbnailMaxWidth)
 	}
 }
 
