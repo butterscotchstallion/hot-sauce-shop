@@ -224,7 +224,14 @@ func GetPostDetail(dbPool *pgxpool.Pool, boardSlug string, postSlug string) (Boa
 			u.slug AS created_by_user_slug,
 			b.display_name AS boardName,
 			b.slug AS boardSlug,
-			COALESCE((SELECT SUM(v.value) FROM votes v WHERE v.post_id = bp.id), 0) AS voteSum
+			COALESCE((SELECT SUM(v.value) FROM votes v WHERE v.post_id = bp.id), 0) AS voteSum,
+			COALESCE((
+				SELECT bpi.thumbnail_filename
+			  	FROM board_posts_images bpi
+			  	WHERE bpi.board_post_id = bp.id
+			  	ORDER BY bpi.id DESC
+			  	LIMIT 1
+			), '') AS thumbnail_filename
 		FROM board_posts bp
 		JOIN users u on u.id = bp.created_by_user_id
 		JOIN boards b ON b.id = bp.board_id

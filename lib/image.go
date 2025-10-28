@@ -3,11 +3,13 @@ package lib
 import (
 	"fmt"
 	"image"
+	"image/gif"
+	"image/jpeg"
 	"image/png"
 	"log/slog"
 	"os"
 
-	"golang.org/x/image/draw"
+	"github.com/nfnt/resize"
 )
 
 func GetExtensionByMimeType(mimeType string) (string, error) {
@@ -18,43 +20,46 @@ func GetExtensionByMimeType(mimeType string) (string, error) {
 		return "jpeg", nil
 	case "image/gif":
 		return "gif", nil
+	case "image/webp":
+		return "webp", nil
 	default:
 		return "", fmt.Errorf("unknown image mime type: %v", mimeType)
 	}
 }
 
-func CreateThumbnail(originalFilename string, destinationFilename string, mimeType string, logger *slog.Logger) error {
-	logger.Info(fmt.Sprintf("Creating thumbnail from %v with filename %v", originalFilename, destinationFilename))
-
-	input, openErr := os.Open(originalFilename)
+func CreateThumbnail(originalFullPath string, destFullPath string, mimeType string, logger *slog.Logger) error {
+	input, openErr := os.Open(originalFullPath)
 	if openErr != nil {
-		logger.Error(fmt.Sprintf("Error opening %v: %v", originalFilename, openErr.Error()))
+		logger.Error(fmt.Sprintf("Error opening %v: %v", originalFullPath, openErr.Error()))
 		return openErr
 	}
 	defer input.Close()
 
-	output, createErr := os.Create(destinationFilename)
+	output, createErr := os.Create(destFullPath)
 	if createErr != nil {
-		logger.Error(fmt.Sprintf("Error creating %v: %v", destinationFilename, createErr.Error()))
+		logger.Error(fmt.Sprintf("Error creating %v: %v", destFullPath, createErr.Error()))
 		return createErr
 	}
 	defer output.Close()
 
-	// Decode the image (from PNG to image.Image):
-	src, decodeErr := png.Decode(input)
+	originalImage, _, decodeErr := image.Decode(input)
 	if decodeErr != nil {
-		logger.Error(fmt.Sprintf("Decode error: %v", decodeErr.Error()))
+		logger.Error(fmt.Sprintf("Error decoding %v: %v", originalFullPath, decodeErr.Error()))
 		return decodeErr
 	}
 
-	// Set the expected size that you want:
-	dst := image.NewRGBA(image.Rect(0, 0, src.Bounds().Max.X/2, src.Bounds().Max.Y/2))
+	newImage := resize.Resize(160, 0, originalImage, resize.Lanczos3)
 
-	// Resize:
-	draw.NearestNeighbor.Scale(dst, dst.Rect, src, src.Bounds(), draw.Over, nil)
+	var encodeErr error
+	switch mimeType {
+	case "image/png":
+		encodeErr = png.Encode(output, newImage)
+	case "image/jpeg":
+		encodeErr = jpeg.Encode(output, newImage, nil)
+	case "image/gif":
+		encodeErr = gif.Encode(output, newImage, nil)
+	}
 
-	// Encode to `output`:
-	encodeErr := png.Encode(output, dst)
 	if encodeErr != nil {
 		logger.Error(fmt.Sprintf("Encode error: %v", encodeErr.Error()))
 		return encodeErr
@@ -62,3 +67,60 @@ func CreateThumbnail(originalFilename string, destinationFilename string, mimeTy
 
 	return nil
 }
+
+// func CreateThumbnail(originalFullPath string, destFullPath string, mimeType string, logger *slog.Logger) error {
+// 	logger.Info(fmt.Sprintf("Creating thumbnail from %v with filename %v", originalFullPath, destFullPath))
+//
+// 	input, openErr := os.Open(originalFullPath)
+// 	if openErr != nil {
+// 		logger.Error(fmt.Sprintf("Error opening %v: %v", originalFullPath, openErr.Error()))
+// 		return openErr
+// 	}
+// 	defer input.Close()
+//
+// 	output, createErr := os.Create(destFullPath)
+// 	if createErr != nil {
+// 		logger.Error(fmt.Sprintf("Error creating %v: %v", destFullPath, createErr.Error()))
+// 		return createErr
+// 	}
+// 	defer output.Close()
+//
+// 	var decodeErr error
+// 	var src image.Image
+// 	switch mimeType {
+// 	case "image/png":
+// 		src, decodeErr = png.Decode(input)
+// 	case "image/jpeg":
+// 		src, decodeErr = jpeg.Decode(input)
+// 	case "image/gif":
+// 		src, decodeErr = gif.Decode(input)
+// 	default:
+// 		return errors.New("unknown image mime type")
+// 	}
+// 	if decodeErr != nil {
+// 		logger.Error(fmt.Sprintf("Decode error: %v", decodeErr.Error()))
+// 		return decodeErr
+// 	}
+//
+// 	width := src.Bounds().Max.X / 2
+// 	height := src.Bounds().Max.Y / 2
+// 	dst := image.NewRGBA(image.Rect(0, 0, width, height))
+// 	draw.NearestNeighbor.Scale(dst, dst.Rect, src, src.Bounds(), draw.Over, nil)
+//
+// 	var encodeErr error
+// 	switch mimeType {
+// 	case "image/png":
+// 		encodeErr = png.Encode(output, dst)
+// 	case "image/jpeg":
+// 		encodeErr = jpeg.Encode(output, dst, nil)
+// 	case "image/gif":
+// 		encodeErr = gif.Encode(output, dst, nil)
+// 	}
+//
+// 	if encodeErr != nil {
+// 		logger.Error(fmt.Sprintf("Encode error: %v", encodeErr.Error()))
+// 		return encodeErr
+// 	}
+//
+// 	return nil
+// }

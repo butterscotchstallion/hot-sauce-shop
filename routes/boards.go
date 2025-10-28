@@ -330,16 +330,20 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 		}
 
 		type SavedPostImageInfo struct {
-			filename string
-			mimeType string
+			filename          string
+			fullImagePath     string
+			thumbnailFilename string
+			thumbnailFullPath string
+			mimeType          string
 		}
 
 		// Add post images
 		postImagePath := "ui/src/public/images/posts/"
 		var savedPostImageInfo []SavedPostImageInfo
 		postImages := newPost.PostImages
+		var extension string
 		for index, postImage := range postImages {
-			var extension = filepath.Ext(postImage.Filename)
+			extension = filepath.Ext(postImage.Filename)
 			postImageFilename := fmt.Sprintf("%s-%v%s", newPost.Slug, index, extension)
 			fullImagePath := postImagePath + postImageFilename
 
@@ -357,26 +361,31 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			}
 			logger.Info(fmt.Sprintf("%v has mime type %v", postImagePath, mimeType.String()))
 
+			// Assemble image info for use with AddPostImages/thumbnails
 			logger.Info(fmt.Sprintf("Post image saved: %v", postImageFilename))
+			extension = filepath.Ext(postImageFilename)
+			thumbnailFilename := fmt.Sprintf("%s_thumbnail%s", postImageFilename, extension)
 			savedPostImageInfo = append(savedPostImageInfo, SavedPostImageInfo{
-				filename: postImageFilename,
-				mimeType: mimeType.String(),
+				filename:          postImageFilename,
+				fullImagePath:     fullImagePath,
+				thumbnailFilename: thumbnailFilename,
+				thumbnailFullPath: postImagePath + thumbnailFilename,
+				mimeType:          mimeType.String(),
 			})
 		}
 
+		// Iterate successfully saved images, and add to DB/thumbnail
 		for _, imageInfo := range savedPostImageInfo {
-			var extension = filepath.Ext(imageInfo.filename)
-			thumbnailFilename := fmt.Sprintf("%s_thumbnail%s", imageInfo, extension)
-			addPostImagesErr := lib.AddPostImages(dbPool, newPostId, imageInfo.filename, thumbnailFilename)
+			addPostImagesErr := lib.AddPostImages(dbPool, newPostId, imageInfo.filename, imageInfo.thumbnailFilename)
 			if addPostImagesErr != nil {
 				logger.Error(fmt.Sprintf("Error adding post image to DB: %v", addPostImagesErr.Error()))
 			}
-			logger.Info(fmt.Sprintf("Post image saved to DB: %v", imageInfo))
+			logger.Info(fmt.Sprintf("Post image saved to DB: %v with mime type %v", imageInfo.filename, imageInfo.mimeType))
 
 			// Create thumbnail
 			createThumbnailErr := lib.CreateThumbnail(
-				postImagePath+imageInfo.filename,
-				postImagePath+thumbnailFilename,
+				imageInfo.fullImagePath,
+				imageInfo.thumbnailFullPath,
 				imageInfo.mimeType,
 				logger,
 			)
