@@ -364,7 +364,7 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			// Assemble image info for use with AddPostImages/thumbnails
 			logger.Info(fmt.Sprintf("Post image saved: %v", postImageFilename))
 			extension = filepath.Ext(postImageFilename)
-			thumbnailFilename := fmt.Sprintf("%s_thumbnail%s", postImageFilename, extension)
+			thumbnailFilename := lib.GetThumbnailFilename(postImageFilename)
 			savedPostImageInfo = append(savedPostImageInfo, SavedPostImageInfo{
 				filename:          postImageFilename,
 				fullImagePath:     fullImagePath,
@@ -387,7 +387,6 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 				imageInfo.fullImagePath,
 				imageInfo.thumbnailFullPath,
 				imageInfo.mimeType,
-				logger,
 			)
 			if createThumbnailErr != nil {
 				logger.Error(fmt.Sprintf("Error creating thumbnail: %v", createThumbnailErr.Error()))

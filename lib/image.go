@@ -6,11 +6,14 @@ import (
 	"image/gif"
 	"image/jpeg"
 	"image/png"
-	"log/slog"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/nfnt/resize"
 )
+
+const ThumbnailMaxWidth = 160
 
 func GetExtensionByMimeType(mimeType string) (string, error) {
 	switch mimeType {
@@ -27,28 +30,34 @@ func GetExtensionByMimeType(mimeType string) (string, error) {
 	}
 }
 
-func CreateThumbnail(originalFullPath string, destFullPath string, mimeType string, logger *slog.Logger) error {
+func GetThumbnailFilename(originalFilename string) string {
+	extension := filepath.Ext(originalFilename)
+	return fmt.Sprintf(
+		"%s_thumbnail%s",
+		strings.TrimSuffix(originalFilename, extension),
+		extension,
+	)
+}
+
+func CreateThumbnail(originalFullPath string, destFullPath string, mimeType string) error {
 	input, openErr := os.Open(originalFullPath)
 	if openErr != nil {
-		logger.Error(fmt.Sprintf("Error opening %v: %v", originalFullPath, openErr.Error()))
-		return openErr
+		return fmt.Errorf("error opening %v: %v", originalFullPath, openErr.Error())
 	}
 	defer input.Close()
 
 	output, createErr := os.Create(destFullPath)
 	if createErr != nil {
-		logger.Error(fmt.Sprintf("Error creating %v: %v", destFullPath, createErr.Error()))
-		return createErr
+		return fmt.Errorf("error creating %v: %v", destFullPath, createErr.Error())
 	}
 	defer output.Close()
 
 	originalImage, _, decodeErr := image.Decode(input)
 	if decodeErr != nil {
-		logger.Error(fmt.Sprintf("Error decoding %v: %v", originalFullPath, decodeErr.Error()))
-		return decodeErr
+		return fmt.Errorf("error decoding %v: %v", originalFullPath, decodeErr.Error())
 	}
 
-	newImage := resize.Resize(160, 0, originalImage, resize.Lanczos3)
+	newImage := resize.Resize(ThumbnailMaxWidth, 0, originalImage, resize.Lanczos3)
 
 	var encodeErr error
 	switch mimeType {
@@ -61,8 +70,7 @@ func CreateThumbnail(originalFullPath string, destFullPath string, mimeType stri
 	}
 
 	if encodeErr != nil {
-		logger.Error(fmt.Sprintf("Encode error: %v", encodeErr.Error()))
-		return encodeErr
+		return fmt.Errorf("encode error: %v", encodeErr.Error())
 	}
 
 	return nil
