@@ -12,6 +12,7 @@ import {getPostDetail, pinPost} from "./BoardsService.ts";
 import {Menu} from "primereact/menu";
 import {Toast} from "primereact/toast";
 import {MenuItem} from "primereact/menuitem";
+import {Image} from 'primereact/image';
 
 interface IBoardPostProps {
     boardPost: IBoardPost;
@@ -141,7 +142,7 @@ export default function BoardPost({boardPost, voteMap, replyMap, isCurrentUserBo
      */
     useEffect(() => {
         setPost(boardPost);
-
+        
         if (boardPost.thumbnailFilename) {
             postImagePath.current = `/images/posts/${boardPost.thumbnailFilename}`;
         }
@@ -176,7 +177,13 @@ export default function BoardPost({boardPost, voteMap, replyMap, isCurrentUserBo
                   className="mb-4">
                 <div>
                     <div className="flex flex-column">
-                        <img src={postImagePath.current} alt={post.title}/>
+                        <Image
+                            src={postImagePath.current}
+                            zoomSrc={postImagePath.current}
+                            alt="Post Image"
+                            width={post.thumbnailWidth}
+                            height={post.thumbnailHeight}
+                            preview/>
                         <div className="ml-6 min-h-[2rem]">
                             {post.postText}
                         </div>

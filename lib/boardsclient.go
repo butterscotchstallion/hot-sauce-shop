@@ -42,6 +42,8 @@ type BoardPost struct {
 	VoteSum           int        `json:"voteSum"`
 	IsPinned          bool       `json:"isPinned"`
 	ThumbnailFilename string     `json:"thumbnailFilename" db:"thumbnail_filename"`
+	ThumbnailWidth    *float32   `json:"thumbnailWidth" db:"thumbnail_width"`
+	ThumbnailHeight   *float32   `json:"thumbnailHeight" db:"thumbnail_height"`
 }
 
 type AddPostRequest struct {
@@ -50,6 +52,16 @@ type AddPostRequest struct {
 	PostText   string                  `json:"postText" form:"postText" binding:"required"`
 	PostImages []*multipart.FileHeader `json:"postImages" form:"postImages"`
 	Slug       string                  `json:"slug" form:"slug"`
+}
+
+type SavedPostImageInfo struct {
+	Filename             string
+	FullImagePath        string
+	ThumbnailFilename    string
+	ThumbnailFullPath    string
+	MimeType             string
+	ImageWidthHeight     ImageWidthHeight
+	ThumbnailWidthHeight ImageWidthHeight
 }
 
 func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
@@ -92,6 +104,16 @@ func getPostsQuery(whereClause string) string {
 			  	ORDER BY bpi.id DESC
 			  	LIMIT 1
 			), '') AS thumbnail_filename,
+			(SELECT bpi.thumbnail_width
+			FROM board_posts_images bpi
+			WHERE bpi.board_post_id = bp.id
+			ORDER BY bpi.id DESC
+			LIMIT 1) AS thumbnail_width,
+		    (SELECT bpi.thumbnail_height
+			FROM board_posts_images bpi
+			WHERE bpi.board_post_id = bp.id
+			ORDER BY bpi.id DESC
+			LIMIT 1) AS thumbnail_height,
 			COALESCE((SELECT SUM(v.value) FROM votes v WHERE v.post_id = bp.id), 0) AS voteSum
 		FROM board_posts bp
 		JOIN users u on u.id = bp.created_by_user_id
@@ -231,7 +253,17 @@ func GetPostDetail(dbPool *pgxpool.Pool, boardSlug string, postSlug string) (Boa
 			  	WHERE bpi.board_post_id = bp.id
 			  	ORDER BY bpi.id DESC
 			  	LIMIT 1
-			), '') AS thumbnail_filename
+			), '') AS thumbnail_filename,
+		    (SELECT bpi.thumbnail_width
+			FROM board_posts_images bpi
+			WHERE bpi.board_post_id = bp.id
+			ORDER BY bpi.id DESC
+			LIMIT 1) AS thumbnail_width,
+		    (SELECT bpi.thumbnail_height
+			FROM board_posts_images bpi
+			WHERE bpi.board_post_id = bp.id
+			ORDER BY bpi.id DESC
+			LIMIT 1) AS thumbnail_height
 		FROM board_posts bp
 		JOIN users u on u.id = bp.created_by_user_id
 		JOIN boards b ON b.id = bp.board_id
@@ -349,12 +381,32 @@ func AddPost(dbPool *pgxpool.Pool, post AddPostRequest, userId int, boardId int)
 	return lastInsertId, nil
 }
 
-func AddPostImages(dbPool *pgxpool.Pool, postId int, filename string, thumbnailFilename string) error {
+func AddPostImages(dbPool *pgxpool.Pool, postId int, imageInfo SavedPostImageInfo) error {
 	const query = `
-		INSERT INTO board_posts_images (filename, board_post_id, thumbnail_filename) 
-		VALUES ($1, $2, $3)
+		INSERT INTO board_posts_images (
+			filename,
+		    board_post_id,
+		    thumbnail_filename,
+		    mime_type,
+		    orig_width,
+		    orig_height,
+		    thumbnail_width,
+		    thumbnail_height
+		)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 	`
-	_, err := dbPool.Exec(context.Background(), query, filename, postId, thumbnailFilename)
+	_, err := dbPool.Exec(
+		context.Background(),
+		query,
+		imageInfo.Filename,
+		postId,
+		imageInfo.ThumbnailFilename,
+		imageInfo.MimeType,
+		imageInfo.ImageWidthHeight.Width,
+		imageInfo.ImageWidthHeight.Height,
+		imageInfo.ThumbnailWidthHeight.Width,
+		imageInfo.ThumbnailWidthHeight.Height,
+	)
 	if err != nil {
 		return err
 	}

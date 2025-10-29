@@ -15,4 +15,6 @@ export interface IBoardPost {
     slug: string;
     voteSum: number;
     isPinned: boolean;
+    thumbnailWidth: number;
+    thumbnailHeight: number;
 }

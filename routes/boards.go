@@ -329,23 +329,17 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			return
 		}
 
-		type SavedPostImageInfo struct {
-			filename          string
-			fullImagePath     string
-			thumbnailFilename string
-			thumbnailFullPath string
-			mimeType          string
-		}
-
 		// Add post images
 		postImagePath := "ui/src/public/images/posts/"
-		var savedPostImageInfo []SavedPostImageInfo
+		var savedPostImageInfo []lib.SavedPostImageInfo
 		postImages := newPost.PostImages
 		var extension string
 		for index, postImage := range postImages {
 			extension = filepath.Ext(postImage.Filename)
 			postImageFilename := fmt.Sprintf("%s-%v%s", newPost.Slug, index, extension)
 			fullImagePath := postImagePath + postImageFilename
+			thumbnailFilename := lib.GetThumbnailFilename(postImageFilename)
+			thumbnailFullPath := postImagePath + thumbnailFilename
 
 			saveFileErr := c.SaveUploadedFile(postImage, fullImagePath)
 			if saveFileErr != nil {
@@ -361,36 +355,57 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			}
 			logger.Info(fmt.Sprintf("%v has mime type %v", postImagePath, mimeType.String()))
 
+			imageWidthHeight, imageWidthHeightErr := lib.GetImageWidthAndHeight(fullImagePath)
+			if imageWidthHeightErr != nil {
+				logger.Error(fmt.Sprintf("Error getting image width: %v", imageWidthHeightErr.Error()))
+				continue
+			}
+
 			// Assemble image info for use with AddPostImages/thumbnails
 			logger.Info(fmt.Sprintf("Post image saved: %v", postImageFilename))
 			extension = filepath.Ext(postImageFilename)
-			thumbnailFilename := lib.GetThumbnailFilename(postImageFilename)
-			savedPostImageInfo = append(savedPostImageInfo, SavedPostImageInfo{
-				filename:          postImageFilename,
-				fullImagePath:     fullImagePath,
-				thumbnailFilename: thumbnailFilename,
-				thumbnailFullPath: postImagePath + thumbnailFilename,
-				mimeType:          mimeType.String(),
+
+			savedPostImageInfo = append(savedPostImageInfo, lib.SavedPostImageInfo{
+				Filename:          postImageFilename,
+				FullImagePath:     fullImagePath,
+				ThumbnailFilename: thumbnailFilename,
+				ThumbnailFullPath: thumbnailFullPath,
+				MimeType:          mimeType.String(),
+				ImageWidthHeight:  imageWidthHeight,
 			})
 		}
 
 		// Iterate successfully saved images, and add to DB/thumbnail
 		for _, imageInfo := range savedPostImageInfo {
-			addPostImagesErr := lib.AddPostImages(dbPool, newPostId, imageInfo.filename, imageInfo.thumbnailFilename)
-			if addPostImagesErr != nil {
-				logger.Error(fmt.Sprintf("Error adding post image to DB: %v", addPostImagesErr.Error()))
-			}
-			logger.Info(fmt.Sprintf("Post image saved to DB: %v with mime type %v", imageInfo.filename, imageInfo.mimeType))
-
 			// Create thumbnail
 			createThumbnailErr := lib.CreateThumbnail(
-				imageInfo.fullImagePath,
-				imageInfo.thumbnailFullPath,
-				imageInfo.mimeType,
+				imageInfo.FullImagePath,
+				imageInfo.ThumbnailFullPath,
+				imageInfo.MimeType,
 			)
 			if createThumbnailErr != nil {
 				logger.Error(fmt.Sprintf("Error creating thumbnail: %v", createThumbnailErr.Error()))
 			}
+
+			thumbWidthHeight, thumbWidthHeightErr := lib.GetImageWidthAndHeight(imageInfo.ThumbnailFullPath)
+			if thumbWidthHeightErr != nil {
+				logger.Error(fmt.Sprintf("Error getting thumbnail width: %v", thumbWidthHeightErr.Error()))
+				continue
+			}
+
+			imageInfo.ThumbnailWidthHeight = thumbWidthHeight
+
+			addPostImagesErr := lib.AddPostImages(dbPool, newPostId, imageInfo)
+			if addPostImagesErr != nil {
+				logger.Error(fmt.Sprintf("Error adding post image to DB: %v", addPostImagesErr.Error()))
+			}
+			logger.Info(
+				fmt.Sprintf(
+					"Post image saved to DB: %v with mime type %v",
+					imageInfo.Filename,
+					imageInfo.MimeType,
+				),
+			)
 		}
 
 		c.JSON(http.StatusCreated, gin.H{

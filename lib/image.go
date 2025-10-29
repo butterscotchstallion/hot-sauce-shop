@@ -30,6 +30,29 @@ func GetExtensionByMimeType(mimeType string) (string, error) {
 	}
 }
 
+type ImageWidthHeight struct {
+	Height int
+	Width  int
+}
+
+func GetImageWidthAndHeight(imagePath string) (ImageWidthHeight, error) {
+	reader, openErr := os.Open(imagePath)
+	if openErr != nil {
+		return ImageWidthHeight{}, openErr
+	}
+	m, _, err := image.Decode(reader)
+	if err != nil {
+		return ImageWidthHeight{}, openErr
+	}
+	bounds := m.Bounds()
+	w := bounds.Dx()
+	h := bounds.Dy()
+	return ImageWidthHeight{
+		Width:  w,
+		Height: h,
+	}, nil
+}
+
 func GetThumbnailFilename(originalFilename string) string {
 	extension := filepath.Ext(originalFilename)
 	return fmt.Sprintf(

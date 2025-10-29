@@ -2,8 +2,6 @@ package lib
 
 import (
 	"fmt"
-	"image"
-	"log"
 	"os"
 	"testing"
 
@@ -11,21 +9,6 @@ import (
 )
 
 const ImagePath = "../testdata"
-
-func getImageWidthAndHeight(imagePath string) (width int, height int) {
-	reader, openErr := os.Open(imagePath)
-	if openErr != nil {
-		log.Fatal(openErr)
-	}
-	m, _, err := image.Decode(reader)
-	if err != nil {
-		log.Fatal(err)
-	}
-	bounds := m.Bounds()
-	w := bounds.Dx()
-	h := bounds.Dy()
-	return w, h
-}
 
 func createThumbnail(t *testing.T, originalFilename string) {
 	destinationFilename := GetThumbnailFilename(originalFilename)
@@ -54,9 +37,8 @@ func createThumbnail(t *testing.T, originalFilename string) {
 		t.Fatal("failed to create destination thumbnail")
 	}
 
-	w, _ := getImageWidthAndHeight(destinationFilename)
-
-	if w != ThumbnailMaxWidth {
+	imageWidthHeight, _ := GetImageWidthAndHeight(destinationFilename)
+	if imageWidthHeight.Width != ThumbnailMaxWidth {
 		t.Fatal("destination thumbnail width should be ", ThumbnailMaxWidth)
 	}
 }
