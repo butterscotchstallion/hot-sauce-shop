@@ -43,11 +43,22 @@ func Session(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			})
 		}
 
+		userLevelInfo, userLevelInfoErr := lib.GetUserLevelInfoByUserId(dbPool, user.Id)
+		if userLevelInfoErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching user level info: %v", userLevelInfoErr.Error()))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": userLevelInfoErr.Error(),
+			})
+			return
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"status": "OK",
 			"results": gin.H{
-				"user":  user,
-				"roles": roles,
+				"user":          user,
+				"roles":         roles,
+				"userLevelInfo": userLevelInfo,
 			},
 		})
 	})

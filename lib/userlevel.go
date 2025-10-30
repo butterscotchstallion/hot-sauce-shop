@@ -17,6 +17,11 @@ const (
 	ActivityImagePost
 )
 
+type UserLevelInfo struct {
+	Level      int `json:"level"`
+	Experience int `json:"experience"`
+}
+
 func AddExperienceToUserId(dbPool *pgxpool.Pool, experience int, userId int) error {
 	const query = `
 		INSERT INTO user_experience (user_id, experience, updated_at) VALUES ($1, $2)

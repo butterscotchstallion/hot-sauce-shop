@@ -9,7 +9,7 @@ import {setCartItems, setCartSubtotal, setIdQuantityMap} from "../components/Car
 import {Subscription} from "rxjs";
 import Cookies from "js-cookie";
 import {getUserDetailsBySessionId} from "../components/User/UserService.ts";
-import {setSignedIn, setUser, setUserRoles} from "../components/User/User.slice.ts";
+import {setSignedIn, setUser, setUserExperience, setUserLevel, setUserRoles} from "../components/User/User.slice.ts";
 import {IUserDetails} from "../components/User/IUserDetails.ts";
 import {ErrorBoundary} from "react-error-boundary";
 import {Card} from "primereact/card";
@@ -30,6 +30,8 @@ export default function BaseLayout({children}: Props) {
                     dispatch(setUser(userDetails.user));
                     dispatch(setUserRoles(userDetails.roles));
                     dispatch(setSignedIn(true));
+                    dispatch(setUserLevel(userDetails.userLevelInfo.level));
+                    dispatch(setUserExperience(userDetails.userLevelInfo.experience));
                 },
                 error: () => {
                     console.error('Error loading user');

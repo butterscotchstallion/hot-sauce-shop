@@ -5,6 +5,7 @@ import {NavLink} from "react-router";
 import CartSidebar from "../Cart/CartSidebar.tsx";
 import ProductAutocomplete from "../Products/ProductAutocomplete.tsx";
 import UserAvatarMenu from "../User/UserAvatarMenu.tsx";
+import {UserLevel} from "../User/UserLevel.tsx";
 
 export default function NavigationMenu(): ReactElement {
     const itemRenderer: (item: MenuItem) => ReactElement = (item: MenuItem) => (
@@ -42,6 +43,7 @@ export default function NavigationMenu(): ReactElement {
         <div className="flex align-items-center gap-4 pr-4">
             <ProductAutocomplete/>
             <CartSidebar/>
+            <UserLevel/>
             <UserAvatarMenu/>
         </div>
     );

@@ -1,6 +1,7 @@
 import {IUser} from "./IUser.ts";
 import {IUserRole} from "./IUserRole.ts";
 import {IBoard} from "../Boards/IBoard.ts";
+import {IUserLevelInfo} from "./IUserLevelInfo.ts";
 
 export interface IUserDetails {
     user: IUser;
@@ -9,4 +10,5 @@ export interface IUserDetails {
     postVoteSum: number;
     userPostVoteSum: number;
     userModeratedBoards: IBoard[];
+    userLevelInfo: IUserLevelInfo;
 }

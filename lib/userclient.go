@@ -245,3 +245,20 @@ func GetUserModeratedBoards(dbPool *pgxpool.Pool, userId int) ([]Board, error) {
 	}
 	return boards, nil
 }
+
+func GetUserLevelInfoByUserId(dbPool *pgxpool.Pool, userId int) (UserLevelInfo, error) {
+	var experience int
+	const query = `SELECT experience FROM user_experience WHERE user_id = $1`
+	err := dbPool.QueryRow(context.Background(), query, userId).Scan(&experience)
+	if err != nil {
+		return UserLevelInfo{}, err
+	}
+	var level = 1
+	if experience > 0 {
+		level = GetUserLevelByExperience(experience)
+	}
+	return UserLevelInfo{
+		Level:      level,
+		Experience: experience,
+	}, nil
+}

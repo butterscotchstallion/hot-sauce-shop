@@ -71,10 +71,7 @@ export function getUserDetailsBySessionId(): Subject<IUserSessionDetails> {
         if (res.ok) {
             res.json().then(resp => {
                 if (resp?.status === "OK") {
-                    user$.next({
-                        user: resp?.results.user,
-                        roles: resp.results.roles
-                    });
+                    user$.next(resp.results);
                 } else {
                     user$.error(resp?.message || "Unknown error");
                 }

@@ -6,12 +6,16 @@ interface IInitialUserState {
     isSignedIn: boolean;
     user: IUser | null;
     roles: IUserRole[];
+    level: number;
+    experience: number;
 }
 
 const initialState: IInitialUserState = {
     isSignedIn: false,
     user: null,
-    roles: []
+    roles: [],
+    level: 1,
+    experience: 0,
 }
 
 export const userSlice: Slice = createSlice({
@@ -30,9 +34,15 @@ export const userSlice: Slice = createSlice({
         },
         setUserRoles: (state, action) => {
             state.roles = action.payload;
+        },
+        setUserLevel: (state, action) => {
+            state.level = action.payload;
+        },
+        setUserExperience: (state, action) => {
+            state.experience = action.payload;
         }
     }
 })
 
-export const {setSignedIn, setUser, setSignedOut, setUserRoles} = userSlice.actions;
+export const {setSignedIn, setUser, setSignedOut, setUserRoles, setUserExperience, setUserLevel} = userSlice.actions;
 export default userSlice.reducer;
