@@ -247,7 +247,7 @@ func GetUserModeratedBoards(dbPool *pgxpool.Pool, userId int) ([]Board, error) {
 }
 
 func GetUserLevelInfoByUserId(dbPool *pgxpool.Pool, userId int) (UserLevelInfo, error) {
-	var experience int
+	var experience float64
 	const query = `SELECT experience FROM user_experience WHERE user_id = $1`
 	err := dbPool.QueryRow(context.Background(), query, userId).Scan(&experience)
 	if err != nil {
@@ -257,8 +257,12 @@ func GetUserLevelInfoByUserId(dbPool *pgxpool.Pool, userId int) (UserLevelInfo, 
 	if experience > 0 {
 		level = GetUserLevelByExperience(experience)
 	}
+
+	percentage := GetPercentageOfLevelComplete(experience, level)
+
 	return UserLevelInfo{
-		Level:      level,
-		Experience: experience,
+		Level:                     level,
+		Experience:                experience,
+		PercentageOfLevelComplete: percentage,
 	}, nil
 }

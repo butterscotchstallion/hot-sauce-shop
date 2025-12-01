@@ -1,24 +1,27 @@
 # Caliente Corner
 - E-commerce site that sells a variety of delicious hot sauces
-
 # Features
 - Product list/view with ratings, reviews, and search
 - Order checkout page with shipping options and coupons
 - Admin area with management of inventory and users
-- Message board
+- Fully-featured message board with sub-boards, permissions, and moderator capabilities
+- Image uploading and resizing for thumbnails
+- User levels based on activity, which grant new permissions based on level
 - Custom user system with session management
 - Role-based access control
 - Custom error page
+- Caching for faster response times
 - And more!
 
 # Tech Stack
 - Go, Gin
-- Postgres
+- Postgres running in Docker
 - React, Typescript, PrimeReact, Redux, Tailwind, RxJS
 
 # Running the application
 - Front end: `cd ui/src; npm run dev`
 - API run and watch: `air -c .air.toml`
+- Tests: `go test lib`
 
 # Screenshots
 

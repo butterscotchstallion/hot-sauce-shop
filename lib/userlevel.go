@@ -18,8 +18,9 @@ const (
 )
 
 type UserLevelInfo struct {
-	Level      int `json:"level"`
-	Experience int `json:"experience"`
+	Level                     int     `json:"level"`
+	Experience                float64 `json:"experience"`
+	PercentageOfLevelComplete float64 `json:"percentage_of_level_complete"`
 }
 
 func AddExperienceToUserId(dbPool *pgxpool.Pool, experience int, userId int) error {
@@ -67,17 +68,17 @@ func GetExperienceByActivityType(activityType int) (int, error) {
 	return val, nil
 }
 
-func GetLevelExperienceMap() map[int]int {
-	userLevels := make(map[int]int)
+func GetLevelExperienceMap() map[int]float64 {
+	userLevels := make(map[int]float64)
 	for level := range MaxLevel {
-		if level >= 1 {
-			userLevels[level] = (CommentExperience * ActivitiesRequiredPerLevel) * level
+		if level > 0 {
+			userLevels[level] = (CommentExperience * ActivitiesRequiredPerLevel) * float64(level)
 		}
 	}
 	return userLevels
 }
 
-func GetUserLevelByExperience(experience int) int {
+func GetUserLevelByExperience(experience float64) int {
 	levelExperienceMap := GetLevelExperienceMap()
 	for level := range levelExperienceMap {
 		if experience >= levelExperienceMap[level] {
@@ -85,4 +86,10 @@ func GetUserLevelByExperience(experience int) int {
 		}
 	}
 	return 1
+}
+
+func GetPercentageOfLevelComplete(experience float64, level int) float64 {
+	levelExperienceMap := GetLevelExperienceMap()
+	levelExperience := levelExperienceMap[level]
+	return experience / levelExperience
 }
