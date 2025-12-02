@@ -20,7 +20,7 @@ const (
 type UserLevelInfo struct {
 	Level                     int     `json:"level"`
 	Experience                float64 `json:"experience"`
-	PercentageOfLevelComplete float64 `json:"percentage_of_level_complete"`
+	PercentageOfLevelComplete float64 `json:"percentageOfLevelComplete"`
 }
 
 func AddExperienceToUserId(dbPool *pgxpool.Pool, experience int, userId int) error {
