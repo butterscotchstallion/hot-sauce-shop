@@ -6,6 +6,7 @@ import CartSidebar from "../Cart/CartSidebar.tsx";
 import ProductAutocomplete from "../Products/ProductAutocomplete.tsx";
 import UserAvatarMenu from "../User/UserAvatarMenu.tsx";
 import {UserLevel} from "../User/UserLevel.tsx";
+import {WS} from "../Shared/WS.tsx";
 
 export default function NavigationMenu(): ReactElement {
     const itemRenderer: (item: MenuItem) => ReactElement = (item: MenuItem) => (
@@ -40,10 +41,11 @@ export default function NavigationMenu(): ReactElement {
         <NavLink to="/">Caliente Corner</NavLink>
     </div>;
     const end = (
-        <div className="flex align-items-center gap-4 pr-4">
+        <div className="flex align-items-center align-middle gap-4 pr-4">
             <ProductAutocomplete/>
             <CartSidebar/>
             <UserLevel/>
+            <div style={{"lineHeight": 2.5}}><WS/></div>
             <UserAvatarMenu/>
         </div>
     );
