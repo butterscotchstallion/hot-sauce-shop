@@ -354,7 +354,7 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 				logger.Error(fmt.Sprintf("Error detecting file type: %v", mimeTypeErr.Error()))
 				continue
 			}
-			logger.Info(fmt.Sprintf("%v has mime type %v", postImagePath, mimeType.String()))
+			logger.Info(fmt.Sprintf("%v has mime type %v", fullImagePath, mimeType.String()))
 
 			imageWidthHeight, imageWidthHeightErr := lib.GetImageWidthAndHeight(fullImagePath)
 			if imageWidthHeightErr != nil {
@@ -409,18 +409,36 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			isImagePost = true
 		}
 
+		var updatedExperience float64
+		var addImagePostExperienceErr error
+		var addPostExperienceErr error
+		var experienceUpdated bool
 		if isImagePost {
-			addImagePostExperienceErr := lib.AddImagePostExperienceToUser(dbPool, userId)
+			updatedExperience, addImagePostExperienceErr = lib.AddImagePostExperienceToUser(dbPool, userId)
 			if addImagePostExperienceErr != nil {
 				logger.Error(fmt.Sprintf("Error adding image experience: %v", addImagePostExperienceErr.Error()))
+			} else {
+				logger.Info("Added image experience to user")
+				experienceUpdated = true
 			}
-			logger.Info("Added image experience to user")
 		} else {
-			addPostExperience := lib.AddPostExperienceToUser(dbPool, userId)
-			if addPostExperience != nil {
-				logger.Error(fmt.Sprintf("Error adding post experience: %v", addPostExperience.Error()))
+			updatedExperience, addPostExperienceErr = lib.AddPostExperienceToUser(dbPool, userId)
+			if addPostExperienceErr != nil {
+				logger.Error(fmt.Sprintf("Error adding post experience: %v", addPostExperienceErr.Error()))
+			} else {
+				logger.Info("Added post experience to user")
+				experienceUpdated = true
 			}
-			logger.Info("Added post experience to user")
+		}
+
+		if experienceUpdated {
+			lib.SendWSMessage(c, lib.WebsocketMessage{
+				MessageType: "userLevelUpdate",
+				Data: gin.H{
+					"updatedExperience": updatedExperience,
+					"updatedLevel":      lib.GetUserLevelByExperience(updatedExperience),
+				},
+			}, logger)
 		}
 
 		c.JSON(http.StatusCreated, gin.H{

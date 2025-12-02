@@ -23,30 +23,36 @@ type UserLevelInfo struct {
 	PercentageOfLevelComplete float64 `json:"percentageOfLevelComplete"`
 }
 
-func AddExperienceToUserId(dbPool *pgxpool.Pool, experience int, userId int) error {
+func AddExperienceToUserId(dbPool *pgxpool.Pool, experience int, userId int) (float64, error) {
 	const query = `
-		INSERT INTO user_experience (user_id, experience, updated_at) VALUES ($1, $2)
+		INSERT INTO user_experience (user_id, experience, updated_at) VALUES ($1, $2, NOW())
 		ON CONFLICT(user_id)
-		    DO UPDATE SET experience = experience + $2, updated_at = NOW()
+		    DO UPDATE SET experience = user_experience.experience + $2, updated_at = NOW()
+		RETURNING user_experience.experience
 	`
-	_, updateErr := dbPool.Exec(context.Background(), query, userId, experience)
+	var updatedExperience float64
+	updateErr := dbPool.QueryRow(
+		context.Background(),
+		query,
+		userId,
+		experience).Scan(&updatedExperience)
 	if updateErr != nil {
-		return updateErr
+		return 0, updateErr
 	}
-	return nil
+	return updatedExperience, nil
 }
 
-func AddCommentExperienceToUser(dbPool *pgxpool.Pool, userId int) error {
+func AddCommentExperienceToUser(dbPool *pgxpool.Pool, userId int) (float64, error) {
 	activityTypeExperienceMap := GetActivityTypeExperienceMap()
 	return AddExperienceToUserId(dbPool, activityTypeExperienceMap[ActivityComment], userId)
 }
 
-func AddPostExperienceToUser(dbPool *pgxpool.Pool, userId int) error {
+func AddPostExperienceToUser(dbPool *pgxpool.Pool, userId int) (float64, error) {
 	activityTypeExperienceMap := GetActivityTypeExperienceMap()
 	return AddExperienceToUserId(dbPool, activityTypeExperienceMap[ActivityPost], userId)
 }
 
-func AddImagePostExperienceToUser(dbPool *pgxpool.Pool, userId int) error {
+func AddImagePostExperienceToUser(dbPool *pgxpool.Pool, userId int) (float64, error) {
 	activityTypeExperienceMap := GetActivityTypeExperienceMap()
 	return AddExperienceToUserId(dbPool, activityTypeExperienceMap[ActivityImagePost], userId)
 }
