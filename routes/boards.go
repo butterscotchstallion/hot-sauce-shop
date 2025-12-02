@@ -335,10 +335,9 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 		postImagePath := "ui/src/public/images/posts/"
 		var savedPostImageInfo []lib.SavedPostImageInfo
 		postImages := newPost.PostImages
-		var extension string
 		for index, postImage := range postImages {
-			extension = filepath.Ext(postImage.Filename)
-			postImageFilename := fmt.Sprintf("%s-%v%s", newPost.Slug, index, extension)
+			originalExtension := filepath.Ext(postImage.Filename)
+			postImageFilename := fmt.Sprintf("%s-%v%s", newPost.Slug, index, originalExtension)
 			fullImagePath := postImagePath + postImageFilename
 			thumbnailFilename := lib.GetThumbnailFilename(postImageFilename)
 			thumbnailFullPath := postImagePath + thumbnailFilename
@@ -365,7 +364,6 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 
 			// Assemble image info for use with AddPostImages/thumbnails
 			logger.Info(fmt.Sprintf("Post image saved: %v", postImageFilename))
-			extension = filepath.Ext(postImageFilename)
 
 			savedPostImageInfo = append(savedPostImageInfo, lib.SavedPostImageInfo{
 				Filename:          postImageFilename,

@@ -42,6 +42,7 @@ createRoot(document.getElementById('root')!).render(
                     <Route path="boards/:slug/posts/new" element={<NewPostPage/>}/>
                     <Route path="boards/:boardSlug/posts/:postSlug" element={<PostsListPage/>}/>
                     <Route path="users/:slug" element={<UserProfilePage/>}/>
+                    <Route path="ws" element={<HomePage/>}/>
                 </Route>
                 <Route path="*" element={<Navigate to="/"/>}/>
             </Routes>
