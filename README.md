@@ -11,6 +11,7 @@
 - Role-based access control
 - Custom error page
 - Caching for faster response times
+- Real-time updates using Websockets
 - And more!
 
 # Tech Stack
