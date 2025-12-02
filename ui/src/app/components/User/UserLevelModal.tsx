@@ -31,7 +31,7 @@ export function UserLevelModal({
                 <div className="flex flex-col gap-5 justify-center m-0">
                     <div className="card">
                         <section className="flex flex-col gap-y-1">
-                            <DataTable value={userLevelDetails}>
+                            <DataTable showGridlines value={userLevelDetails}>
                                 <Column field="level" header="Level"></Column>
                                 <Column field="experience" header="Experience"></Column>
                             </DataTable>

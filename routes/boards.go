@@ -329,6 +329,8 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 			return
 		}
 
+		isImagePost := false
+
 		// Add post images
 		postImagePath := "ui/src/public/images/posts/"
 		var savedPostImageInfo []lib.SavedPostImageInfo
@@ -406,6 +408,21 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 					imageInfo.MimeType,
 				),
 			)
+			isImagePost = true
+		}
+
+		if isImagePost {
+			addImagePostExperienceErr := lib.AddImagePostExperienceToUser(dbPool, userId)
+			if addImagePostExperienceErr != nil {
+				logger.Error(fmt.Sprintf("Error adding image experience: %v", addImagePostExperienceErr.Error()))
+			}
+			logger.Info("Added image experience to user")
+		} else {
+			addPostExperience := lib.AddPostExperienceToUser(dbPool, userId)
+			if addPostExperience != nil {
+				logger.Error(fmt.Sprintf("Error adding post experience: %v", addPostExperience.Error()))
+			}
+			logger.Info("Added post experience to user")
 		}
 
 		c.JSON(http.StatusCreated, gin.H{
