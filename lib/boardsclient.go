@@ -413,26 +413,42 @@ func AddPostImages(dbPool *pgxpool.Pool, postId int, imageInfo SavedPostImageInf
 	return nil
 }
 
-// type PostImages struct {
-// 	filename          string
-// 	thumbnailFilename string
-// 	boardPostId       int
-// }
-//
-// func GetPostImages(dbPool *pgxpool.Pool, postId int) ([]PostImages, error) {
-// 	const query = `
-// 		SELECT
-// 		board_post_id, filename, thumbnail_filename
-// 		FROM board_posts_images
-// 		WHERE board_post_id = $1
-// 	`
-// 	rows, err := dbPool.Query(context.Background(), query, postId)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	postImagesRows, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[PostImages])
-// 	if collectRowsErr != nil {
-// 		return nil, collectRowsErr
-// 	}
-// 	return postImagesRows, nil
-// }
+func AddBoard(dbPool *pgxpool.Pool, slug string, displayName string, thumbnailFilename string, createdByUserId int, description string) error {
+	const query = `
+		INSERT INTO boards (
+			slug,
+			display_name,
+			created_at,
+		    thumbnail_filename,
+			created_by_user_id,
+		    description
+		)
+		VALUES ($1, $2, NOW(), $5, $6, $7)
+	`
+	_, err := dbPool.Exec(
+		context.Background(),
+		query,
+		slug,
+		displayName,
+		thumbnailFilename,
+		createdByUserId,
+		description,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteBoard(dbPool *pgxpool.Pool, boardId int) error {
+	const query = `DELETE FROM boards WHERE id = $1`
+	_, err := dbPool.Exec(
+		context.Background(),
+		query,
+		boardId,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}

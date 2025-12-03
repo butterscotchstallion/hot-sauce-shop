@@ -1,12 +1,12 @@
 package main
 
 import (
-	"context"
 	"log"
 	"log/slog"
 	"os"
 	"time"
 
+	"hotsauceshop/lib"
 	"hotsauceshop/routes"
 
 	"github.com/gin-contrib/cache/persistence"
@@ -17,22 +17,8 @@ import (
 
 var dbPool *pgxpool.Pool
 
-func initDB() {
-	var err error
-	dbUrl := os.Getenv("DATABASE_URL")
-	if len(dbUrl) == 0 {
-		log.Fatalf("ERROR: Could not get DB url!")
-	}
-
-	dbPool, err = pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
-	if err != nil {
-		log.Fatalf("Unable to connect to database: %v", err)
-	}
-	log.Println("Connected to postgres")
-}
-
 func main() {
-	initDB()
+	dbPool = lib.InitDB()
 	defer dbPool.Close()
 
 	r := gin.Default()
