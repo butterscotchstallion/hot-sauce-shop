@@ -18,7 +18,12 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *persistence.InMemoryStore) {
+func Boards(
+	r *gin.Engine,
+	dbPool *pgxpool.Pool,
+	logger *slog.Logger,
+	store *persistence.InMemoryStore,
+) {
 	// Board list
 	r.GET("/api/v1/boards", cache.CachePage(store, time.Minute*1, func(c *gin.Context) {
 		boards, getBoardsErr := lib.GetBoards(dbPool)
@@ -215,6 +220,7 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 		})
 	}))
 
+	// Pin post
 	r.POST("/api/v1/boards/pin/:boardSlug/:postSlug", func(c *gin.Context) {
 		boardSlug := c.Param("boardSlug")
 		postSlug := c.Param("postSlug")
@@ -432,11 +438,13 @@ func Boards(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *per
 		}
 
 		if experienceUpdated {
-			lib.SendWSMessage(c, lib.WebsocketMessage{
+			updatedLevel := lib.GetUserLevelByExperience(updatedExperience)
+			lib.SendNotification(lib.WebsocketMessage{
 				MessageType: "userLevelUpdate",
 				Data: gin.H{
-					"updatedExperience": updatedExperience,
-					"updatedLevel":      lib.GetUserLevelByExperience(updatedExperience),
+					"updatedExperience":         updatedExperience,
+					"updatedLevel":              updatedLevel,
+					"percentageOfLevelComplete": lib.GetPercentageOfLevelComplete(updatedExperience, updatedLevel),
 				},
 			}, logger)
 		}

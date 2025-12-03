@@ -11,7 +11,7 @@
 - Role-based access control
 - Custom error page
 - Caching for faster response times
-- Real-time updates using Websockets
+- Real-time updates using [Gorilla Websockets](https://github.com/gorilla/websocket)
 - And more!
 
 # Tech Stack

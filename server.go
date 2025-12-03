@@ -49,7 +49,7 @@ func main() {
 	routes.Orders(r, dbPool, logger)
 	routes.Boards(r, dbPool, logger, store)
 	routes.Votes(r, dbPool, logger)
-	
+
 	defer func(conn *websocket.Conn) {
 		err := conn.Close()
 		if err != nil {
