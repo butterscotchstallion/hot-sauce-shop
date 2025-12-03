@@ -18,7 +18,10 @@ export function UserLevelModal({
                                    experience,
                                    percentageOfLevelComplete
                                }: IUserLevelModalProps) {
-    const userLevelDetails = [{level, experience: experience.toLocaleString()}];
+    const userLevelDetails = [{
+        level,
+        experience: experience?.toLocaleString() || 0
+    }];
     return (
         <>
             <Dialog
