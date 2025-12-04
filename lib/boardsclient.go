@@ -54,6 +54,12 @@ type AddPostRequest struct {
 	Slug       string                  `json:"slug" form:"slug"`
 }
 
+type AddBoardRequest struct {
+	DisplayName       string `json:"displayName" validate:"required,min=10,max=255"`
+	ThumbnailFilename string `json:"thumbnailFilename"`
+	Description       string `json:"description"`
+}
+
 type SavedPostImageInfo struct {
 	Filename             string
 	FullImagePath        string
@@ -62,6 +68,16 @@ type SavedPostImageInfo struct {
 	MimeType             string
 	ImageWidthHeight     ImageWidthHeight
 	ThumbnailWidthHeight ImageWidthHeight
+}
+
+type AddBoardResponseResults struct {
+	Slug        string
+	DisplayName string
+}
+
+type AddBoardResponse struct {
+	Status  string
+	Results AddBoardResponseResults
 }
 
 func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {

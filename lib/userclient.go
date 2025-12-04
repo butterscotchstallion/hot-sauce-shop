@@ -22,6 +22,35 @@ type User struct {
 	UpdatedAt      *time.Time `json:"updatedAt"`
 }
 
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+/*
+*
+
+	c.JSON(http.StatusOK, gin.H{
+				"status":  "OK",
+				"message": "Sign in successful",
+				"results": gin.H{
+					"sessionId": sessionId,
+					"user":      verifiedUser,
+				},
+			})
+*/
+
+type SignInResponseResults struct {
+	SessionId string
+	User      User
+}
+
+type SignInResponse struct {
+	Status  string
+	Message string
+	Results SignInResponseResults
+}
+
 func GetUserPostVoteSum(dbPool *pgxpool.Pool, userId int) (int, error) {
 	const query = `
 		SELECT COALESCE(SUM(v.value), 0) AS voteSum

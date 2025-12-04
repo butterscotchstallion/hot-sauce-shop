@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -94,4 +96,67 @@ func GetRolesByUserId(dbPool *pgxpool.Pool, logger *slog.Logger, userId int) ([]
 		return nil, collectRowsErr
 	}
 	return roles, nil
+}
+
+func IsSignedInAndUserExists(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (int, error) {
+	sessionIdCookieValue, err := c.Cookie("sessionId")
+	if err != nil || sessionIdCookieValue == "" {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "ERROR",
+			"message": "No session ID found",
+		})
+		return 0, err
+	}
+
+	user, getUserErr := GetUserBySessionId(dbPool, logger, sessionIdCookieValue)
+	if getUserErr != nil || user == (User{}) {
+		logger.Error(fmt.Sprintf("Error fetching user: %v", getUserErr))
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  "ERROR",
+			"message": "No user found for session ID",
+		})
+		return 0, getUserErr
+	}
+
+	return user.Id, nil
+}
+
+func UserHasRole(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger, roleName string) (bool, error) {
+	userId, userErr := IsSignedInAndUserExists(c, dbPool, logger)
+	if userErr != nil {
+		return false, userErr
+	}
+
+	roles, rolesErr := GetRolesByUserId(dbPool, logger, userId)
+	if rolesErr != nil {
+		logger.Error(fmt.Sprintf("Error fetching roles: %v", rolesErr.Error()))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "ERROR",
+			"message": rolesErr.Error(),
+		})
+	}
+
+	for _, role := range roles {
+		if role.Name == roleName {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func IsUserAdmin(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (bool, error) {
+	return UserHasRole(c, dbPool, logger, "User Admin")
+}
+
+func IsMessageBoardAdmin(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (bool, error) {
+	return UserHasRole(c, dbPool, logger, "Message Board Admin")
+}
+
+func GetRoleIdsFromRoles(roles []Role) []int {
+	var roleIds []int
+	for _, role := range roles {
+		roleIds = append(roleIds, role.Id)
+	}
+	return roleIds
 }

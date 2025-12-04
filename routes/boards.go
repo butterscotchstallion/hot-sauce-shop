@@ -15,6 +15,7 @@ import (
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/gosimple/slug"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -455,6 +456,74 @@ func Boards(
 			"results": gin.H{
 				"post":      newPost,
 				"newPostId": newPostId,
+			},
+		})
+	})
+
+	// Add Board
+	r.POST("/api/v1/boards/:boardSlug", func(c *gin.Context) {
+		// Check role (this also checks if the user is signed in)
+		isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsMessageBoardAdmin(c, dbPool, logger)
+		if isMessageBoardAdminErr != nil {
+			logger.Error(fmt.Sprintf("Error adding board: %v", isMessageBoardAdminErr))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": "Error adding board",
+			})
+			return
+		}
+		if !isMessageBoardAdmin {
+			logger.Error("Error adding board: user is not message board admin")
+			c.JSON(http.StatusForbidden, gin.H{
+				"status":  "ERROR",
+				"message": "Error adding board: permission denied",
+			})
+			return
+		}
+
+		// Check payload
+		var newBoard lib.AddBoardRequest
+		if err := c.ShouldBind(&newBoard); err != nil {
+			logger.Error(fmt.Sprintf("AddBoard: error binding add board request: %v", err.Error()))
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "ERROR",
+				"message": err.Error(),
+			})
+			return
+		}
+
+		// This shouldn't be an error at this point, but we need the userId
+		userId, getUserIdErr := GetUserIdFromSessionOrError(c, dbPool, logger)
+		if getUserIdErr != nil {
+			logger.Error("AddBoard: error getting user id from session")
+			c.JSON(http.StatusForbidden, gin.H{
+				"status":  "ERROR",
+				"message": "Permission denied",
+			})
+			return
+		}
+
+		// All checks complete at this point, assemble board info!
+
+		boardSlug := slug.Make(newBoard.DisplayName)
+		addBoardErr := lib.AddBoard(
+			dbPool, boardSlug, newBoard.DisplayName, newBoard.ThumbnailFilename, userId, newBoard.Description,
+		)
+		if addBoardErr != nil {
+			logger.Error(fmt.Sprintf("AddBoard: error adding board: %v", addBoardErr))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": "Error adding board",
+			})
+			return
+		}
+
+		c.JSON(http.StatusCreated, gin.H{
+			"status":  "OK",
+			"message": "Board added",
+			"results": gin.H{
+				"slug":        boardSlug,
+				"displayName": newBoard.DisplayName,
 			},
 		})
 	})

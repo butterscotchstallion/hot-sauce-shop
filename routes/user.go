@@ -12,11 +12,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
 func GetUserIdFromSessionOrError(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (int, error) {
 	userId, err := lib.GetUserIdFromSession(c, dbPool, logger)
 	if err != nil || userId == 0 {
@@ -53,6 +48,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		})
 	})
 
+	// Get user profile by slug
 	r.GET("/api/v1/user/profile/:userSlug", func(c *gin.Context) {
 		userSlug := c.Param("userSlug")
 		if len(userSlug) == 0 {
@@ -119,8 +115,9 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		})
 	})
 
+	// Sign in
 	r.POST("/api/v1/user/sign-in", func(c *gin.Context) {
-		loginRequest := LoginRequest{}
+		loginRequest := lib.LoginRequest{}
 		if err := c.ShouldBindJSON(&loginRequest); err != nil {
 			logger.Error(err.Error())
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -170,6 +167,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		})
 	})
 
+	// Get user boards
 	r.GET("/api/v1/user/boards", func(c *gin.Context) {
 		// Check user
 		userId, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
@@ -195,6 +193,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		})
 	})
 
+	// Add board to user
 	r.POST("/api/v1/user/boards/:boardId", func(c *gin.Context) {
 		boardIdSlug := c.Param("boardId")
 		if len(boardIdSlug) == 0 {
