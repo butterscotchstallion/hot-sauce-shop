@@ -80,6 +80,22 @@ type AddBoardResponse struct {
 	Results AddBoardResponseResults
 }
 
+type BoardDetailResponseResults struct {
+	Board              Board
+	Moderators         []string
+	NumBoardModerators int
+	TotalPosts         int
+}
+type BoardDetailResponse struct {
+	Status  string
+	Results BoardDetailResponseResults
+}
+
+type BoardDeleteResponse struct {
+	Status  string
+	Message string
+}
+
 func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
 	// TODO: filter visible boards, or show everything if privileged
 	const query = `
@@ -439,7 +455,7 @@ func AddBoard(dbPool *pgxpool.Pool, slug string, displayName string, thumbnailFi
 			created_by_user_id,
 		    description
 		)
-		VALUES ($1, $2, NOW(), $5, $6, $7)
+		VALUES ($1, $2, NOW(), $3, $4, $5)
 	`
 	_, err := dbPool.Exec(
 		context.Background(),
@@ -456,12 +472,12 @@ func AddBoard(dbPool *pgxpool.Pool, slug string, displayName string, thumbnailFi
 	return nil
 }
 
-func DeleteBoard(dbPool *pgxpool.Pool, boardId int) error {
-	const query = `DELETE FROM boards WHERE id = $1`
+func DeleteBoard(dbPool *pgxpool.Pool, boardSlug string) error {
+	const query = `DELETE FROM boards WHERE slug = $1`
 	_, err := dbPool.Exec(
 		context.Background(),
 		query,
-		boardId,
+		boardSlug,
 	)
 	if err != nil {
 		return err

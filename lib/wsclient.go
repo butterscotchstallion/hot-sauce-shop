@@ -22,30 +22,29 @@ type WebsocketMessage struct {
 var clients = make(map[*websocket.Conn]bool)
 
 func HandleWSConnection(c *gin.Context, logger *slog.Logger, wsConn *websocket.Conn) {
-	var err error
 	upgrader.CheckOrigin = func(r *http.Request) bool {
 		return c.Request.Header.Get("Origin") == "http://localhost:5173"
 	}
-	wsConn, err = upgrader.Upgrade(c.Writer, c.Request, nil)
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		logger.Error(err.Error())
 		return
 	}
 
-	defer func(wsConn *websocket.Conn) {
-		err := wsConn.Close()
+	defer func(conn *websocket.Conn) {
+		err := conn.Close()
 		if err != nil {
 			logger.Error(fmt.Sprintf("Error closing WS connection: %v", err.Error()))
 		}
-	}(wsConn)
-	clients[wsConn] = true
-	logger.Info(fmt.Sprintf("Client connected: %v", wsConn.RemoteAddr()))
+	}(conn)
+	clients[conn] = true
+	logger.Info(fmt.Sprintf("Client connected: %v", conn.RemoteAddr()))
 
 	for {
-		_, msg, err := wsConn.ReadMessage()
+		_, msg, err := conn.ReadMessage()
 		if err != nil {
 			logger.Error(fmt.Sprintf("WS read error: %v", err))
-			delete(clients, wsConn)
+			delete(clients, conn)
 			break
 		}
 		for client := range clients {

@@ -9,6 +9,7 @@ import (
 	"hotsauceshop/lib"
 
 	"github.com/gavv/httpexpect/v2"
+	"github.com/google/uuid"
 )
 
 func signInAndGetSessionId(testUsername string, testPassword string, e *httpexpect.Expect) string {
@@ -55,8 +56,13 @@ func TestCreateBoard(t *testing.T) {
 	}
 
 	// Add board
+	boardUUID, boardUUIDErr := uuid.NewRandom()
+	if boardUUIDErr != nil {
+		t.Fatal("Failed to generate board UUID")
+	}
+	boardName := boardUUID.String()
 	newBoardPayload := lib.AddBoardRequest{
-		DisplayName: "Test Board Name!",
+		DisplayName: boardName,
 		Description: "Testing testing 1-2-3",
 	}
 	var addBoardResponse lib.AddBoardResponse
@@ -70,11 +76,30 @@ func TestCreateBoard(t *testing.T) {
 	if addBoardResponse.Status != "OK" {
 		t.Fatal("Error adding board")
 	}
+	if addBoardResponse.Results.DisplayName != newBoardPayload.DisplayName {
+		t.Fatal("New board display name mismatch")
+	}
 
 	// Verify board exists now
+	var boardDetailResponse lib.BoardDetailResponse
 	e.GET(fmt.Sprintf("/api/v1/boards/%v", addBoardResponse.Results.Slug)).
 		Expect().
-		Status(http.StatusOK).JSON().Object().
-		Value("results").Object().
-		Value("board").NotNull()
+		Status(http.StatusOK).
+		JSON().
+		Decode(&boardDetailResponse)
+	if boardDetailResponse.Status != "OK" {
+		t.Fatal("Failed to get board details of newly created board")
+	}
+
+	// Clean up
+	var boardDeleteResponse lib.BoardDeleteResponse
+	e.DELETE(fmt.Sprintf("/api/v1/boards/%v", addBoardResponse.Results.Slug)).
+		WithCookie("sessionId", sessionID).
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&boardDeleteResponse)
+	if boardDetailResponse.Status != "OK" {
+		t.Fatal("Failed to delete board")
+	}
 }

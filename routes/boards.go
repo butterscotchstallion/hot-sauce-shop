@@ -461,15 +461,11 @@ func Boards(
 	})
 
 	// Add Board
-	r.POST("/api/v1/boards/:boardSlug", func(c *gin.Context) {
+	r.POST("/api/v1/boards", func(c *gin.Context) {
 		// Check role (this also checks if the user is signed in)
+		// NOTE: this already sends a JSON response upon failure
 		isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsMessageBoardAdmin(c, dbPool, logger)
 		if isMessageBoardAdminErr != nil {
-			logger.Error(fmt.Sprintf("Error adding board: %v", isMessageBoardAdminErr))
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status":  "ERROR",
-				"message": "Error adding board",
-			})
 			return
 		}
 		if !isMessageBoardAdmin {
@@ -525,6 +521,40 @@ func Boards(
 				"slug":        boardSlug,
 				"displayName": newBoard.DisplayName,
 			},
+		})
+	})
+
+	// Delete Board
+	r.DELETE("/api/v1/boards/:boardSlug", func(c *gin.Context) {
+		// Check role (this also checks if the user is signed in)
+		// NOTE: this already sends a JSON response upon failure
+		isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsMessageBoardAdmin(c, dbPool, logger)
+		if isMessageBoardAdminErr != nil {
+			return
+		}
+		if !isMessageBoardAdmin {
+			logger.Error("Error adding board: user is not message board admin")
+			c.JSON(http.StatusForbidden, gin.H{
+				"status":  "ERROR",
+				"message": "Error adding board: permission denied",
+			})
+			return
+		}
+
+		boardSlug := c.Param("slug")
+		boardDeletedErr := lib.DeleteBoard(dbPool, boardSlug)
+		if boardDeletedErr != nil {
+			logger.Error(fmt.Sprintf("Error deleting board: %v", boardDeletedErr))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": "Error deleting board",
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "OK",
+			"message": "Board deleted",
 		})
 	})
 }
