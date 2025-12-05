@@ -557,4 +557,60 @@ func Boards(
 			"message": "Board deleted",
 		})
 	})
+
+	// Delete Post
+	r.DELETE("/api/v1/boards/posts/:postSlug", func(c *gin.Context) {
+		postSlug := c.Param("postSlug")
+
+		userId, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
+		if userSessionErr != nil || userId == 0 {
+			return
+		}
+
+		// Check if the user is post author here
+		isBoardPostAuthor, isBoardPostAuthorErr := lib.IsUserBoardPostAuthor(dbPool, userId, postSlug)
+		if isBoardPostAuthorErr != nil {
+			logger.Error(fmt.Sprintf("Delete Post: error checking if user is post author: %v", isBoardPostAuthorErr))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": "Error checking post author",
+			})
+			return
+		}
+
+		// Check role (this also checks if the user is signed in)
+		// NOTE: this already sends a JSON response upon failure
+		isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsMessageBoardAdmin(c, dbPool, logger)
+		if isMessageBoardAdminErr != nil {
+			return
+		}
+		if !isMessageBoardAdmin && !isBoardPostAuthor {
+			if !isMessageBoardAdmin {
+				logger.Error("Error deleting post: user is not message board admin")
+			}
+			if !isBoardPostAuthor {
+				logger.Error("Error deleting post: user is not post author")
+			}
+			c.JSON(http.StatusForbidden, gin.H{
+				"status":  "ERROR",
+				"message": "Error deleting post: permission denied",
+			})
+			return
+		}
+
+		postDeletedErr := lib.DeleteBoardPost(dbPool, postSlug)
+		if postDeletedErr != nil {
+			logger.Error(fmt.Sprintf("Error deleting post: %v", postDeletedErr))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": "Error deleting post",
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "OK",
+			"message": "Post deleted",
+		})
+	})
 }

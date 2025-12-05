@@ -13,7 +13,13 @@ import (
 	"github.com/google/uuid"
 )
 
-func signInAndGetSessionId(testUsername string, testPassword string, e *httpexpect.Expect) string {
+func signInAndGetSessionId(t *testing.T, e *httpexpect.Expect) string {
+	testUsername := os.Getenv("TEST_USER_NAME")
+	testPassword := os.Getenv("TEST_USER_PASSWORD")
+	if testUsername == "" || testPassword == "" {
+		t.Fatal("TEST_USER_NAME or TEST_USER_PASSWORD not set")
+	}
+
 	var signInResponse lib.SignInResponse
 	e.POST("/api/v1/user/sign-in").
 		WithJSON(lib.LoginRequest{
@@ -24,7 +30,11 @@ func signInAndGetSessionId(testUsername string, testPassword string, e *httpexpe
 		Status(http.StatusOK).
 		JSON().
 		Decode(&signInResponse)
-	return signInResponse.Results.SessionId
+	sessionID := signInResponse.Results.SessionId
+	if len(sessionID) == 0 {
+		t.Fatal("Failed to get user session id")
+	}
+	return sessionID
 }
 
 func TestGetBoardPosts(t *testing.T) {
@@ -44,17 +54,7 @@ func TestCreateBoard(t *testing.T) {
 	 * 4. Delete board
 	 */
 	e := httpexpect.Default(t, "http://localhost:8081")
-
-	// Log in and get a session cookie
-	testUsername := os.Getenv("TEST_USER_NAME")
-	testPassword := os.Getenv("TEST_USER_PASSWORD")
-	if testUsername == "" || testPassword == "" {
-		t.Fatal("TEST_USER_NAME or TEST_USER_PASSWORD not set")
-	}
-	sessionID := signInAndGetSessionId(testUsername, testPassword, e)
-	if len(sessionID) == 0 {
-		t.Fatal("Failed to get user session id")
-	}
+	sessionID := signInAndGetSessionId(t, e)
 
 	// Add board
 	boardUUID, boardUUIDErr := uuid.NewRandom()
@@ -104,5 +104,53 @@ func TestCreateBoard(t *testing.T) {
 		Decode(&boardDeleteResponse)
 	if boardDetailResponse.Status != "OK" {
 		t.Fatal("Failed to delete board")
+	}
+}
+
+func TestCreateBoardPost(t *testing.T) {
+	/**
+	 * 1. Add a board post with an image
+	 * 2. Verify board post detail page
+	 * 3. Delete post
+	 */
+	e := httpexpect.Default(t, "http://localhost:8081")
+	sessionID := signInAndGetSessionId(t, e)
+
+	// Add board
+	postUUID, postUUIDErr := uuid.NewRandom()
+	if postUUIDErr != nil {
+		t.Fatal("Failed to generate post UUID")
+	}
+	postName := postUUID.String()
+	// TODO: figure out how the heck to do images
+	newPost := lib.AddPostRequest{
+		Title:    postName,
+		ParentId: 0,
+		PostText: "Follow the white rabbit, Neo.",
+		Slug:     postName,
+	}
+	var addPostResponse lib.AddPostResponse
+	// Probably should create the board here but...
+	e.POST("/api/v1/boards/sauces/posts").
+		WithCookie("sessionId", sessionID).
+		WithJSON(newPost).
+		Expect().
+		Status(http.StatusCreated).
+		JSON().
+		Decode(&addPostResponse)
+	if addPostResponse.Status != "OK" {
+		t.Fatal("Failed to add post")
+	}
+
+	// Delete post
+	var boardPostDeleteResponse lib.BoardPostDeleteResponse
+	e.DELETE(fmt.Sprintf("/api/v1/boards/posts/%v", postName)).
+		WithCookie("sessionId", sessionID).
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&boardPostDeleteResponse)
+	if boardPostDeleteResponse.Status != "OK" {
+		t.Fatal("Failed to delete board post")
 	}
 }

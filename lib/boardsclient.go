@@ -60,6 +60,21 @@ type AddBoardRequest struct {
 	Description       string `json:"description"`
 }
 
+type AddPostResponseResults struct {
+	post      BoardPost
+	newPostId int
+}
+type AddPostResponse struct {
+	Status  string
+	message string
+	Results AddPostResponseResults
+}
+
+type BoardPostDeleteResponse struct {
+	Status  string
+	Message string
+}
+
 type SavedPostImageInfo struct {
 	Filename             string
 	FullImagePath        string
@@ -482,6 +497,38 @@ func DeleteBoard(dbPool *pgxpool.Pool, boardSlug string) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
+}
+
+func DeleteBoardPost(dbPool *pgxpool.Pool, boardPostSlug string) error {
+	const query = `DELETE FROM board_posts WHERE slug = $1`
+	_, err := dbPool.Exec(
+		context.Background(),
+		query,
+		boardPostSlug,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func IsUserBoardPostAuthor(dbPool *pgxpool.Pool, userId int, boardPostSlug string) (bool, error) {
+	const query = `
+		SELECT COUNT(*) as postCount
+		FROM board_posts bp
+		WHERE bp.slug = $1
+		AND bp.created_by_user_id = $2
+	`
+	var postCount int
+	insertErr := dbPool.QueryRow(
+		context.Background(),
+		query,
+		boardPostSlug,
+		userId,
+	).Scan(&postCount)
+	if insertErr != nil {
+		return false, insertErr
+	}
+	return postCount == 1, nil
 }
