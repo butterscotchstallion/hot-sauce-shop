@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"testing"
@@ -90,6 +91,8 @@ func TestCreateBoard(t *testing.T) {
 	if boardDetailResponse.Status != "OK" {
 		t.Fatal("Failed to get board details of newly created board")
 	}
+
+	log.Printf("Deleting board with slug %v", addBoardResponse.Results.Slug)
 
 	// Clean up
 	var boardDeleteResponse lib.BoardDeleteResponse

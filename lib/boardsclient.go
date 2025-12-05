@@ -482,5 +482,6 @@ func DeleteBoard(dbPool *pgxpool.Pool, boardSlug string) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

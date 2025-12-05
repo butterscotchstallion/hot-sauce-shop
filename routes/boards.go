@@ -541,7 +541,7 @@ func Boards(
 			return
 		}
 
-		boardSlug := c.Param("slug")
+		boardSlug := c.Param("boardSlug")
 		boardDeletedErr := lib.DeleteBoard(dbPool, boardSlug)
 		if boardDeletedErr != nil {
 			logger.Error(fmt.Sprintf("Error deleting board: %v", boardDeletedErr))
