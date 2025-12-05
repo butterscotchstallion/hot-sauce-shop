@@ -1,0 +1,6 @@
+[database]
+dsn = "postgres://user:example@localhost"
+
+[test_users]
+board_admin = "test-user"
+board_admin_pw = "test-user-password"
