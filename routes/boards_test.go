@@ -116,7 +116,7 @@ func TestCreateBoardPost(t *testing.T) {
 	e := httpexpect.Default(t, "http://localhost:8081")
 	sessionID := signInAndGetSessionId(t, e)
 
-	// Add board
+	// Add post
 	postUUID, postUUIDErr := uuid.NewRandom()
 	if postUUIDErr != nil {
 		t.Fatal("Failed to generate post UUID")
@@ -152,5 +152,33 @@ func TestCreateBoardPost(t *testing.T) {
 		Decode(&boardPostDeleteResponse)
 	if boardPostDeleteResponse.Status != "OK" {
 		t.Fatal("Failed to delete board post")
+	}
+}
+
+func TestCreateBoardPostWithoutSession(t *testing.T) {
+	e := httpexpect.Default(t, "http://localhost:8081")
+
+	postUUID, postUUIDErr := uuid.NewRandom()
+	if postUUIDErr != nil {
+		t.Fatal("Failed to generate post UUID")
+	}
+	postName := postUUID.String()
+	// TODO: figure out how the heck to do images
+	newPost := lib.AddPostRequest{
+		Title:    postName,
+		ParentId: 0,
+		PostText: "Follow the white rabbit, Neo.",
+		Slug:     postName,
+	}
+	var addPostResponse lib.AddPostResponse
+	// Probably should create the board here but...
+	e.POST("/api/v1/boards/sauces/posts").
+		WithJSON(newPost).
+		Expect().
+		Status(http.StatusUnauthorized).
+		JSON().
+		Decode(&addPostResponse)
+	if addPostResponse.Status != "ERROR" {
+		t.Fatal("Adding post without session should have failed")
 	}
 }
