@@ -27,19 +27,6 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-/*
-*
-
-	c.JSON(http.StatusOK, gin.H{
-				"status":  "OK",
-				"message": "Sign in successful",
-				"results": gin.H{
-					"sessionId": sessionId,
-					"user":      verifiedUser,
-				},
-			})
-*/
-
 type SignInResponseResults struct {
 	SessionId string
 	User      User

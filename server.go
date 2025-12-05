@@ -18,7 +18,11 @@ import (
 var dbPool *pgxpool.Pool
 
 func main() {
-	dbPool = lib.InitDB()
+	config, configReadErr := lib.ReadConfig("config.toml")
+	if configReadErr != nil {
+		panic("Could not read config")
+	}
+	dbPool = lib.InitDB(config.Database.Dsn)
 	defer dbPool.Close()
 
 	r := gin.Default()
@@ -43,7 +47,7 @@ func main() {
 		}
 	}(wsConn)
 
-	err := r.Run("localhost:8081")
+	err := r.Run(config.Server.Address)
 	if err != nil {
 		log.Fatalf("Error starting server: %v", err)
 	}

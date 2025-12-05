@@ -12,6 +12,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type GenericResponse struct {
+	Status string `json:"status"`
+}
+
 func GetUserIdFromSessionOrError(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (int, error) {
 	userId, err := lib.GetUserIdFromSession(c, dbPool, logger)
 	if err != nil || userId == 0 {
@@ -193,7 +197,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		})
 	})
 
-	// Add board to user
+	// Join board
 	r.POST("/api/v1/user/boards/:boardId", func(c *gin.Context) {
 		boardIdSlug := c.Param("boardId")
 		if len(boardIdSlug) == 0 {
@@ -229,8 +233,8 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"status": "OK",
+		c.JSON(http.StatusOK, GenericResponse{
+			Status: "OK",
 		})
 	})
 }

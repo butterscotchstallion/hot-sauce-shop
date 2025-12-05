@@ -1,6 +1,12 @@
+[server]
+address = "localhost:8081"
+addressWithProtocol = "http://localhost:8081"
+
 [database]
 dsn = "postgres://user:example@localhost"
 
-[test_users]
-board_admin = "test-user"
-board_admin_pw = "test-user-password"
+[testUsers]
+boardAdminUsername = "test-user"
+boardAdminPassword = "test-user-password"
+unprivilegedUsername = "unprivileged-user"
+unprivilegedPassword = "unprivileged-user-password"

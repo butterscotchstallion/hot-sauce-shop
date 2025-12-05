@@ -61,12 +61,12 @@ type AddBoardRequest struct {
 }
 
 type AddPostResponseResults struct {
-	post      BoardPost
-	newPostId int
+	Post      BoardPost
+	NewPostId int
 }
 type AddPostResponse struct {
 	Status  string
-	message string
+	Message string
 	Results AddPostResponseResults
 }
 
@@ -86,29 +86,31 @@ type SavedPostImageInfo struct {
 }
 
 type AddBoardResponseResults struct {
-	Slug        string
-	DisplayName string
+	Slug        string `json:"slug"`
+	DisplayName string `json:"displayName"`
+	BoardId     int    `json:"boardId"`
 }
 
 type AddBoardResponse struct {
-	Status  string
+	Status  string `json:"status"`
+	Message string `json:"message"`
 	Results AddBoardResponseResults
 }
 
 type BoardDetailResponseResults struct {
 	Board              Board
-	Moderators         []string
-	NumBoardModerators int
-	TotalPosts         int
+	Moderators         []string `json:"moderators"`
+	NumBoardModerators int      `json:"numBoardModerators"`
+	TotalPosts         int      `json:"totalPosts"`
 }
 type BoardDetailResponse struct {
-	Status  string
+	Status  string `json:"status"`
 	Results BoardDetailResponseResults
 }
 
 type BoardDeleteResponse struct {
-	Status  string
-	Message string
+	Status  string `json:"status"`
+	Message string `json:"message"`
 }
 
 func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
@@ -262,7 +264,7 @@ func GetNumPostsByUserId(dbPool *pgxpool.Pool, userId int) (int, error) {
 	return count, nil
 }
 
-func GetBoardBySlug(dbPool *pgxpool.Pool, logger *slog.Logger, slug string) (Board, error) {
+func GetBoardBySlug(dbPool *pgxpool.Pool, slug string) (Board, error) {
 	const query = `
 		SELECT b.*,
 		       u.username AS created_by_username,
@@ -273,13 +275,11 @@ func GetBoardBySlug(dbPool *pgxpool.Pool, logger *slog.Logger, slug string) (Boa
 	`
 	row, err := dbPool.Query(context.Background(), query, slug)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Error running GetBoardBySlug query: %v", err))
 		return Board{}, err
 	}
 	defer row.Close()
 	board, collectRowsErr := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[Board])
 	if collectRowsErr != nil {
-		logger.Error(fmt.Sprintf("GetBoardBySlug: error collecting board: %v", collectRowsErr))
 		return Board{}, collectRowsErr
 	}
 	return board, nil
@@ -460,7 +460,7 @@ func AddPostImages(dbPool *pgxpool.Pool, postId int, imageInfo SavedPostImageInf
 	return nil
 }
 
-func AddBoard(dbPool *pgxpool.Pool, slug string, displayName string, thumbnailFilename string, createdByUserId int, description string) error {
+func AddBoard(dbPool *pgxpool.Pool, slug string, displayName string, thumbnailFilename string, createdByUserId int, description string) (int, error) {
 	const query = `
 		INSERT INTO boards (
 			slug,
@@ -471,8 +471,10 @@ func AddBoard(dbPool *pgxpool.Pool, slug string, displayName string, thumbnailFi
 		    description
 		)
 		VALUES ($1, $2, NOW(), $3, $4, $5)
+		RETURNING id
 	`
-	_, err := dbPool.Exec(
+	var boardId int
+	err := dbPool.QueryRow(
 		context.Background(),
 		query,
 		slug,
@@ -480,6 +482,23 @@ func AddBoard(dbPool *pgxpool.Pool, slug string, displayName string, thumbnailFi
 		thumbnailFilename,
 		createdByUserId,
 		description,
+	).Scan(&boardId)
+	if err != nil {
+		return 0, err
+	}
+	return boardId, nil
+}
+
+func DeleteBoard(dbPool *pgxpool.Pool, boardSlug string) error {
+	deleteBoardUsersErr := DeleteBoardUsers(dbPool, boardSlug)
+	if deleteBoardUsersErr != nil {
+		return deleteBoardUsersErr
+	}
+	const query = `DELETE FROM boards WHERE slug = $1`
+	_, err := dbPool.Exec(
+		context.Background(),
+		query,
+		boardSlug,
 	)
 	if err != nil {
 		return err
@@ -487,12 +506,19 @@ func AddBoard(dbPool *pgxpool.Pool, slug string, displayName string, thumbnailFi
 	return nil
 }
 
-func DeleteBoard(dbPool *pgxpool.Pool, boardSlug string) error {
-	const query = `DELETE FROM boards WHERE slug = $1`
+func DeleteBoardUsers(dbPool *pgxpool.Pool, boardSlug string) error {
+	board, boardErr := GetBoardBySlug(dbPool, boardSlug)
+	if boardErr != nil {
+		return boardErr
+	}
+	const query = `DELETE 
+		FROM boards_users bu
+       	WHERE board_id = $1
+    `
 	_, err := dbPool.Exec(
 		context.Background(),
 		query,
-		boardSlug,
+		board.Id,
 	)
 	if err != nil {
 		return err

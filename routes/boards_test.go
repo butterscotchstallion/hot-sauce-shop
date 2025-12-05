@@ -13,28 +13,20 @@ import (
 	"github.com/google/uuid"
 )
 
-func signInAndGetSessionId(t *testing.T, e *httpexpect.Expect) string {
-	testUsername := os.Getenv("TEST_USER_NAME")
-	testPassword := os.Getenv("TEST_USER_PASSWORD")
-	if testUsername == "" || testPassword == "" {
-		t.Fatal("TEST_USER_NAME or TEST_USER_PASSWORD not set")
-	}
+var config lib.HotSauceShopConfig
 
-	var signInResponse lib.SignInResponse
-	e.POST("/api/v1/user/sign-in").
-		WithJSON(lib.LoginRequest{
-			Username: testUsername,
-			Password: testPassword,
-		}).
-		Expect().
-		Status(http.StatusOK).
-		JSON().
-		Decode(&signInResponse)
-	sessionID := signInResponse.Results.SessionId
-	if len(sessionID) == 0 {
-		t.Fatal("Failed to get user session id")
+func TestMain(m *testing.M) {
+	setup()
+	code := m.Run()
+	os.Exit(code)
+}
+
+func setup() {
+	var configReadErr error
+	config, configReadErr = lib.ReadConfig("../config.toml")
+	if configReadErr != nil {
+		panic("Could not read config")
 	}
-	return sessionID
 }
 
 func TestGetBoardPosts(t *testing.T) {
@@ -46,16 +38,7 @@ func TestGetBoardPosts(t *testing.T) {
 		Value("boards").Array().Length().Gt(0)
 }
 
-func TestCreateBoard(t *testing.T) {
-	/**
-	 * 1. Add a new board
-	 * 2. Check board detail to confirm it exists
-	 * 3. Verify response
-	 * 4. Delete board
-	 */
-	e := httpexpect.Default(t, "http://localhost:8081")
-	sessionID := signInAndGetSessionId(t, e)
-
+func createBoardAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string) lib.AddBoardResponse {
 	// Add board
 	boardUUID, boardUUIDErr := uuid.NewRandom()
 	if boardUUIDErr != nil {
@@ -91,20 +74,38 @@ func TestCreateBoard(t *testing.T) {
 	if boardDetailResponse.Status != "OK" {
 		t.Fatal("Failed to get board details of newly created board")
 	}
+	return addBoardResponse
+}
 
-	log.Printf("Deleting board with slug %v", addBoardResponse.Results.Slug)
-
-	// Clean up
+func deleteBoardAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string, slug string) {
 	var boardDeleteResponse lib.BoardDeleteResponse
-	e.DELETE(fmt.Sprintf("/api/v1/boards/%v", addBoardResponse.Results.Slug)).
+	e.DELETE(fmt.Sprintf("/api/v1/boards/%v", slug)).
 		WithCookie("sessionId", sessionID).
 		Expect().
 		Status(http.StatusOK).
 		JSON().
 		Decode(&boardDeleteResponse)
-	if boardDetailResponse.Status != "OK" {
+	if boardDeleteResponse.Status != "OK" {
 		t.Fatal("Failed to delete board")
 	}
+}
+
+func TestCreateBoard(t *testing.T) {
+	/**
+	 * 1. Add a new board
+	 * 2. Check board detail to confirm it exists
+	 * 3. Verify response
+	 * 4. Delete board
+	 */
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
+
+	addBoardResponse := createBoardAndVerify(t, e, sessionID)
+
+	log.Printf("Deleting board with slug %v", addBoardResponse.Results.Slug)
+
+	// Clean up
+	deleteBoardAndVerify(t, e, sessionID, addBoardResponse.Results.Slug)
 }
 
 func TestCreateBoardPost(t *testing.T) {
@@ -113,8 +114,8 @@ func TestCreateBoardPost(t *testing.T) {
 	 * 2. Verify board post detail page
 	 * 3. Delete post
 	 */
-	e := httpexpect.Default(t, "http://localhost:8081")
-	sessionID := signInAndGetSessionId(t, e)
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
 
 	// Add post
 	postUUID, postUUIDErr := uuid.NewRandom()
@@ -156,8 +157,7 @@ func TestCreateBoardPost(t *testing.T) {
 }
 
 func TestCreateBoardPostWithoutSession(t *testing.T) {
-	e := httpexpect.Default(t, "http://localhost:8081")
-
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	postUUID, postUUIDErr := uuid.NewRandom()
 	if postUUIDErr != nil {
 		t.Fatal("Failed to generate post UUID")

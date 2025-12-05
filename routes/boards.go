@@ -49,7 +49,7 @@ func Boards(
 	r.GET("/api/v1/boards/:slug", cache.CachePage(store, time.Minute*1, func(c *gin.Context) {
 		boardSlug := c.Param("slug")
 		logger.Info("GetBoardBySlug: fetching board by slug: " + boardSlug)
-		board, getBoardErr := lib.GetBoardBySlug(dbPool, logger, boardSlug)
+		board, getBoardErr := lib.GetBoardBySlug(dbPool, boardSlug)
 		if getBoardErr != nil {
 			logger.Error(fmt.Sprintf("Error fetching board details: %v", getBoardErr.Error()))
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -296,7 +296,7 @@ func Boards(
 
 		// Check board
 		logger.Info("GetBoardBySlug: fetching board by slug: " + boardSlug)
-		board, getBoardErr := lib.GetBoardBySlug(dbPool, logger, boardSlug)
+		board, getBoardErr := lib.GetBoardBySlug(dbPool, boardSlug)
 		if getBoardErr != nil {
 			logger.Error(fmt.Sprintf("Error fetching board: %v", getBoardErr.Error()))
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -502,7 +502,7 @@ func Boards(
 		// All checks complete at this point, assemble board info!
 
 		boardSlug := slug.Make(newBoard.DisplayName)
-		addBoardErr := lib.AddBoard(
+		boardId, addBoardErr := lib.AddBoard(
 			dbPool, boardSlug, newBoard.DisplayName, newBoard.ThumbnailFilename, userId, newBoard.Description,
 		)
 		if addBoardErr != nil {
@@ -514,12 +514,13 @@ func Boards(
 			return
 		}
 
-		c.JSON(http.StatusCreated, gin.H{
-			"status":  "OK",
-			"message": "Board added",
-			"results": gin.H{
-				"slug":        boardSlug,
-				"displayName": newBoard.DisplayName,
+		c.JSON(http.StatusCreated, lib.AddBoardResponse{
+			Status:  "OK",
+			Message: "Board added",
+			Results: lib.AddBoardResponseResults{
+				Slug:        boardSlug,
+				DisplayName: newBoard.DisplayName,
+				BoardId:     boardId,
 			},
 		})
 	})
@@ -533,10 +534,10 @@ func Boards(
 			return
 		}
 		if !isMessageBoardAdmin {
-			logger.Error("Error adding board: user is not message board admin")
+			logger.Error("Error deleting board: user is not message board admin")
 			c.JSON(http.StatusForbidden, gin.H{
 				"status":  "ERROR",
-				"message": "Error adding board: permission denied",
+				"message": "Error deleting board: permission denied",
 			})
 			return
 		}
