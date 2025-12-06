@@ -24,11 +24,6 @@
 - API run and watch: `air -c .air.toml`
 - Tests: `go test lib`
 
-# Important Environment Variables
-- `DATABASE_URL` - Full DSN for Postgres database
-- `TEST_USER_NAME` - Used for testing purposes
-- `TEST_USER_PASSWORD` - Used for testing purposes
-
 # Screenshots
 
 ## Product list

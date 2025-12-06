@@ -490,6 +490,10 @@ func AddBoard(dbPool *pgxpool.Pool, slug string, displayName string, thumbnailFi
 }
 
 func DeleteBoard(dbPool *pgxpool.Pool, boardSlug string) error {
+	/**
+	 * Board users must be deleted before the board can be deleted
+	 * because of FK constraints. TODO: maybe use cascading here.
+	 */
 	deleteBoardUsersErr := DeleteBoardUsers(dbPool, boardSlug)
 	if deleteBoardUsersErr != nil {
 		return deleteBoardUsersErr
