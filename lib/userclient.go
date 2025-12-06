@@ -38,6 +38,15 @@ type SignInResponse struct {
 	Results SignInResponseResults
 }
 
+type UserListResponseResults struct {
+	Users []User
+}
+
+type UserListResponse struct {
+	Status  string
+	Results UserListResponseResults
+}
+
 func GetUserPostVoteSum(dbPool *pgxpool.Pool, userId int) (int, error) {
 	const query = `
 		SELECT COALESCE(SUM(v.value), 0) AS voteSum

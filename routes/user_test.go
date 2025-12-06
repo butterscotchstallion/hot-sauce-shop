@@ -47,3 +47,18 @@ func TestUserJoinBoard(t *testing.T) {
 	// Only board admins can delete board
 	deleteBoardAndVerify(t, e, sessionID, addBoardResponse.Results.Slug)
 }
+
+func TestGetUserListWithUnprivilegedUser(t *testing.T) {
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	sessionID := signInAndGetSessionId(t, e, config.TestUsers.UnprivilegedUsername, config.TestUsers.UnprivilegedPassword)
+	var userListResponse lib.UserListResponse
+	e.GET("/api/v1/user").
+		WithCookie("sessionId", sessionID).
+		Expect().
+		Status(http.StatusForbidden).
+		JSON().
+		Decode(&userListResponse)
+	if userListResponse.Status != "ERROR" {
+		t.Fatal("User list response status should have been ERROR")
+	}
+}

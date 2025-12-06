@@ -43,8 +43,19 @@ func GetUserIdFromSessionOrError(c *gin.Context, dbPool *pgxpool.Pool, logger *s
 }
 
 func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
-	// TODO: limit this to admins when RBAC system is complete
 	r.GET("/api/v1/user", func(c *gin.Context) {
+		isUserAdmin, isUserAdminErr := lib.IsUserAdmin(c, dbPool, logger)
+		if isUserAdminErr != nil {
+			return
+		}
+		if !isUserAdmin {
+			c.JSON(http.StatusForbidden, GenericResponse{
+				Status:  "ERROR",
+				Message: "Permission denied",
+			})
+			return
+		}
+
 		users, err := lib.GetUsers(dbPool, logger)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -134,9 +145,9 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		loginRequest := lib.LoginRequest{}
 		if err := c.ShouldBindJSON(&loginRequest); err != nil {
 			logger.Error(err.Error())
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  "ERROR",
-				"message": err.Error(),
+			c.JSON(http.StatusBadRequest, GenericResponse{
+				Status:  "ERROR",
+				Message: err.Error(),
 			})
 			return
 		}
@@ -146,17 +157,17 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		)
 		if errVerifying != nil {
 			logger.Error(errVerifying.Error())
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status":  "ERROR",
-				"message": errVerifying.Error(),
+			c.JSON(http.StatusInternalServerError, GenericResponse{
+				Status:  "ERROR",
+				Message: errVerifying.Error(),
 			})
 			return
 		}
 
 		if verifiedUser == (lib.User{}) {
-			c.JSON(http.StatusOK, gin.H{
-				"status":  "ERROR",
-				"message": "Invalid username or password",
+			c.JSON(http.StatusOK, GenericResponse{
+				Status:  "ERROR",
+				Message: "Invalid username or password",
 			})
 			return
 		}
@@ -164,9 +175,9 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		sessionId, err := lib.AddUserSessionId(dbPool, verifiedUser.Id)
 		if err != nil || len(sessionId) == 0 {
 			logger.Error(fmt.Sprintf("Error generating sessionId: %v", err.Error()))
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status":  "ERROR",
-				"message": err.Error(),
+			c.JSON(http.StatusInternalServerError, GenericResponse{
+				Status:  "ERROR",
+				Message: err.Error(),
 			})
 			return
 		}
@@ -192,9 +203,9 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		boards, boardsErr := lib.GetJoinedBoardsByUserId(dbPool, userId)
 		if boardsErr != nil {
 			logger.Error(fmt.Sprintf("user/boards error: %v", boardsErr.Error()))
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status":  "ERROR",
-				"message": boardsErr.Error(),
+			c.JSON(http.StatusInternalServerError, GenericResponse{
+				Status:  "ERROR",
+				Message: boardsErr.Error(),
 			})
 			return
 		}
@@ -211,8 +222,9 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	r.POST("/api/v1/user/boards/:boardId", func(c *gin.Context) {
 		boardIdSlug := c.Param("boardId")
 		if len(boardIdSlug) == 0 {
-			c.JSON(http.StatusNotFound, gin.H{
-				"status": "ERROR",
+			c.JSON(http.StatusNotFound, GenericResponse{
+				Status:  "ERROR",
+				Message: "Not found",
 			})
 			return
 		}
@@ -220,9 +232,9 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		boardId, err := strconv.Atoi(boardIdSlug)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Error parsing boardIdSlug: %v", err.Error()))
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  "ERROR",
-				"message": "Invalid boardId",
+			c.JSON(http.StatusBadRequest, GenericResponse{
+				Status:  "ERROR",
+				Message: "Invalid boardId",
 			})
 			return
 		}
@@ -236,9 +248,9 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		boardsErr := lib.AddBoardUser(dbPool, userId, boardId)
 		if boardsErr != nil {
 			logger.Error(fmt.Sprintf("AddBoardUser error: %v", boardsErr.Error()))
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status":  "ERROR",
-				"message": boardsErr.Error(),
+			c.JSON(http.StatusInternalServerError, GenericResponse{
+				Status:  "ERROR",
+				Message: boardsErr.Error(),
 			})
 			return
 		}
