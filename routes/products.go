@@ -116,6 +116,7 @@ func saveInventoryItem(dbPool *pgxpool.Pool, logger *slog.Logger, itemUpdateRequ
 	return itemId, nil
 }
 
+//nolint:funlen
 func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *persistence.InMemoryStore) {
 	r.GET("/api/v1/products/:slug", cache.CachePage(store, time.Minute*15, func(c *gin.Context) {
 		urlSlug := c.Param("slug")

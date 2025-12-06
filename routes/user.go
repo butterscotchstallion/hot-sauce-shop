@@ -13,7 +13,28 @@ import (
 )
 
 type GenericResponse struct {
-	Status string `json:"status"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
+
+type UserBoardsResponseResults struct {
+	Boards []lib.Board `json:"boards"`
+}
+
+type UserBoardsResponse struct {
+	Status  string                    `json:"status"`
+	Results UserBoardsResponseResults `json:"results"`
+}
+
+type UserSignInResponseResults struct {
+	SessionId string   `json:"sessionId"`
+	User      lib.User `json:"user"`
+}
+
+type UserSignInResponse struct {
+	Status  string                    `json:"status"`
+	Message string                    `json:"message"`
+	Results UserSignInResponseResults `json:"results"`
 }
 
 func GetUserIdFromSessionOrError(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (int, error) {
@@ -161,12 +182,12 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"status":  "OK",
-			"message": "Sign in successful",
-			"results": gin.H{
-				"sessionId": sessionId,
-				"user":      verifiedUser,
+		c.JSON(http.StatusOK, UserSignInResponse{
+			Status:  "OK",
+			Message: "Sign in successful",
+			Results: UserSignInResponseResults{
+				SessionId: sessionId,
+				User:      verifiedUser,
 			},
 		})
 	})
@@ -189,10 +210,10 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"status": "OK",
-			"results": gin.H{
-				"boards": boards,
+		c.JSON(http.StatusOK, UserBoardsResponse{
+			Status: "OK",
+			Results: UserBoardsResponseResults{
+				Boards: boards,
 			},
 		})
 	})
@@ -234,7 +255,8 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		}
 
 		c.JSON(http.StatusOK, GenericResponse{
-			Status: "OK",
+			Status:  "OK",
+			Message: "",
 		})
 	})
 }

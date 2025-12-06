@@ -40,6 +40,7 @@ func getPostIdAsNumberOrError(c *gin.Context) (int, error) {
 	return postId, nil
 }
 
+//nolint:funlen
 func Votes(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	// User vote map
 	r.GET("/api/v1/vote-map", func(c *gin.Context) {
