@@ -26,17 +26,6 @@ type UserBoardsResponse struct {
 	Results UserBoardsResponseResults `json:"results"`
 }
 
-type UserSignInResponseResults struct {
-	SessionId string   `json:"sessionId"`
-	User      lib.User `json:"user"`
-}
-
-type UserSignInResponse struct {
-	Status  string                    `json:"status"`
-	Message string                    `json:"message"`
-	Results UserSignInResponseResults `json:"results"`
-}
-
 func GetUserIdFromSessionOrError(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (int, error) {
 	userId, err := lib.GetUserIdFromSession(c, dbPool, logger)
 	if err != nil || userId == 0 {
@@ -182,10 +171,10 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			return
 		}
 
-		c.JSON(http.StatusOK, UserSignInResponse{
+		c.JSON(http.StatusOK, lib.SignInResponse{
 			Status:  "OK",
 			Message: "Sign in successful",
-			Results: UserSignInResponseResults{
+			Results: lib.SignInResponseResults{
 				SessionId: sessionId,
 				User:      verifiedUser,
 			},
