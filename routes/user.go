@@ -12,20 +12,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type GenericResponse struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
-}
-
-type UserBoardsResponseResults struct {
-	Boards []lib.Board `json:"boards"`
-}
-
-type UserBoardsResponse struct {
-	Status  string                    `json:"status"`
-	Results UserBoardsResponseResults `json:"results"`
-}
-
 func GetUserIdFromSessionOrError(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (int, error) {
 	userId, err := lib.GetUserIdFromSession(c, dbPool, logger)
 	if err != nil || userId == 0 {
@@ -49,7 +35,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			return
 		}
 		if !isUserAdmin {
-			c.JSON(http.StatusForbidden, GenericResponse{
+			c.JSON(http.StatusForbidden, lib.GenericResponse{
 				Status:  "ERROR",
 				Message: "Permission denied",
 			})
@@ -58,17 +44,17 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 
 		users, err := lib.GetUsers(dbPool, logger)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status":  "ERROR",
-				"message": err.Error(),
+			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: err.Error(),
 			})
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"status": "OK",
-			"results": gin.H{
-				"users": users,
+		c.JSON(http.StatusOK, lib.UserListResponse{
+			Status: "OK",
+			Results: lib.UserListResponseResults{
+				Users: users,
 			},
 		})
 	})
@@ -77,25 +63,25 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	r.GET("/api/v1/user/profile/:userSlug", func(c *gin.Context) {
 		userSlug := c.Param("userSlug")
 		if len(userSlug) == 0 {
-			c.JSON(http.StatusNotFound, gin.H{
-				"status":  "ERROR",
-				"message": "User not found",
+			c.JSON(http.StatusNotFound, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: "User not found",
 			})
 			return
 		}
 
 		user, err := lib.GetUserBySlug(dbPool, logger, userSlug)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status":  "ERROR",
-				"message": err.Error(),
+			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: err.Error(),
 			})
 			return
 		}
 		if user == (lib.User{}) {
-			c.JSON(http.StatusNotFound, gin.H{
-				"status":  "ERROR",
-				"message": "User not found",
+			c.JSON(http.StatusNotFound, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: "User not found",
 			})
 			return
 		}
@@ -104,9 +90,9 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		roles, rolesErr := lib.GetRolesByUserId(dbPool, logger, user.Id)
 		if rolesErr != nil {
 			logger.Error(fmt.Sprintf("Error fetching roles: %v", rolesErr.Error()))
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status":  "ERROR",
-				"message": rolesErr.Error(),
+			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: rolesErr.Error(),
 			})
 			return
 		}
@@ -128,14 +114,14 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 
 		logger.Info(fmt.Sprintf("User post vote sum: %v", userPostVoteSum))
 
-		c.JSON(http.StatusOK, gin.H{
-			"status": "OK",
-			"results": gin.H{
-				"user":                user,
-				"roles":               roles,
-				"userPostCount":       userPostCount,
-				"userPostVoteSum":     userPostVoteSum,
-				"userModeratedBoards": userModeratedBoards,
+		c.JSON(http.StatusOK, lib.UserProfileResponse{
+			Status: "OK",
+			Results: lib.UserProfileResponseResults{
+				User:                user,
+				Roles:               roles,
+				UserPostCount:       userPostCount,
+				UserPostVoteSum:     userPostVoteSum,
+				UserModeratedBoards: userModeratedBoards,
 			},
 		})
 	})
@@ -145,7 +131,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		loginRequest := lib.LoginRequest{}
 		if err := c.ShouldBindJSON(&loginRequest); err != nil {
 			logger.Error(err.Error())
-			c.JSON(http.StatusBadRequest, GenericResponse{
+			c.JSON(http.StatusBadRequest, lib.GenericResponse{
 				Status:  "ERROR",
 				Message: err.Error(),
 			})
@@ -157,7 +143,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		)
 		if errVerifying != nil {
 			logger.Error(errVerifying.Error())
-			c.JSON(http.StatusInternalServerError, GenericResponse{
+			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
 				Status:  "ERROR",
 				Message: errVerifying.Error(),
 			})
@@ -165,7 +151,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		}
 
 		if verifiedUser == (lib.User{}) {
-			c.JSON(http.StatusOK, GenericResponse{
+			c.JSON(http.StatusOK, lib.GenericResponse{
 				Status:  "ERROR",
 				Message: "Invalid username or password",
 			})
@@ -175,7 +161,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		sessionId, err := lib.AddUserSessionId(dbPool, verifiedUser.Id)
 		if err != nil || len(sessionId) == 0 {
 			logger.Error(fmt.Sprintf("Error generating sessionId: %v", err.Error()))
-			c.JSON(http.StatusInternalServerError, GenericResponse{
+			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
 				Status:  "ERROR",
 				Message: err.Error(),
 			})
@@ -203,16 +189,16 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		boards, boardsErr := lib.GetJoinedBoardsByUserId(dbPool, userId)
 		if boardsErr != nil {
 			logger.Error(fmt.Sprintf("user/boards error: %v", boardsErr.Error()))
-			c.JSON(http.StatusInternalServerError, GenericResponse{
+			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
 				Status:  "ERROR",
 				Message: boardsErr.Error(),
 			})
 			return
 		}
 
-		c.JSON(http.StatusOK, UserBoardsResponse{
+		c.JSON(http.StatusOK, lib.UserBoardsResponse{
 			Status: "OK",
-			Results: UserBoardsResponseResults{
+			Results: lib.UserBoardsResponseResults{
 				Boards: boards,
 			},
 		})
@@ -222,7 +208,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	r.POST("/api/v1/user/boards/:boardId", func(c *gin.Context) {
 		boardIdSlug := c.Param("boardId")
 		if len(boardIdSlug) == 0 {
-			c.JSON(http.StatusNotFound, GenericResponse{
+			c.JSON(http.StatusNotFound, lib.GenericResponse{
 				Status:  "ERROR",
 				Message: "Not found",
 			})
@@ -232,7 +218,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		boardId, err := strconv.Atoi(boardIdSlug)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Error parsing boardIdSlug: %v", err.Error()))
-			c.JSON(http.StatusBadRequest, GenericResponse{
+			c.JSON(http.StatusBadRequest, lib.GenericResponse{
 				Status:  "ERROR",
 				Message: "Invalid boardId",
 			})
@@ -248,14 +234,14 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		boardsErr := lib.AddBoardUser(dbPool, userId, boardId)
 		if boardsErr != nil {
 			logger.Error(fmt.Sprintf("AddBoardUser error: %v", boardsErr.Error()))
-			c.JSON(http.StatusInternalServerError, GenericResponse{
+			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
 				Status:  "ERROR",
 				Message: boardsErr.Error(),
 			})
 			return
 		}
 
-		c.JSON(http.StatusOK, GenericResponse{
+		c.JSON(http.StatusOK, lib.GenericResponse{
 			Status:  "OK",
 			Message: "",
 		})

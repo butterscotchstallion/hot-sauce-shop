@@ -47,6 +47,33 @@ type UserListResponse struct {
 	Results UserListResponseResults
 }
 
+type GenericResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
+
+type UserBoardsResponseResults struct {
+	Boards []Board `json:"boards"`
+}
+
+type UserBoardsResponse struct {
+	Status  string                    `json:"status"`
+	Results UserBoardsResponseResults `json:"results"`
+}
+
+type UserProfileResponseResults struct {
+	User                User    `json:"user"`
+	Roles               []Role  `json:"roles"`
+	UserPostCount       int     `json:"userPostCount"`
+	UserPostVoteSum     int     `json:"userPostVoteSum"`
+	UserModeratedBoards []Board `json:"userModeratedBoards"`
+}
+
+type UserProfileResponse struct {
+	Status  string `json:"status"`
+	Results UserProfileResponseResults
+}
+
 func GetUserPostVoteSum(dbPool *pgxpool.Pool, userId int) (int, error) {
 	const query = `
 		SELECT COALESCE(SUM(v.value), 0) AS voteSum
