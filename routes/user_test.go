@@ -33,7 +33,7 @@ func TestUserJoinBoard(t *testing.T) {
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
 	addBoardResponse := createBoardAndVerify(t, e, sessionID)
 
-	var response GenericResponse
+	var response lib.GenericResponse
 	e.POST(fmt.Sprintf("/api/v1/user/boards/%v", addBoardResponse.Results.BoardId)).
 		WithCookie("sessionId", sessionID).
 		Expect().
@@ -44,7 +44,7 @@ func TestUserJoinBoard(t *testing.T) {
 		t.Fatal("Failed to join board")
 	}
 
-	// Only board admins can delete board
+	// Only board admins can delete boards
 	deleteBoardAndVerify(t, e, sessionID, addBoardResponse.Results.Slug)
 }
 
