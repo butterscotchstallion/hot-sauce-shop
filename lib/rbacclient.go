@@ -149,6 +149,7 @@ func IsUserAdmin(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (boo
 	return UserHasRole(c, dbPool, logger, "User Admin")
 }
 
+// IsMessageBoardAdmin Sends JSON response upon failure
 func IsMessageBoardAdmin(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (bool, error) {
 	return UserHasRole(c, dbPool, logger, "Message Board Admin")
 }

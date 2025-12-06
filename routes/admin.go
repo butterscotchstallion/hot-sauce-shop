@@ -96,10 +96,6 @@ func Admin(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *pers
 
 		if !isUserAdmin {
 			logger.Error("User is not an admin")
-			c.JSON(http.StatusForbidden, gin.H{
-				"status":  "ERROR",
-				"message": "User is not an admin",
-			})
 			return
 		}
 

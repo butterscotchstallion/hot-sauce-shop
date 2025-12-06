@@ -19,6 +19,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+//nolint:funlen
 func Boards(
 	r *gin.Engine,
 	dbPool *pgxpool.Pool,
@@ -612,6 +613,24 @@ func Boards(
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "OK",
 			"message": "Post deleted",
+		})
+	})
+
+	r.GET("/api/v1/post-flairs", func(c *gin.Context) {
+		postFlairs, postFlairsErr := lib.GetPostFlairs(dbPool)
+		if postFlairsErr != nil {
+			logger.Error(fmt.Sprintf("Error getting post flairs: %v", postFlairsErr))
+			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: "Error getting post flairs",
+			})
+			return
+		}
+		c.JSON(http.StatusOK, lib.PostFlairsResponse{
+			Status: "OK",
+			Results: lib.PostFlairsResponseResults{
+				PostFlairs: postFlairs,
+			},
 		})
 	})
 }

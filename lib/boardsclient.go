@@ -113,6 +113,19 @@ type BoardDeleteResponse struct {
 	Message string `json:"message"`
 }
 
+type PostFlair struct {
+	Id          int    `json:"id"`
+	DisplayName string `json:"displayName"`
+	Slug        string `json:"slug"`
+}
+type PostFlairsResponseResults struct {
+	PostFlairs []PostFlair
+}
+type PostFlairsResponse struct {
+	Status  string `json:"status"`
+	Results PostFlairsResponseResults
+}
+
 func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
 	// TODO: filter visible boards, or show everything if privileged
 	const query = `
@@ -188,7 +201,8 @@ func GetTotalPostReplyCountByBoardSlug(dbPool *pgxpool.Pool, boardSlug string) (
 			  COALESCE(COUNT(bp.*), 0) AS total_post_reply_count
 		FROM board_posts bp
 		JOIN boards b ON b.id = bp.board_id
-		WHERE 1=1 ` + boardSlugClause + `  AND bp.parent_id > 0 GROUP BY bp.id
+		WHERE 1=1 ` + boardSlugClause + `  
+		AND bp.parent_id > 0 GROUP BY bp.id
 	`
 	var rows pgx.Rows
 	var err error
@@ -561,4 +575,17 @@ func IsUserBoardPostAuthor(dbPool *pgxpool.Pool, userId int, boardPostSlug strin
 		return false, insertErr
 	}
 	return postCount == 1, nil
+}
+
+func GetPostFlairs(dbPool *pgxpool.Pool) ([]PostFlair, error) {
+	const query = `SELECT * FROM post_flairs`
+	rows, rowsErr := dbPool.Query(context.Background(), query)
+	if rowsErr != nil {
+		return []PostFlair{}, rowsErr
+	}
+	postFlairs, postFlairsErr := pgx.CollectRows(rows, pgx.RowToStructByName[PostFlair])
+	if postFlairsErr != nil {
+		return []PostFlair{}, postFlairsErr
+	}
+	return postFlairs, nil
 }

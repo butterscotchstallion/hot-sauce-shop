@@ -49,6 +49,7 @@ func createBoardAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string) 
 		DisplayName: boardName,
 		Description: "Testing testing 1-2-3",
 	}
+	// checking linter
 	var addBoardResponse lib.AddBoardResponse
 	e.POST("/api/v1/boards").
 		WithCookie("sessionId", sessionID).
@@ -180,5 +181,18 @@ func TestCreateBoardPostWithoutSession(t *testing.T) {
 		Decode(&addPostResponse)
 	if addPostResponse.Status != "ERROR" {
 		t.Fatal("Adding post without session should have failed")
+	}
+}
+
+func TestGetPostFlairs(t *testing.T) {
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	var postFlairsResponse lib.PostFlairsResponse
+	e.GET("/api/v1/post-flairs").
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&postFlairsResponse)
+	if postFlairsResponse.Status != "OK" {
+		t.Fatal("Unexpected response for post flairs")
 	}
 }
