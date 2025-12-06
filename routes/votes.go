@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -13,21 +12,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type AddUpdateVoteRequest struct {
-	VoteValue int `json:"voteValue" binding:"required,oneof=1 -1"`
-}
-
 func getPostIdAsNumberOrError(c *gin.Context) (int, error) {
 	postIdSlug := c.Param("postId")
-
-	if postIdSlug == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  "ERROR",
-			"message": "Post id not found",
-		})
-		return 0, errors.New("post id not found")
-	}
-
 	postId, postIdSlugErr := strconv.Atoi(postIdSlug)
 	if postIdSlugErr != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -36,7 +22,6 @@ func getPostIdAsNumberOrError(c *gin.Context) (int, error) {
 		})
 		return 0, postIdSlugErr
 	}
-
 	return postId, nil
 }
 
@@ -92,7 +77,7 @@ func Votes(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		})
 	})
 
-	var addUpdateVoteRequest AddUpdateVoteRequest
+	var addUpdateVoteRequest lib.AddUpdateVoteRequest
 	r.POST("/api/v1/votes/:postId", func(c *gin.Context) {
 		postId, postIdErr := getPostIdAsNumberOrError(c)
 		if postIdErr != nil {

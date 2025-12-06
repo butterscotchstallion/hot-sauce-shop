@@ -8,6 +8,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type AddUpdateVoteRequest struct {
+	VoteValue int `json:"voteValue" binding:"required,oneof=1 -1"`
+}
+
 func AddUpdateVote(dbPool *pgxpool.Pool, userId int, postId int, voteValue int) (int, error) {
 	if voteValue != -1 && voteValue != 1 {
 		return 0, errors.New("invalid vote value")

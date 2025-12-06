@@ -36,6 +36,20 @@ type RatingDistribution struct {
 	Count  int `json:"count"`
 }
 
+type InventoryItemUpdateRequest struct {
+	Name             string  `json:"name" validate:"required,min=3,max=255"`
+	Price            float32 `json:"price" validate:"required,min=0.01,max=999999.99"`
+	SpiceRating      int     `json:"spiceRating" validate:"required,min=1,max=5"`
+	TagIds           []int   `json:"tagIds"`
+	Description      string  `json:"description" validate:"required,min=3,max=1000000"`
+	ShortDescription string  `json:"shortDescription" validate:"required,min=3,max=1000"`
+}
+
+type PaginationData struct {
+	PerPage int `json:"page"`
+	Offset  int `json:"limit"`
+}
+
 func AddOrUpdateInventoryItem(dbPool *pgxpool.Pool, logger *slog.Logger, inventoryItem InventoryItem) (int, error) {
 	const query = `
 		INSERT INTO inventories (

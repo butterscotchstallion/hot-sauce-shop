@@ -20,22 +20,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type InventoryItemUpdateRequest struct {
-	Name             string  `json:"name" validate:"required,min=3,max=255"`
-	Price            float32 `json:"price" validate:"required,min=0.01,max=999999.99"`
-	SpiceRating      int     `json:"spiceRating" validate:"required,min=1,max=5"`
-	TagIds           []int   `json:"tagIds"`
-	Description      string  `json:"description" validate:"required,min=3,max=1000000"`
-	ShortDescription string  `json:"shortDescription" validate:"required,min=3,max=1000"`
-}
-
-type PaginationData struct {
-	PerPage int `json:"page"`
-	Offset  int `json:"limit"`
-}
-
-func getValidPaginationData(c *gin.Context) PaginationData {
-	var paginationData PaginationData
+func getValidPaginationData(c *gin.Context) lib.PaginationData {
+	var paginationData lib.PaginationData
 	offset := c.DefaultQuery("offset", "0")
 	perPage := c.DefaultQuery("perPage", "10")
 
@@ -72,7 +58,7 @@ func toIntArray(str string) []int {
 func validateInventoryItemAddOrUpdateRequest(
 	c *gin.Context,
 	logger *slog.Logger,
-	itemUpdateRequest InventoryItemUpdateRequest) (InventoryItemUpdateRequest, error) {
+	itemUpdateRequest lib.InventoryItemUpdateRequest) (lib.InventoryItemUpdateRequest, error) {
 	if err := c.ShouldBindJSON(&itemUpdateRequest); err != nil {
 		logger.Error(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -96,7 +82,7 @@ func validateInventoryItemAddOrUpdateRequest(
 	return itemUpdateRequest, nil
 }
 
-func saveInventoryItem(dbPool *pgxpool.Pool, logger *slog.Logger, itemUpdateRequest InventoryItemUpdateRequest) (int, error) {
+func saveInventoryItem(dbPool *pgxpool.Pool, logger *slog.Logger, itemUpdateRequest lib.InventoryItemUpdateRequest) (int, error) {
 	var item lib.InventoryItem
 	item.Name = itemUpdateRequest.Name
 	item.Price = itemUpdateRequest.Price
@@ -229,7 +215,7 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 	/*
 		- Attempt to parse request JSON
 		- Validate request
-		- Check if item exists
+		- Check if the item exists
 		- Get user from sessionId
 		- Add review
 	*/
@@ -257,7 +243,7 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 			return
 		}
 
-		// Check if user signed in
+		// Check if the user signed in
 		signedInUserId, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
 		if userSessionErr != nil || signedInUserId == 0 {
 			return
@@ -330,9 +316,9 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 
 	// TODO: add product admin role check here
 	r.POST("/api/v1/products", func(c *gin.Context) {
-		itemUpdateRequest := InventoryItemUpdateRequest{}
+		itemUpdateRequest := lib.InventoryItemUpdateRequest{}
 		itemUpdateRequest, validationErr := validateInventoryItemAddOrUpdateRequest(c, logger, itemUpdateRequest)
-		// Error responses handled in above func
+		// Error responses handled in the above func
 		if validationErr != nil {
 			return
 		}
@@ -363,7 +349,7 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 	})
 
 	r.PUT("/api/v1/products/:slug", func(c *gin.Context) {
-		itemUpdateRequest := InventoryItemUpdateRequest{}
+		itemUpdateRequest := lib.InventoryItemUpdateRequest{}
 		itemUpdateRequest, validationErr := validateInventoryItemAddOrUpdateRequest(c, logger, itemUpdateRequest)
 		if validationErr != nil {
 			return
