@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"slices"
 	"testing"
 	"time"
 
@@ -233,6 +234,17 @@ func TestGetPostFlairsForPost(t *testing.T) {
 }
 
 func TestGetPostsFlairsMap(t *testing.T) {
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+
+	var postFlairsResponse lib.PostFlairsResponse
+	e.GET("/api/v1/post-flairs").
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&postFlairsResponse)
+	if postFlairsResponse.Status != "OK" {
+		t.Fatal("Failed to get post flairs")
+	}
 	postsFlairs := []lib.PostsFlairs{
 		{
 			Id:          1,
@@ -247,8 +259,23 @@ func TestGetPostsFlairsMap(t *testing.T) {
 			CreatedAt:   time.Now(),
 		},
 	}
-	postsFlairsMap := lib.GetPostsFlairsMap(postsFlairs)
-	if postsFlairsMap[2] != postsFlairs[1] {
-		t.Fatal("Map does not contain expected value")
+	postFlairIdMap := lib.GetPostFlairIdMap(postFlairsResponse.Results.PostFlairs)
+	postsFlairsMap := lib.GetPostsFlairsMap(postsFlairs, postFlairIdMap)
+	found := false
+	for boardPostId, postFlairs := range postsFlairsMap {
+		if len(postFlairs) == 0 {
+			t.Fatal("postFlairs length is 0!")
+		}
+		if boardPostId == 1 {
+			for _, postFlair := range postFlairs {
+				found = slices.Contains(postsFlairsMap[boardPostId], postFlairIdMap[postFlair.Id])
+				if found {
+					break
+				}
+			}
+		}
+	}
+	if !found {
+		t.Fatal("Could not find post flair in map")
 	}
 }

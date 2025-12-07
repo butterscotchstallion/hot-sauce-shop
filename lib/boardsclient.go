@@ -27,25 +27,24 @@ type Board struct {
 }
 
 type BoardPost struct {
-	Id                int         `json:"id"`
-	Title             string      `json:"title"`
-	CreatedAt         *time.Time  `json:"createdAt"`
-	UpdatedAt         *time.Time  `json:"updatedAt"`
-	Slug              string      `json:"slug"`
-	CreatedByUserId   int         `json:"createdByUserId"`
-	CreatedByUsername string      `json:"createdByUsername"`
-	CreatedByUserSlug string      `json:"createdByUserSlug"`
-	BoardId           int         `json:"boardId"`
-	BoardSlug         string      `json:"boardSlug"`
-	BoardName         string      `json:"boardName"`
-	ParentId          int         `json:"parentId"`
-	PostText          string      `json:"postText"`
-	VoteSum           int         `json:"voteSum"`
-	IsPinned          bool        `json:"isPinned"`
-	ThumbnailFilename string      `json:"thumbnailFilename" db:"thumbnail_filename"`
-	ThumbnailWidth    *float32    `json:"thumbnailWidth" db:"thumbnail_width"`
-	ThumbnailHeight   *float32    `json:"thumbnailHeight" db:"thumbnail_height"`
-	PostFlairs        []PostFlair `json:"postFlairs"`
+	Id                int        `json:"id"`
+	Title             string     `json:"title"`
+	CreatedAt         *time.Time `json:"createdAt"`
+	UpdatedAt         *time.Time `json:"updatedAt"`
+	Slug              string     `json:"slug"`
+	CreatedByUserId   int        `json:"createdByUserId"`
+	CreatedByUsername string     `json:"createdByUsername"`
+	CreatedByUserSlug string     `json:"createdByUserSlug"`
+	BoardId           int        `json:"boardId"`
+	BoardSlug         string     `json:"boardSlug"`
+	BoardName         string     `json:"boardName"`
+	ParentId          int        `json:"parentId"`
+	PostText          string     `json:"postText"`
+	VoteSum           int        `json:"voteSum"`
+	IsPinned          bool       `json:"isPinned"`
+	ThumbnailFilename string     `json:"thumbnailFilename" db:"thumbnail_filename"`
+	ThumbnailWidth    *float32   `json:"thumbnailWidth" db:"thumbnail_width"`
+	ThumbnailHeight   *float32   `json:"thumbnailHeight" db:"thumbnail_height"`
 }
 
 type AddPostRequest struct {
@@ -267,7 +266,7 @@ func GetPosts(dbPool *pgxpool.Pool, boardSlug string, postSlug string, parentId 
 	if len(boardSlug) > 0 {
 		whereClause += " AND b.slug = $1"
 	}
-	// If the post slug is here, there will also be a board slug
+	// If the slug for the post is here, there will also be a board slug
 	if len(postSlug) > 0 {
 		whereClause += " AND bp.slug = $2"
 	}
@@ -416,8 +415,7 @@ func GetBoardModerators(dbPool *pgxpool.Pool, boardSlug string, userId int) ([]U
 		JOIN user_roles ur ON ur.role_id = urb.role_id
         JOIN roles r ON r.id = urb.role_id
         JOIN boards b ON b.id = urb.board_id
-		WHERE 1=1
-		AND b.slug = $1
+		WHERE b.slug = $1
 		AND r.slug = 'message-board-moderator'
 	` + userFilterClause
 	var rows pgx.Rows
@@ -670,7 +668,9 @@ func AddPostFlair(dbPool *pgxpool.Pool, postId int, postFlairIds []int) error {
 	for flairId := range postFlairIds {
 		values = append(values, fmt.Sprintf("(%d, %d)", postId, flairId))
 	}
-	query := fmt.Sprintf(`INSERT INTO posts_flairs (board_post_id, post_flair_id) VALUES %v`, strings.Join(values, ","))
+	query := fmt.Sprintf(`
+		INSERT INTO posts_flairs (board_post_id, post_flair_id) VALUES %v`, strings.Join(values, ","),
+	)
 	_, insertErr := dbPool.Query(context.Background(), query)
 	if insertErr != nil {
 		return insertErr
@@ -679,14 +679,30 @@ func AddPostFlair(dbPool *pgxpool.Pool, postId int, postFlairIds []int) error {
 	return nil
 }
 
-func GetPostsFlairsMap(postsFlairs []PostsFlairs) map[int][]PostFlair {
-	postsFlairsMap = make(map[int][]PostFlair)
+func GetPostFlairIdMap(postFlairs []PostFlair) map[int]PostFlair {
+	postFlairIdMap := make(map[int]PostFlair)
+	for _, postFlair := range postFlairs {
+		postFlairIdMap[postFlair.Id] = postFlair
+	}
 
-	for item := range postsFlairs {
-		if !postsFlairsMap[item.BoardPostId] {
-			postsFlairsMap[item.BoardPostId] = make([]PostFlair, 0)
+	return postFlairIdMap
+}
+
+func GetPostsFlairsMap(postsFlairs []PostsFlairs, postFlairIdMap map[int]PostFlair) map[int][]PostFlair {
+	postsFlairsMap := make(map[int][]PostFlair)
+	for _, postFlair := range postsFlairs {
+		// Initialize slice if we haven't already
+		if _, exists := postsFlairsMap[postFlair.BoardPostId]; !exists {
+			postsFlairsMap[postFlair.BoardPostId] = make([]PostFlair, 0)
 		}
-		postsFlairsMap[item.BoardPostId] = append(item.PostFlairId)
+		// Ensure that this flair exists in the flair map, and if so,
+		// append it to the slice
+		if _, exists := postFlairIdMap[postFlair.PostFlairId]; exists {
+			postsFlairsMap[postFlair.BoardPostId] = append(
+				postsFlairsMap[postFlair.BoardPostId],
+				postFlairIdMap[postFlair.PostFlairId],
+			)
+		}
 	}
 
 	return postsFlairsMap
