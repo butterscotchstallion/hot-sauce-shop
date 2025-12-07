@@ -67,13 +67,19 @@ func CreateThumbnail(originalFullPath string, destFullPath string, mimeType stri
 	if openErr != nil {
 		return fmt.Errorf("error opening %v: %v", originalFullPath, openErr.Error())
 	}
-	defer input.Close()
+	err := input.Close()
+	if err != nil {
+		return err
+	}
 
 	output, createErr := os.Create(destFullPath)
 	if createErr != nil {
 		return fmt.Errorf("error creating %v: %v", destFullPath, createErr.Error())
 	}
-	defer output.Close()
+	err = output.Close()
+	if err != nil {
+		return err
+	}
 
 	originalImage, _, decodeErr := image.Decode(input)
 	if decodeErr != nil {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"mime/multipart"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -26,32 +27,34 @@ type Board struct {
 }
 
 type BoardPost struct {
-	Id                int        `json:"id"`
-	Title             string     `json:"title"`
-	CreatedAt         *time.Time `json:"createdAt"`
-	UpdatedAt         *time.Time `json:"updatedAt"`
-	Slug              string     `json:"slug"`
-	CreatedByUserId   int        `json:"createdByUserId"`
-	CreatedByUsername string     `json:"createdByUsername"`
-	CreatedByUserSlug string     `json:"createdByUserSlug"`
-	BoardId           int        `json:"boardId"`
-	BoardSlug         string     `json:"boardSlug"`
-	BoardName         string     `json:"boardName"`
-	ParentId          int        `json:"parentId"`
-	PostText          string     `json:"postText"`
-	VoteSum           int        `json:"voteSum"`
-	IsPinned          bool       `json:"isPinned"`
-	ThumbnailFilename string     `json:"thumbnailFilename" db:"thumbnail_filename"`
-	ThumbnailWidth    *float32   `json:"thumbnailWidth" db:"thumbnail_width"`
-	ThumbnailHeight   *float32   `json:"thumbnailHeight" db:"thumbnail_height"`
+	Id                int         `json:"id"`
+	Title             string      `json:"title"`
+	CreatedAt         *time.Time  `json:"createdAt"`
+	UpdatedAt         *time.Time  `json:"updatedAt"`
+	Slug              string      `json:"slug"`
+	CreatedByUserId   int         `json:"createdByUserId"`
+	CreatedByUsername string      `json:"createdByUsername"`
+	CreatedByUserSlug string      `json:"createdByUserSlug"`
+	BoardId           int         `json:"boardId"`
+	BoardSlug         string      `json:"boardSlug"`
+	BoardName         string      `json:"boardName"`
+	ParentId          int         `json:"parentId"`
+	PostText          string      `json:"postText"`
+	VoteSum           int         `json:"voteSum"`
+	IsPinned          bool        `json:"isPinned"`
+	ThumbnailFilename string      `json:"thumbnailFilename" db:"thumbnail_filename"`
+	ThumbnailWidth    *float32    `json:"thumbnailWidth" db:"thumbnail_width"`
+	ThumbnailHeight   *float32    `json:"thumbnailHeight" db:"thumbnail_height"`
+	PostFlairs        []PostFlair `json:"postFlairs"`
 }
 
 type AddPostRequest struct {
-	Title      string                  `json:"title" form:"title"`
-	ParentId   int                     `json:"parentId" form:"parentId"`
-	PostText   string                  `json:"postText" form:"postText" binding:"required"`
-	PostImages []*multipart.FileHeader `json:"postImages" form:"postImages"`
-	Slug       string                  `json:"slug" form:"slug"`
+	Title        string                  `json:"title" form:"title"`
+	ParentId     int                     `json:"parentId" form:"parentId"`
+	PostText     string                  `json:"postText" form:"postText" binding:"required"`
+	PostImages   []*multipart.FileHeader `json:"postImages" form:"postImages"`
+	Slug         string                  `json:"slug" form:"slug"`
+	PostFlairIds []int                   `json:"postFlairIds" form:"postFlairIds"`
 }
 
 type AddBoardRequest struct {
@@ -126,6 +129,35 @@ type PostFlairsResponse struct {
 	Results PostFlairsResponseResults
 }
 
+// PostsFlairs These are the association between each post and flairs
+type PostsFlairs struct {
+	Id          int       `json:"id"`
+	BoardPostId int       `json:"boardPostId"`
+	PostFlairId int       `json:"postFlairId"`
+	CreatedAt   time.Time `json:"createdAt"`
+}
+
+type PostsFlairsResponseResults struct {
+	Results []PostsFlairs `json:"postFlairs"`
+}
+
+type PostsFlairsResponse struct {
+	Status  string                     `json:"status"`
+	Results PostsFlairsResponseResults `json:"results"`
+}
+
+type BoardPostResponseResults struct {
+	Board           Board  `json:"board"`
+	Moderators      []User `json:"moderators"`
+	NumBoardMembers int    `json:"numBoardMembers"`
+	TotalPosts      int    `json:"totalPosts"`
+}
+
+type BoardPostResponse struct {
+	Status  string `json:"status"`
+	Results BoardPostResponseResults
+}
+
 func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
 	// TODO: filter visible boards, or show everything if privileged
 	const query = `
@@ -148,6 +180,7 @@ func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
 	if collectRowsErr != nil {
 		return nil, collectRowsErr
 	}
+
 	return boards, nil
 }
 
@@ -202,7 +235,8 @@ func GetTotalPostReplyCountByBoardSlug(dbPool *pgxpool.Pool, boardSlug string) (
 		FROM board_posts bp
 		JOIN boards b ON b.id = bp.board_id
 		WHERE 1=1 ` + boardSlugClause + `  
-		AND bp.parent_id > 0 GROUP BY bp.id
+		AND bp.parent_id > 0
+		GROUP BY bp.id
 	`
 	var rows pgx.Rows
 	var err error
@@ -222,6 +256,7 @@ func GetTotalPostReplyCountByBoardSlug(dbPool *pgxpool.Pool, boardSlug string) (
 	for _, reply := range replies {
 		totalPostReplyCountMap[reply.Id] = reply.TotalPostReplyCount
 	}
+
 	return totalPostReplyCountMap, nil
 }
 
@@ -259,8 +294,10 @@ func GetPosts(dbPool *pgxpool.Pool, boardSlug string, postSlug string, parentId 
 	posts, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[BoardPost])
 	if collectRowsErr != nil {
 		logger.Info(fmt.Sprintf("GetPosts CollectRows Error: %v", collectRowsErr))
+
 		return nil, collectRowsErr
 	}
+
 	return posts, nil
 }
 
@@ -275,6 +312,7 @@ func GetNumPostsByUserId(dbPool *pgxpool.Pool, userId int) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	return count, nil
 }
 
@@ -296,6 +334,7 @@ func GetBoardBySlug(dbPool *pgxpool.Pool, slug string) (Board, error) {
 	if collectRowsErr != nil {
 		return Board{}, collectRowsErr
 	}
+
 	return board, nil
 }
 
@@ -340,6 +379,7 @@ func GetPostDetail(dbPool *pgxpool.Pool, boardSlug string, postSlug string) (Boa
 	if collectRowsErr != nil {
 		return BoardPost{}, collectRowsErr
 	}
+
 	return post, nil
 }
 
@@ -361,6 +401,7 @@ func GetTotalPostsByBoardSlug(dbPool *pgxpool.Pool, boardSlug string) (int, erro
 	if collectRowsErr != nil {
 		return 0, collectRowsErr
 	}
+
 	return result.TotalPosts, err
 }
 
@@ -557,6 +598,19 @@ func DeleteBoardPost(dbPool *pgxpool.Pool, boardPostSlug string) error {
 	return nil
 }
 
+func DeleteBoardPostFlairs(dbPool *pgxpool.Pool, boardPostId int) error {
+	const query = `DELETE FROM posts_flairs WHERE board_post_id = $1`
+	_, err := dbPool.Exec(
+		context.Background(),
+		query,
+		boardPostId,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func IsUserBoardPostAuthor(dbPool *pgxpool.Pool, userId int, boardPostSlug string) (bool, error) {
 	const query = `
 		SELECT COUNT(*) as postCount
@@ -574,6 +628,7 @@ func IsUserBoardPostAuthor(dbPool *pgxpool.Pool, userId int, boardPostSlug strin
 	if insertErr != nil {
 		return false, insertErr
 	}
+
 	return postCount == 1, nil
 }
 
@@ -587,5 +642,52 @@ func GetPostFlairs(dbPool *pgxpool.Pool) ([]PostFlair, error) {
 	if postFlairsErr != nil {
 		return []PostFlair{}, postFlairsErr
 	}
+
 	return postFlairs, nil
+}
+
+// GetPostsFlairs association between each post and its flairs
+func GetPostsFlairs(dbPool *pgxpool.Pool) ([]PostsFlairs, error) {
+	const query = `SELECT * FROM posts_flairs`
+	rows, rowsErr := dbPool.Query(context.Background(), query)
+	if rowsErr != nil {
+		return []PostsFlairs{}, rowsErr
+	}
+	postFlairs, postFlairsErr := pgx.CollectRows(rows, pgx.RowToStructByName[PostsFlairs])
+	if postFlairsErr != nil {
+		return []PostsFlairs{}, postFlairsErr
+	}
+
+	return postFlairs, nil
+}
+
+func AddPostFlair(dbPool *pgxpool.Pool, postId int, postFlairIds []int) error {
+	postFlairsDeletedErr := DeleteBoardPostFlairs(dbPool, postId)
+	if postFlairsDeletedErr != nil {
+		return postFlairsDeletedErr
+	}
+	var values []string
+	for flairId := range postFlairIds {
+		values = append(values, fmt.Sprintf("(%d, %d)", postId, flairId))
+	}
+	query := fmt.Sprintf(`INSERT INTO posts_flairs (board_post_id, post_flair_id) VALUES %v`, strings.Join(values, ","))
+	_, insertErr := dbPool.Query(context.Background(), query)
+	if insertErr != nil {
+		return insertErr
+	}
+
+	return nil
+}
+
+func GetPostsFlairsMap(postsFlairs []PostsFlairs) map[int][]PostFlair {
+	postsFlairsMap = make(map[int][]PostFlair)
+
+	for item := range postsFlairs {
+		if !postsFlairsMap[item.BoardPostId] {
+			postsFlairsMap[item.BoardPostId] = make([]PostFlair, 0)
+		}
+		postsFlairsMap[item.BoardPostId] = append(item.PostFlairId)
+	}
+
+	return postsFlairsMap
 }

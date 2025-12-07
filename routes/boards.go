@@ -83,13 +83,13 @@ func Boards(
 			logger.Error(fmt.Sprintf("Error fetching total posts: %v", totalPostsErr.Error()))
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"status": "OK",
-			"results": gin.H{
-				"board":           board,
-				"moderators":      mods,
-				"numBoardMembers": numBoardMembers,
-				"totalPosts":      totalPosts,
+		c.JSON(http.StatusOK, lib.BoardPostResponse{
+			Status: "OK",
+			Results: lib.BoardPostResponseResults{
+				Board:           board,
+				Moderators:      mods,
+				NumBoardMembers: numBoardMembers,
+				TotalPosts:      totalPosts,
 			},
 		})
 	}))
@@ -285,17 +285,9 @@ func Boards(
 			return
 		}
 
-		// Check board
+		// Get board for this post - used to convert board slug to board id, which
+		// is used below when adding the post
 		boardSlug := c.Param("slug")
-		if boardSlug == "" {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  "ERROR",
-				"message": "Board slug is required",
-			})
-			return
-		}
-
-		// Check board
 		logger.Info("GetBoardBySlug: fetching board by slug: " + boardSlug)
 		board, getBoardErr := lib.GetBoardBySlug(dbPool, boardSlug)
 		if getBoardErr != nil {
@@ -314,7 +306,7 @@ func Boards(
 			return
 		}
 
-		// Create post slug
+		// Create a slug for the post
 		newPostSlug, err := uuid.NewRandom()
 		if err != nil {
 			logger.Error(fmt.Sprintf("Error generating new post slug: %v", err.Error()))
@@ -337,9 +329,20 @@ func Boards(
 			return
 		}
 
+		// Add flair for the post
+		addPostFlairErr := lib.AddPostFlair(dbPool, newPostId, newPost.PostFlairIds)
+		if addPostFlairErr != nil {
+			logger.Error(fmt.Sprintf("Error adding post flair: %v", addPostFlairErr))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": addPostErr.Error(),
+			})
+			return
+		}
+
 		isImagePost := false
 
-		// Add post images
+		// Add images for the post
 		postImagePath := "ui/src/public/images/posts/"
 		var savedPostImageInfo []lib.SavedPostImageInfo
 		postImages := newPost.PostImages
@@ -383,7 +386,7 @@ func Boards(
 			})
 		}
 
-		// Iterate successfully saved images, and add to DB/thumbnail
+		// Iterate successfully saved images and add them to DB/thumbnail
 		for _, imageInfo := range savedPostImageInfo {
 			// Create thumbnail
 			createThumbnailErr := lib.CreateThumbnail(
@@ -616,6 +619,7 @@ func Boards(
 		})
 	})
 
+	// All available post flair listing
 	r.GET("/api/v1/post-flairs", func(c *gin.Context) {
 		postFlairs, postFlairsErr := lib.GetPostFlairs(dbPool)
 		if postFlairsErr != nil {

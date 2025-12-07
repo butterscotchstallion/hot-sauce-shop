@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"testing"
+	"time"
 
 	"hotsauceshop/lib"
 
@@ -91,6 +92,51 @@ func deleteBoardAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string, 
 	}
 }
 
+func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string) string {
+	postUUID, postUUIDErr := uuid.NewRandom()
+	if postUUIDErr != nil {
+		t.Fatal("Failed to generate post UUID")
+	}
+	postName := postUUID.String()
+
+	// TODO: figure out how the heck to do images
+	postFlairIds := []int{1}
+	newPost := lib.AddPostRequest{
+		Title:        postName,
+		ParentId:     0,
+		PostText:     "Follow the white rabbit, Neo.",
+		Slug:         postName,
+		PostFlairIds: postFlairIds,
+	}
+	var addPostResponse lib.AddPostResponse
+	// Probably should create the board here but...
+	e.POST("/api/v1/boards/sauces/posts").
+		WithCookie("sessionId", sessionID).
+		WithJSON(newPost).
+		Expect().
+		Status(http.StatusCreated).
+		JSON().
+		Decode(&addPostResponse)
+	if addPostResponse.Status != "OK" {
+		t.Fatal("Failed to add post")
+	}
+	return postName
+}
+
+func deleteBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string, postSlug string) {
+	// Delete post
+	var boardPostDeleteResponse lib.BoardPostDeleteResponse
+	e.DELETE(fmt.Sprintf("/api/v1/boards/posts/%v", postSlug)).
+		WithCookie("sessionId", sessionID).
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&boardPostDeleteResponse)
+	if boardPostDeleteResponse.Status != "OK" {
+		t.Fatal("Failed to delete board post")
+	}
+}
+
 func TestCreateBoard(t *testing.T) {
 	/**
 	 * 1. Add a new board
@@ -117,44 +163,8 @@ func TestCreateBoardPost(t *testing.T) {
 	 */
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
-
-	// Add post
-	postUUID, postUUIDErr := uuid.NewRandom()
-	if postUUIDErr != nil {
-		t.Fatal("Failed to generate post UUID")
-	}
-	postName := postUUID.String()
-	// TODO: figure out how the heck to do images
-	newPost := lib.AddPostRequest{
-		Title:    postName,
-		ParentId: 0,
-		PostText: "Follow the white rabbit, Neo.",
-		Slug:     postName,
-	}
-	var addPostResponse lib.AddPostResponse
-	// Probably should create the board here but...
-	e.POST("/api/v1/boards/sauces/posts").
-		WithCookie("sessionId", sessionID).
-		WithJSON(newPost).
-		Expect().
-		Status(http.StatusCreated).
-		JSON().
-		Decode(&addPostResponse)
-	if addPostResponse.Status != "OK" {
-		t.Fatal("Failed to add post")
-	}
-
-	// Delete post
-	var boardPostDeleteResponse lib.BoardPostDeleteResponse
-	e.DELETE(fmt.Sprintf("/api/v1/boards/posts/%v", postName)).
-		WithCookie("sessionId", sessionID).
-		Expect().
-		Status(http.StatusOK).
-		JSON().
-		Decode(&boardPostDeleteResponse)
-	if boardPostDeleteResponse.Status != "OK" {
-		t.Fatal("Failed to delete board post")
-	}
+	postName := createBoardPostAndVerify(t, e, sessionID)
+	deleteBoardPostAndVerify(t, e, sessionID, postName)
 }
 
 func TestCreateBoardPostWithoutSession(t *testing.T) {
@@ -165,11 +175,13 @@ func TestCreateBoardPostWithoutSession(t *testing.T) {
 	}
 	postName := postUUID.String()
 	// TODO: figure out how the heck to do images
+	postFlairIds := []int{1}
 	newPost := lib.AddPostRequest{
-		Title:    postName,
-		ParentId: 0,
-		PostText: "Follow the white rabbit, Neo.",
-		Slug:     postName,
+		Title:        postName,
+		ParentId:     0,
+		PostText:     "Follow the white rabbit, Neo.",
+		Slug:         postName,
+		PostFlairIds: postFlairIds,
 	}
 	var addPostResponse lib.AddPostResponse
 	// Probably should create the board here but...
@@ -194,5 +206,49 @@ func TestGetPostFlairs(t *testing.T) {
 		Decode(&postFlairsResponse)
 	if postFlairsResponse.Status != "OK" {
 		t.Fatal("Unexpected response for post flairs")
+	}
+}
+
+func TestGetPostFlairsForPost(t *testing.T) {
+	/**
+	 * 1. Create a post and attach new flair id
+	 * 2. Get flairs for the post and verify the new one is present
+	 * NOTE: no plans at this time to allow creation of flair through the UI/API
+	 */
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
+	postName := createBoardPostAndVerify(t, e, sessionID)
+
+	var postDetail lib.BoardPostResponse
+	e.GET(fmt.Sprintf("/api/v1/board/sauces/posts/%v", postName)).
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&postDetail)
+	if postDetail.Status != "OK" {
+		t.Fatal("Failed to get post detail")
+	}
+
+	deleteBoardPostAndVerify(t, e, sessionID, postName)
+}
+
+func TestGetPostsFlairsMap(t *testing.T) {
+	postsFlairs := []lib.PostsFlairs{
+		{
+			Id:          1,
+			BoardPostId: 1,
+			PostFlairId: 2,
+			CreatedAt:   time.Now(),
+		},
+		{
+			Id:          2,
+			BoardPostId: 2,
+			PostFlairId: 3,
+			CreatedAt:   time.Now(),
+		},
+	}
+	postsFlairsMap := lib.GetPostsFlairsMap(postsFlairs)
+	if postsFlairsMap[2] != postsFlairs[1] {
+		t.Fatal("Map does not contain expected value")
 	}
 }
