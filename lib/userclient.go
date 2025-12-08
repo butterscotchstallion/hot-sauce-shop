@@ -28,14 +28,14 @@ type LoginRequest struct {
 }
 
 type SignInResponseResults struct {
-	SessionId string
-	User      User
+	SessionId string `json:"sessionId"`
+	User      User   `json:"user"`
 }
 
 type SignInResponse struct {
-	Status  string
-	Message string
-	Results SignInResponseResults
+	Status  string                `json:"status"`
+	Message string                `json:"message"`
+	Results SignInResponseResults `json:"results"`
 }
 
 type UserListResponseResults struct {
@@ -43,8 +43,8 @@ type UserListResponseResults struct {
 }
 
 type UserListResponse struct {
-	Status  string
-	Results UserListResponseResults
+	Status  string                  `json:"status"`
+	Results UserListResponseResults `json:"results"`
 }
 
 type GenericResponse struct {
@@ -70,8 +70,8 @@ type UserProfileResponseResults struct {
 }
 
 type UserProfileResponse struct {
-	Status  string `json:"status"`
-	Results UserProfileResponseResults
+	Status  string                     `json:"status"`
+	Results UserProfileResponseResults `json:"results"`
 }
 
 func GetUserPostVoteSum(dbPool *pgxpool.Pool, userId int) (int, error) {
