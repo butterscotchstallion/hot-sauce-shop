@@ -137,7 +137,7 @@ type PostsFlairs struct {
 }
 
 type PostsFlairsResponseResults struct {
-	Results []PostsFlairs `json:"postFlairs"`
+	PostsFlairs []PostsFlairs `json:"postFlairs"`
 }
 
 type PostsFlairsResponse struct {

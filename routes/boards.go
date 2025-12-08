@@ -282,6 +282,7 @@ func Boards(
 				"status":  "ERROR",
 				"message": err.Error(),
 			})
+			
 			return
 		}
 
@@ -296,6 +297,7 @@ func Boards(
 				"status":  "ERROR",
 				"message": getBoardErr.Error(),
 			})
+
 			return
 		}
 		if board == (lib.Board{}) {
@@ -303,6 +305,7 @@ func Boards(
 				"status":  "ERROR",
 				"message": "Board not found",
 			})
+
 			return
 		}
 
@@ -628,12 +631,33 @@ func Boards(
 				Status:  "ERROR",
 				Message: "Error getting post flairs",
 			})
+
 			return
 		}
 		c.JSON(http.StatusOK, lib.PostFlairsResponse{
 			Status: "OK",
 			Results: lib.PostFlairsResponseResults{
 				PostFlairs: postFlairs,
+			},
+		})
+	})
+
+	// Flairs for each post
+	r.GET("/api/v1/posts-flairs", func(c *gin.Context) {
+		postFlairs, postFlairsErr := lib.GetPostsFlairs(dbPool)
+		if postFlairsErr != nil {
+			logger.Error(fmt.Sprintf("Error getting post flairs: %v", postFlairsErr))
+			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: "Error getting post flairs",
+			})
+
+			return
+		}
+		c.JSON(http.StatusOK, lib.PostsFlairsResponse{
+			Status: "OK",
+			Results: lib.PostsFlairsResponseResults{
+				PostsFlairs: postFlairs,
 			},
 		})
 	})

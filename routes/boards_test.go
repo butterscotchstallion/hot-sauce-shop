@@ -7,7 +7,6 @@ import (
 	"os"
 	"slices"
 	"testing"
-	"time"
 
 	"hotsauceshop/lib"
 
@@ -121,7 +120,8 @@ func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID stri
 	if addPostResponse.Status != "OK" {
 		t.Fatal("Failed to add post")
 	}
-	return postName
+
+	return addPostResponse.Results.Post.Slug
 }
 
 func deleteBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string, postSlug string) {
@@ -221,7 +221,7 @@ func TestGetPostFlairsForPost(t *testing.T) {
 	postName := createBoardPostAndVerify(t, e, sessionID)
 
 	var postDetail lib.BoardPostResponse
-	e.GET(fmt.Sprintf("/api/v1/board/sauces/posts/%v", postName)).
+	e.GET(fmt.Sprintf("/api/v1/posts/sauces/%v", postName)).
 		Expect().
 		Status(http.StatusOK).
 		JSON().
@@ -245,22 +245,30 @@ func TestGetPostsFlairsMap(t *testing.T) {
 	if postFlairsResponse.Status != "OK" {
 		t.Fatal("Failed to get post flairs")
 	}
-	postsFlairs := []lib.PostsFlairs{
-		{
-			Id:          1,
-			BoardPostId: 1,
-			PostFlairId: 2,
-			CreatedAt:   time.Now(),
-		},
-		{
-			Id:          2,
-			BoardPostId: 2,
-			PostFlairId: 3,
-			CreatedAt:   time.Now(),
-		},
-	}
+
+	// postsFlairs := []lib.PostsFlairs{
+	// 	{
+	// 		Id:          1,
+	// 		BoardPostId: 1,
+	// 		PostFlairId: 2,
+	// 		CreatedAt:   time.Now(),
+	// 	},
+	// 	{
+	// 		Id:          2,
+	// 		BoardPostId: 2,
+	// 		PostFlairId: 3,
+	// 		CreatedAt:   time.Now(),
+	// 	},
+	// }
+	var postsFlairsResponse lib.PostsFlairsResponse
+	e.GET("/api/v1/posts-flairs").
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&postsFlairsResponse)
+
 	postFlairIdMap := lib.GetPostFlairIdMap(postFlairsResponse.Results.PostFlairs)
-	postsFlairsMap := lib.GetPostsFlairsMap(postsFlairs, postFlairIdMap)
+	postsFlairsMap := lib.GetPostsFlairsMap(postsFlairsResponse.Results.PostsFlairs, postFlairIdMap)
 	found := false
 	for boardPostId, postFlairs := range postsFlairsMap {
 		if len(postFlairs) == 0 {
