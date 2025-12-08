@@ -236,6 +236,7 @@ func TestGetPostFlairsForPost(t *testing.T) {
 func TestGetPostsFlairsMap(t *testing.T) {
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 
+	// All flairs
 	var postFlairsResponse lib.PostFlairsResponse
 	e.GET("/api/v1/post-flairs").
 		Expect().
@@ -246,20 +247,7 @@ func TestGetPostsFlairsMap(t *testing.T) {
 		t.Fatal("Failed to get post flairs")
 	}
 
-	// postsFlairs := []lib.PostsFlairs{
-	// 	{
-	// 		Id:          1,
-	// 		BoardPostId: 1,
-	// 		PostFlairId: 2,
-	// 		CreatedAt:   time.Now(),
-	// 	},
-	// 	{
-	// 		Id:          2,
-	// 		BoardPostId: 2,
-	// 		PostFlairId: 3,
-	// 		CreatedAt:   time.Now(),
-	// 	},
-	// }
+	// posts/flairs association
 	var postsFlairsResponse lib.PostsFlairsResponse
 	e.GET("/api/v1/posts-flairs").
 		Expect().
@@ -267,19 +255,35 @@ func TestGetPostsFlairsMap(t *testing.T) {
 		JSON().
 		Decode(&postsFlairsResponse)
 
+	if postsFlairsResponse.Status != "OK" {
+		t.Fatal("Expected 200 OK for postsFlairsResponse")
+	}
+
+	if len(postsFlairsResponse.Results.PostsFlairs) == 0 {
+		t.Fatal("Empty postsFlairs response from API")
+	}
+
 	postFlairIdMap := lib.GetPostFlairIdMap(postFlairsResponse.Results.PostFlairs)
+
+	if len(postFlairIdMap) == 0 {
+		t.Fatal("postsFlairsMap is empty!")
+	}
+
 	postsFlairsMap := lib.GetPostsFlairsMap(postsFlairsResponse.Results.PostsFlairs, postFlairIdMap)
+
+	if len(postsFlairsMap) == 0 {
+		t.Fatal("postsFlairsMap is empty!")
+	}
+
 	found := false
 	for boardPostId, postFlairs := range postsFlairsMap {
 		if len(postFlairs) == 0 {
 			t.Fatal("postFlairs length is 0!")
 		}
-		if boardPostId == 1 {
-			for _, postFlair := range postFlairs {
-				found = slices.Contains(postsFlairsMap[boardPostId], postFlairIdMap[postFlair.Id])
-				if found {
-					break
-				}
+		for _, postFlair := range postFlairs {
+			found = slices.Contains(postsFlairsMap[boardPostId], postFlairIdMap[postFlair.Id])
+			if found {
+				break
 			}
 		}
 	}
