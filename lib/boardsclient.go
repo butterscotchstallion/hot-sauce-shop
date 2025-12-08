@@ -63,18 +63,18 @@ type AddBoardRequest struct {
 }
 
 type AddPostResponseResults struct {
-	Post      BoardPost
-	NewPostId int
+	Post      BoardPost `json:"post"`
+	NewPostId int       `json:"newPostId"`
 }
 type AddPostResponse struct {
-	Status  string
-	Message string
-	Results AddPostResponseResults
+	Status  string                 `json:"status"`
+	Message string                 `json:"message"`
+	Results AddPostResponseResults `json:"results"`
 }
 
 type BoardPostDeleteResponse struct {
-	Status  string
-	Message string
+	Status  string `json:"status"`
+	Message string `json:"message"`
 }
 
 type SavedPostImageInfo struct {
@@ -94,20 +94,20 @@ type AddBoardResponseResults struct {
 }
 
 type AddBoardResponse struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
-	Results AddBoardResponseResults
+	Status  string                  `json:"status"`
+	Message string                  `json:"message"`
+	Results AddBoardResponseResults `json:"results"`
 }
 
 type BoardDetailResponseResults struct {
-	Board              Board
+	Board              Board    `json:"board"`
 	Moderators         []string `json:"moderators"`
 	NumBoardModerators int      `json:"numBoardModerators"`
 	TotalPosts         int      `json:"totalPosts"`
 }
 type BoardDetailResponse struct {
-	Status  string `json:"status"`
-	Results BoardDetailResponseResults
+	Status  string                     `json:"status"`
+	Results BoardDetailResponseResults `json:"results"`
 }
 
 type BoardDeleteResponse struct {
@@ -124,8 +124,8 @@ type PostFlairsResponseResults struct {
 	PostFlairs []PostFlair
 }
 type PostFlairsResponse struct {
-	Status  string `json:"status"`
-	Results PostFlairsResponseResults
+	Status  string                    `json:"status"`
+	Results PostFlairsResponseResults `json:"results"`
 }
 
 // PostsFlairs These are the association between each post and flairs
@@ -153,8 +153,8 @@ type BoardPostResponseResults struct {
 }
 
 type BoardPostResponse struct {
-	Status  string `json:"status"`
-	Results BoardPostResponseResults
+	Status  string                   `json:"status"`
+	Results BoardPostResponseResults `json:"results"`
 }
 
 func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
