@@ -39,7 +39,7 @@ type SignInResponse struct {
 }
 
 type UserListResponseResults struct {
-	Users []User
+	Users []User `json:"users"`
 }
 
 type UserListResponse struct {
