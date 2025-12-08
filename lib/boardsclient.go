@@ -121,7 +121,7 @@ type PostFlair struct {
 	Slug        string `json:"slug"`
 }
 type PostFlairsResponseResults struct {
-	PostFlairs []PostFlair
+	PostFlairs []PostFlair `json:"postFlairs"`
 }
 type PostFlairsResponse struct {
 	Status  string                    `json:"status"`
