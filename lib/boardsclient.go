@@ -606,6 +606,7 @@ func DeleteBoardPostFlairs(dbPool *pgxpool.Pool, boardPostId int) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -630,9 +631,16 @@ func IsUserBoardPostAuthor(dbPool *pgxpool.Pool, userId int, boardPostSlug strin
 	return postCount == 1, nil
 }
 
-func GetPostFlairs(dbPool *pgxpool.Pool) ([]PostFlair, error) {
-	const query = `SELECT * FROM post_flairs`
-	rows, rowsErr := dbPool.Query(context.Background(), query)
+func GetPostFlairs(dbPool *pgxpool.Pool, postId int) ([]PostFlair, error) {
+	postIdFilterClause := "WHERE board_post_id = $1"
+	query := fmt.Sprintf(`SELECT * FROM post_flairs %v`, postIdFilterClause)
+	var rows pgx.Rows
+	var rowsErr error
+	if postId > 0 {
+		rows, rowsErr = dbPool.Query(context.Background(), query, postId)
+	} else {
+		rows, rowsErr = dbPool.Query(context.Background(), query)
+	}
 	if rowsErr != nil {
 		return []PostFlair{}, rowsErr
 	}

@@ -282,7 +282,7 @@ func Boards(
 				"status":  "ERROR",
 				"message": err.Error(),
 			})
-			
+
 			return
 		}
 
@@ -624,7 +624,7 @@ func Boards(
 
 	// All available post flair listing
 	r.GET("/api/v1/post-flairs", func(c *gin.Context) {
-		postFlairs, postFlairsErr := lib.GetPostFlairs(dbPool)
+		postFlairs, postFlairsErr := lib.GetPostFlairs(dbPool, 0)
 		if postFlairsErr != nil {
 			logger.Error(fmt.Sprintf("Error getting post flairs: %v", postFlairsErr))
 			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
