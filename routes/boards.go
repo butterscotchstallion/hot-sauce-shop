@@ -157,9 +157,9 @@ func Boards(
 		post, getPostDetailErr := lib.GetPostDetail(dbPool, boardSlug, postSlug)
 		if getPostDetailErr != nil && !errors.Is(getPostDetailErr, sql.ErrNoRows) {
 			logger.Error(fmt.Sprintf("Error fetching post details: %v", getPostDetailErr.Error()))
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status":  "ERROR",
-				"message": getPostDetailErr.Error(),
+			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: getPostDetailErr.Error(),
 			})
 			return
 		}
@@ -349,10 +349,12 @@ func Boards(
 			logger.Error(fmt.Sprintf("Error adding post flair: %v", addPostFlairErr))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",
-				"message": addPostErr.Error(),
+				"message": addPostFlairErr.Error(),
 			})
 			return
 		}
+
+		logger.Info(fmt.Sprintf("Post flair added: %v", newPost.PostFlairIds))
 
 		isImagePost := false
 

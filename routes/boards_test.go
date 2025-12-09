@@ -18,6 +18,7 @@ var config lib.HotSauceShopConfig
 
 // Used to add post flair to board post
 var postFlairIds = []int{1, 2, 3}
+var board = "sauces"
 
 func TestMain(m *testing.M) {
 	setup()
@@ -34,7 +35,7 @@ func setup() {
 }
 
 func TestGetBoardPosts(t *testing.T) {
-	e := httpexpect.Default(t, "http://localhost:8081")
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	e.GET("/api/v1/boards").
 		Expect().
 		Status(http.StatusOK).JSON().Object().
@@ -113,7 +114,7 @@ func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID stri
 	var addPostResponse lib.AddPostResponse
 	// Probably should create the board here but...
 	// /api/v1/boards/:slug/posts
-	e.POST("/api/v1/boards/sauces/posts").
+	e.POST(fmt.Sprintf("/api/v1/boards/%v/posts", board)).
 		WithCookie("sessionId", sessionID).
 		WithJSON(newPost).
 		Expect().
@@ -127,7 +128,7 @@ func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID stri
 	// Verify with post detail
 	var postDetailResponse lib.PostDetailResponse
 	// /api/v1/posts/:boardSlug/:postSlug
-	e.GET(fmt.Sprintf("/api/v1/posts/sauces/%v", postName)).
+	e.GET(fmt.Sprintf("/api/v1/posts/%v/%v", board, postName)).
 		Expect().
 		Status(http.StatusOK).
 		JSON().
@@ -148,7 +149,7 @@ func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID stri
 func deleteBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string, postSlug string) {
 	// Delete post
 	var boardPostDeleteResponse lib.BoardPostDeleteResponse
-	e.DELETE(fmt.Sprintf("/api/v1/boards/posts/%v", postSlug)).
+	e.DELETE(fmt.Sprintf("/api/v1/%v/posts/%v", board, postSlug)).
 		WithCookie("sessionId", sessionID).
 		Expect().
 		Status(http.StatusOK).
@@ -200,7 +201,6 @@ func TestCreateBoardPostWithoutSession(t *testing.T) {
 	}
 	postName := postUUID.String()
 	// TODO: figure out how the heck to do images
-	postFlairIds := []int{1}
 	newPost := lib.AddPostRequest{
 		Title:        postName,
 		ParentId:     0,
@@ -330,5 +330,17 @@ func TestGetPostsFlairsMap(t *testing.T) {
 	}
 	if numFound != len(postsFlairsMap) {
 		t.Fatal("Could not find post flair in map")
+	}
+}
+
+func TestGetPostFlairsQuery(t *testing.T) {
+	postId := 42
+	query := lib.GetPostFlairQuery(postId, []int{1, 2, 3})
+	expectedQuery := fmt.Sprintf(
+		`INSERT INTO posts_flairs (board_post_id, post_flair_id) VALUES (%v, 1),(%v, 2),(%v, 3)`,
+		postId, postId, postId,
+	)
+	if query != expectedQuery {
+		t.Fatalf("Expected query %v, got %v", expectedQuery, query)
 	}
 }

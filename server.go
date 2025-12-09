@@ -27,7 +27,7 @@ func main() {
 	}
 	dbPool = lib.InitDB(config.Database.Dsn)
 	defer dbPool.Close()
-	
+
 	err := os.Setenv("TZ", config.Server.TimeZone)
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error setting timezone: %v", err))
@@ -55,8 +55,8 @@ func main() {
 		}
 	}(wsConn)
 
-	err := r.Run(config.Server.Address)
-	if err != nil {
-		log.Fatalf("Error starting server: %v", err)
+	runErr := r.Run(config.Server.Address)
+	if runErr != nil {
+		log.Fatalf("Error starting server: %v", runErr)
 	}
 }

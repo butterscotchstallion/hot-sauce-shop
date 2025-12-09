@@ -691,19 +691,23 @@ func GetPostsFlairs(dbPool *pgxpool.Pool) ([]PostsFlairs, error) {
 	return postFlairs, nil
 }
 
+func GetPostFlairQuery(postId int, postFlairIds []int) string {
+	var values []string
+	for _, flairId := range postFlairIds {
+		values = append(values, fmt.Sprintf("(%d, %d)", postId, flairId))
+	}
+	valuePairs := strings.Join(values, ",")
+	query := fmt.Sprintf(`INSERT INTO posts_flairs (board_post_id, post_flair_id) VALUES %v`, valuePairs)
+
+	return query
+}
+
 func AddPostFlair(dbPool *pgxpool.Pool, postId int, postFlairIds []int) error {
 	postFlairsDeletedErr := DeleteBoardPostFlairs(dbPool, postId)
 	if postFlairsDeletedErr != nil {
 		return postFlairsDeletedErr
 	}
-	var values []string
-	for flairId := range postFlairIds {
-		values = append(values, fmt.Sprintf("(%d, %d)", postId, flairId))
-	}
-	valuePairs := strings.Join(values, ",")
-	query := fmt.Sprintf(`
-		INSERT INTO posts_flairs (board_post_id, post_flair_id) VALUES %v`, valuePairs,
-	)
+	query := GetPostFlairQuery(postId, postFlairIds)
 	_, insertErr := dbPool.Query(context.Background(), query)
 	if insertErr != nil {
 		return insertErr
