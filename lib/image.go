@@ -40,6 +40,10 @@ func GetImageWidthAndHeight(imagePath string) (ImageWidthHeight, error) {
 	if openErr != nil {
 		return ImageWidthHeight{}, openErr
 	}
+	closeErr := reader.Close()
+	if closeErr != nil {
+		return ImageWidthHeight{}, closeErr
+	}
 	m, _, err := image.Decode(reader)
 	if err != nil {
 		return ImageWidthHeight{}, openErr

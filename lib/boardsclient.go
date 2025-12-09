@@ -157,6 +157,16 @@ type BoardPostResponse struct {
 	Results BoardPostResponseResults `json:"results"`
 }
 
+type PostDetailResponseResults struct {
+	Post       BoardPost   `json:"post"`
+	PostFlairs []PostFlair `json:"postFlairs"`
+}
+
+type PostDetailResponse struct {
+	Status  string                    `json:"status"`
+	Results PostDetailResponseResults `json:"results"`
+}
+
 func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
 	// TODO: filter visible boards, or show everything if privileged
 	const query = `
@@ -631,16 +641,11 @@ func IsUserBoardPostAuthor(dbPool *pgxpool.Pool, userId int, boardPostSlug strin
 	return postCount == 1, nil
 }
 
-func GetPostFlairs(dbPool *pgxpool.Pool, postId int) ([]PostFlair, error) {
-	postIdFilterClause := "WHERE board_post_id = $1"
-	query := fmt.Sprintf(`SELECT * FROM post_flairs %v`, postIdFilterClause)
+func GetPostFlairs(dbPool *pgxpool.Pool) ([]PostFlair, error) {
+	query := `SELECT * FROM post_flairs`
 	var rows pgx.Rows
 	var rowsErr error
-	if postId > 0 {
-		rows, rowsErr = dbPool.Query(context.Background(), query, postId)
-	} else {
-		rows, rowsErr = dbPool.Query(context.Background(), query)
-	}
+	rows, rowsErr = dbPool.Query(context.Background(), query)
 	if rowsErr != nil {
 		return []PostFlair{}, rowsErr
 	}
@@ -652,7 +657,27 @@ func GetPostFlairs(dbPool *pgxpool.Pool, postId int) ([]PostFlair, error) {
 	return postFlairs, nil
 }
 
+// GetPostFlairsForPostId Post flairs for an individual post
+func GetPostFlairsForPostId(dbPool *pgxpool.Pool, boardPostId int) ([]PostFlair, error) {
+	const query = `
+		SELECT * 
+		FROM post_flairs
+		LEFT JOIN posts_flairs ON post_flairs.id = posts_flairs.post_flair_id
+		WHERE board_post_id = $1
+	`
+	rows, rowsErr := dbPool.Query(context.Background(), query, boardPostId)
+	if rowsErr != nil {
+		return []PostFlair{}, rowsErr
+	}
+	postFlairs, postFlairsErr := pgx.CollectRows(rows, pgx.RowToStructByName[PostFlair])
+	if postFlairsErr != nil {
+		return []PostFlair{}, postFlairsErr
+	}
+	return postFlairs, nil
+}
+
 // GetPostsFlairs association between each post and its flairs
+// NOTE: this is used to create a map, so there is no post id filter
 func GetPostsFlairs(dbPool *pgxpool.Pool) ([]PostsFlairs, error) {
 	const query = `SELECT * FROM posts_flairs`
 	rows, rowsErr := dbPool.Query(context.Background(), query)
@@ -663,7 +688,6 @@ func GetPostsFlairs(dbPool *pgxpool.Pool) ([]PostsFlairs, error) {
 	if postFlairsErr != nil {
 		return []PostsFlairs{}, postFlairsErr
 	}
-
 	return postFlairs, nil
 }
 

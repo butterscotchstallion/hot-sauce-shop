@@ -35,6 +35,7 @@ func Boards(
 				"status":  "ERROR",
 				"message": getBoardsErr.Error(),
 			})
+
 			return
 		}
 
@@ -57,6 +58,7 @@ func Boards(
 				"status":  "ERROR",
 				"message": getBoardErr.Error(),
 			})
+
 			return
 		}
 
@@ -70,6 +72,7 @@ func Boards(
 				"status":  "ERROR",
 				"message": "Board not found",
 			})
+
 			return
 		}
 
@@ -124,7 +127,7 @@ func Boards(
 		})
 	})
 
-	// Total post reply map
+	// Total post/reply map
 	r.GET("/api/v1/total-replies", func(c *gin.Context) {
 		boardSlug := c.DefaultQuery("boardSlug", "")
 		totalPostReplyMap, replyMapErr := lib.GetTotalPostReplyCountByBoardSlug(dbPool, boardSlug)
@@ -167,10 +170,16 @@ func Boards(
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"status": "OK",
-			"results": gin.H{
-				"post": post,
+		postFlairs, postFlairsErr := lib.GetPostFlairsForPostId(dbPool, post.Id)
+		if postFlairsErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching post flairs: %v", postFlairsErr.Error()))
+		}
+
+		c.JSON(http.StatusOK, lib.PostDetailResponse{
+			Status: "OK",
+			Results: lib.PostDetailResponseResults{
+				Post:       post,
+				PostFlairs: postFlairs,
 			},
 		})
 	})
@@ -624,14 +633,13 @@ func Boards(
 
 	// All available post flair listing
 	r.GET("/api/v1/post-flairs", func(c *gin.Context) {
-		postFlairs, postFlairsErr := lib.GetPostFlairs(dbPool, 0)
+		postFlairs, postFlairsErr := lib.GetPostFlairs(dbPool)
 		if postFlairsErr != nil {
 			logger.Error(fmt.Sprintf("Error getting post flairs: %v", postFlairsErr))
 			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
 				Status:  "ERROR",
 				Message: "Error getting post flairs",
 			})
-
 			return
 		}
 		c.JSON(http.StatusOK, lib.PostFlairsResponse{
@@ -642,7 +650,12 @@ func Boards(
 		})
 	})
 
-	// Flairs for each post
+	/**
+	 * Flairs for each post
+	 * This is used to create a map of post-id -> post flairs, which
+	 * is then used for the post list page. Individual posts will use a
+	 * single query to get post flairs
+	 */
 	r.GET("/api/v1/posts-flairs", func(c *gin.Context) {
 		postFlairs, postFlairsErr := lib.GetPostsFlairs(dbPool)
 		if postFlairsErr != nil {
@@ -651,7 +664,6 @@ func Boards(
 				Status:  "ERROR",
 				Message: "Error getting post flairs",
 			})
-
 			return
 		}
 		c.JSON(http.StatusOK, lib.PostsFlairsResponse{
@@ -661,4 +673,32 @@ func Boards(
 			},
 		})
 	})
+
+	// r.GET("/api/v1/posts-flairs/post/:postId", func(c *gin.Context) {
+	// 	postIdParam := c.Param("postId")
+	// 	postId, postIdErr := strconv.Atoi(postIdParam)
+	// 	if postIdErr != nil {
+	// 		logger.Error(fmt.Sprintf("Error parsing post id: %v", postIdErr))
+	// 		c.JSON(http.StatusInternalServerError, lib.GenericResponse{
+	// 			Status:  "ERROR",
+	// 			Message: "Error parsing post id",
+	// 		})
+	// 		return
+	// 	}
+	// 	postFlairs, postFlairsErr := lib.GetPostFlairsForPostId(dbPool, postId)
+	// 	if postFlairsErr != nil {
+	// 		logger.Error(fmt.Sprintf("Error getting post flairs: %v", postFlairsErr))
+	// 		c.JSON(http.StatusInternalServerError, lib.GenericResponse{
+	// 			Status:  "ERROR",
+	// 			Message: "Error getting post flairs",
+	// 		})
+	// 		return
+	// 	}
+	// 	c.JSON(http.StatusOK, lib.PostFlairsResponse{
+	// 		Status: "OK",
+	// 		Results: lib.PostFlairsResponseResults{
+	// 			PostFlairs: postFlairs,
+	// 		},
+	// 	})
+	// })
 }

@@ -100,7 +100,7 @@ func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID stri
 	postName := postUUID.String()
 
 	// TODO: figure out how the heck to do images
-	postFlairIds := []int{1}
+	postFlairIds := []int{1, 2, 3}
 	newPost := lib.AddPostRequest{
 		Title:        postName,
 		ParentId:     0,
@@ -218,9 +218,10 @@ func TestGetPostFlairsForPost(t *testing.T) {
 	 */
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
+	// Hard-coded to add post flair id #1
 	postName := createBoardPostAndVerify(t, e, sessionID)
 
-	var postDetail lib.BoardPostResponse
+	var postDetail lib.PostDetailResponse
 	e.GET(fmt.Sprintf("/api/v1/posts/sauces/%v", postName)).
 		Expect().
 		Status(http.StatusOK).
@@ -228,6 +229,22 @@ func TestGetPostFlairsForPost(t *testing.T) {
 		Decode(&postDetail)
 	if postDetail.Status != "OK" {
 		t.Fatal("Failed to get post detail")
+	}
+
+	// Verify that post flair id #1 is present
+	if len(postDetail.Results.PostFlairs) == 0 {
+		t.Fatal("Post flairs is empty!")
+	}
+
+	found := false
+	for _, postFlair := range postDetail.Results.PostFlairs {
+		if postFlair.Id == 1 {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatal("Post flair id #1 not found!")
 	}
 
 	deleteBoardPostAndVerify(t, e, sessionID, postName)
@@ -275,19 +292,19 @@ func TestGetPostsFlairsMap(t *testing.T) {
 		t.Fatal("postsFlairsMap is empty!")
 	}
 
-	found := false
+	numFound := 0
 	for boardPostId, postFlairs := range postsFlairsMap {
 		if len(postFlairs) == 0 {
 			t.Fatal("postFlairs length is 0!")
 		}
 		for _, postFlair := range postFlairs {
-			found = slices.Contains(postsFlairsMap[boardPostId], postFlairIdMap[postFlair.Id])
+			found := slices.Contains(postsFlairsMap[boardPostId], postFlairIdMap[postFlair.Id])
 			if found {
-				break
+				numFound++
 			}
 		}
 	}
-	if !found {
+	if numFound != len(postsFlairsMap) {
 		t.Fatal("Could not find post flair in map")
 	}
 }

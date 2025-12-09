@@ -3,29 +3,37 @@
   <component name="GoLinterSettings">
     <option name="enabledLinters">
       <list>
-        <option value="staticcheck" />
-        <option value="govet" />
-        <option value="mnd" />
-        <option value="errorlint" />
-        <option value="sloglint" />
         <option value="gocritic" />
         <option value="goconst" />
         <option value="errcheck" />
         <option value="exhaustruct" />
         <option value="testableexamples" />
+        <option value="sqlclosecheck" />
+        <option value="loggercheck" />
         <option value="ineffassign" />
+        <option value="exhaustive" />
+        <option value="bidichk" />
+        <option value="nilerr" />
+        <option value="modernize" />
+        <option value="staticcheck" />
+        <option value="govet" />
+        <option value="mnd" />
+        <option value="errorlint" />
+        <option value="sloglint" />
+        <option value="tagliatelle" />
+        <option value="wastedassign" />
+        <option value="lll" />
+        <option value="tparallel" />
         <option value="bodyclose" />
         <option value="testpackage" />
         <option value="usetesting" />
         <option value="gosec" />
-        <option value="exhaustive" />
         <option value="unused" />
-        <option value="bidichk" />
-        <option value="nilerr" />
+        <option value="tagalign" />
+        <option value="unconvert" />
+        <option value="recvcheck" />
         <option value="perfsprint" />
         <option value="whitespace" />
-        <option value="modernize" />
-        <option value="nlreturn" />
       </list>
     </option>
     <option name="linterSelected" value="true" />
