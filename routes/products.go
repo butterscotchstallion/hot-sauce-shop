@@ -82,7 +82,9 @@ func validateInventoryItemAddOrUpdateRequest(
 	return itemUpdateRequest, nil
 }
 
-func saveInventoryItem(dbPool *pgxpool.Pool, logger *slog.Logger, itemUpdateRequest lib.InventoryItemUpdateRequest) (int, error) {
+func saveInventoryItem(
+	dbPool *pgxpool.Pool, logger *slog.Logger, itemUpdateRequest lib.InventoryItemUpdateRequest,
+) (int, error) {
 	var item lib.InventoryItem
 	item.Name = itemUpdateRequest.Name
 	item.Price = itemUpdateRequest.Price

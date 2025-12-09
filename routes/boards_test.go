@@ -16,6 +16,9 @@ import (
 
 var config lib.HotSauceShopConfig
 
+// Used to add post flair to board post
+var postFlairIds = []int{1, 2, 3}
+
 func TestMain(m *testing.M) {
 	setup()
 	code := m.Run()
@@ -100,7 +103,6 @@ func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID stri
 	postName := postUUID.String()
 
 	// TODO: figure out how the heck to do images
-	postFlairIds := []int{1, 2, 3}
 	newPost := lib.AddPostRequest{
 		Title:        postName,
 		ParentId:     0,
@@ -110,6 +112,7 @@ func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID stri
 	}
 	var addPostResponse lib.AddPostResponse
 	// Probably should create the board here but...
+	// /api/v1/boards/:slug/posts
 	e.POST("/api/v1/boards/sauces/posts").
 		WithCookie("sessionId", sessionID).
 		WithJSON(newPost).
@@ -120,7 +123,7 @@ func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID stri
 	if addPostResponse.Status != "OK" {
 		t.Fatal("Failed to add post")
 	}
-
+	
 	return addPostResponse.Results.Post.Slug
 }
 
@@ -238,7 +241,7 @@ func TestGetPostFlairsForPost(t *testing.T) {
 
 	found := false
 	for _, postFlair := range postDetail.Results.PostFlairs {
-		if postFlair.Id == 1 {
+		if slices.Contains(postFlairIds, postFlair.Id) {
 			found = true
 			break
 		}

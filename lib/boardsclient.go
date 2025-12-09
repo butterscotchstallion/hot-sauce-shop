@@ -700,8 +700,9 @@ func AddPostFlair(dbPool *pgxpool.Pool, postId int, postFlairIds []int) error {
 	for flairId := range postFlairIds {
 		values = append(values, fmt.Sprintf("(%d, %d)", postId, flairId))
 	}
+	valuePairs := strings.Join(values, ",")
 	query := fmt.Sprintf(`
-		INSERT INTO posts_flairs (board_post_id, post_flair_id) VALUES %v`, strings.Join(values, ","),
+		INSERT INTO posts_flairs (board_post_id, post_flair_id) VALUES %v`, valuePairs,
 	)
 	_, insertErr := dbPool.Query(context.Background(), query)
 	if insertErr != nil {
