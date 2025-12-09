@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"log/slog"
 	"os"
@@ -18,15 +19,22 @@ import (
 var dbPool *pgxpool.Pool
 
 func main() {
+	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+
 	config, configReadErr := lib.ReadConfig("config.toml")
 	if configReadErr != nil {
 		panic("Could not read config")
 	}
 	dbPool = lib.InitDB(config.Database.Dsn)
 	defer dbPool.Close()
+	
+	err := os.Setenv("TZ", config.Server.TimeZone)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Error setting timezone: %v", err))
+	}
 
 	r := gin.Default()
-	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+
 	store := persistence.NewInMemoryStore(time.Minute * 15)
 	var wsConn *websocket.Conn
 	routes.WS(r, wsConn, logger)

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourcePerFileMappings">
+    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/dbdc5447-3e43-4648-87c2-74bb75354e3e/console.sql" value="dbdc5447-3e43-4648-87c2-74bb75354e3e" />
     <file url="file://$PROJECT_DIR$/.idea/queries/Query.sql" value="dbdc5447-3e43-4648-87c2-74bb75354e3e" />
     <file url="file://$PROJECT_DIR$/SQL/Boards.sql" value="dbdc5447-3e43-4648-87c2-74bb75354e3e" />
     <file url="file://$PROJECT_DIR$/lib/boardsclient.go" value="dbdc5447-3e43-4648-87c2-74bb75354e3e" />

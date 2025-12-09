@@ -1,6 +1,7 @@
 [server]
 address = "localhost:8081"
 addressWithProtocol = "http://localhost:8081"
+timeZone = ""
 
 [database]
 dsn = "postgres://user:example@localhost"

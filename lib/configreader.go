@@ -18,8 +18,9 @@ type ConfigTestUsers struct {
 }
 
 type ConfigServer struct {
-	Address             string
-	AddressWithProtocol string
+	Address             string `toml:"address"`
+	AddressWithProtocol string `toml:"addressWithProtocol"`
+	TimeZone            string `toml:"timeZone"`
 }
 
 type HotSauceShopConfig struct {

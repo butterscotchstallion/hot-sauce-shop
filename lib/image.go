@@ -37,6 +37,7 @@ type ImageWidthHeight struct {
 
 func GetImageWidthAndHeight(imagePath string) (ImageWidthHeight, error) {
 	reader, openErr := os.Open(imagePath)
+	// TODO: handle deferred close here
 	if openErr != nil {
 		return ImageWidthHeight{}, openErr
 	}
@@ -71,6 +72,7 @@ func CreateThumbnail(originalFullPath string, destFullPath string, mimeType stri
 	if openErr != nil {
 		return fmt.Errorf("error opening %v: %v", originalFullPath, openErr.Error())
 	}
+	// TODO: handle deferred close here
 	err := input.Close()
 	if err != nil {
 		return err

@@ -123,7 +123,24 @@ func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID stri
 	if addPostResponse.Status != "OK" {
 		t.Fatal("Failed to add post")
 	}
-	
+
+	// Verify with post detail
+	var postDetailResponse lib.PostDetailResponse
+	e.GET(fmt.Sprintf("/api/v1/posts/sauces/%v", postName)).
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&postDetailResponse)
+	if postDetailResponse.Status != "OK" {
+		t.Fatal("Failed to get post detail")
+	}
+	if postDetailResponse.Results.Post.Title != newPost.Title {
+		t.Fatal("New post title mismatch")
+	}
+	if postDetailResponse.Results.Post.PostText != newPost.PostText {
+		t.Fatal("New post text mismatch")
+	}
+
 	return addPostResponse.Results.Post.Slug
 }
 
