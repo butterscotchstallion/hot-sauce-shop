@@ -126,6 +126,7 @@ func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID stri
 
 	// Verify with post detail
 	var postDetailResponse lib.PostDetailResponse
+	// /api/v1/posts/:boardSlug/:postSlug
 	e.GET(fmt.Sprintf("/api/v1/posts/sauces/%v", postName)).
 		Expect().
 		Status(http.StatusOK).
@@ -185,6 +186,9 @@ func TestCreateBoardPost(t *testing.T) {
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
 	postName := createBoardPostAndVerify(t, e, sessionID)
+	if postName == "" {
+		t.Fatal("Failed to create board post")
+	}
 	deleteBoardPostAndVerify(t, e, sessionID, postName)
 }
 

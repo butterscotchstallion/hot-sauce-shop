@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -153,7 +155,7 @@ func Boards(
 		boardSlug := c.Param("boardSlug")
 		postSlug := c.Param("postSlug")
 		post, getPostDetailErr := lib.GetPostDetail(dbPool, boardSlug, postSlug)
-		if getPostDetailErr != nil {
+		if getPostDetailErr != nil && !errors.Is(getPostDetailErr, sql.ErrNoRows) {
 			logger.Error(fmt.Sprintf("Error fetching post details: %v", getPostDetailErr.Error()))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",
@@ -162,10 +164,10 @@ func Boards(
 			return
 		}
 
-		if post == (lib.BoardPost{}) {
-			c.JSON(http.StatusNotFound, gin.H{
-				"status":  "ERROR",
-				"message": "Post not found",
+		if post == (lib.BoardPost{}) || errors.Is(getPostDetailErr, sql.ErrNoRows) {
+			c.JSON(http.StatusNotFound, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: "Post not found",
 			})
 			return
 		}
