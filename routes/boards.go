@@ -436,6 +436,9 @@ func Boards(
 			isImagePost = true
 		}
 
+		/**
+		 * Add experience to user based on the activity type
+		 */
 		var updatedExperience float64
 		var addImagePostExperienceErr error
 		var addPostExperienceErr error
@@ -458,9 +461,10 @@ func Boards(
 			}
 		}
 
+		// Send WS message if experience updated
 		if experienceUpdated {
 			updatedLevel := lib.GetUserLevelByExperience(updatedExperience)
-			lib.SendNotification(lib.WebsocketMessage{
+			lib.SendWebsocketMessage(lib.WebsocketMessage{
 				MessageType: "userLevelUpdate",
 				Data: gin.H{
 					"updatedExperience":         updatedExperience,

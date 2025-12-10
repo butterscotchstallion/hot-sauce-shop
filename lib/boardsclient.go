@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bytedance/gopkg/util/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -53,7 +54,7 @@ type AddPostRequest struct {
 	PostText     string                  `json:"postText" form:"postText" binding:"required"`
 	PostImages   []*multipart.FileHeader `json:"postImages" form:"postImages"`
 	Slug         string                  `json:"slug" form:"slug"`
-	PostFlairIds []int                   `json:"postFlairIds" form:"postFlairIds"`
+	PostFlairIds []int                   `form:"postFlairIds" json:"postFlairIds" `
 }
 
 type AddBoardRequest struct {
@@ -271,7 +272,9 @@ func GetTotalPostReplyCountByBoardSlug(dbPool *pgxpool.Pool, boardSlug string) (
 
 // GetPosts
 // Gets posts, optionally filtered by boardSlug/postSlug
-func GetPosts(dbPool *pgxpool.Pool, boardSlug string, postSlug string, parentId int, logger *slog.Logger) ([]BoardPost, error) {
+func GetPosts(
+	dbPool *pgxpool.Pool, boardSlug string, postSlug string, parentId int, logger *slog.Logger) ([]BoardPost, error,
+) {
 	whereClause := ""
 	if len(boardSlug) > 0 {
 		whereClause += " AND b.slug = $1"
@@ -523,7 +526,10 @@ func AddPostImages(dbPool *pgxpool.Pool, postId int, imageInfo SavedPostImageInf
 	return nil
 }
 
-func AddBoard(dbPool *pgxpool.Pool, slug string, displayName string, thumbnailFilename string, createdByUserId int, description string) (int, error) {
+func AddBoard(
+	dbPool *pgxpool.Pool, slug string, displayName string,
+	thumbnailFilename string, createdByUserId int, description string,
+) (int, error) {
 	const query = `
 		INSERT INTO boards (
 			slug,
@@ -705,11 +711,13 @@ func GetPostFlairQuery(postId int, postFlairIds []int) string {
 func AddPostFlair(dbPool *pgxpool.Pool, postId int, postFlairIds []int) error {
 	postFlairsDeletedErr := DeleteBoardPostFlairs(dbPool, postId)
 	if postFlairsDeletedErr != nil {
+		logger.Error("AddPostFlair: error deleting existing post flairs")
 		return postFlairsDeletedErr
 	}
 	query := GetPostFlairQuery(postId, postFlairIds)
 	_, insertErr := dbPool.Query(context.Background(), query)
 	if insertErr != nil {
+		logger.Error("AddPostFlair: error inserting post flairs")
 		return insertErr
 	}
 

@@ -9,9 +9,12 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const ReadBufferSize = 1024
+const WriteBufferSize = 1024
+
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+	ReadBufferSize:  ReadBufferSize,
+	WriteBufferSize: WriteBufferSize,
 }
 
 type WebsocketMessage struct {
@@ -21,7 +24,7 @@ type WebsocketMessage struct {
 
 var clients = make(map[*websocket.Conn]bool)
 
-func HandleWSConnection(c *gin.Context, logger *slog.Logger, wsConn *websocket.Conn) {
+func HandleWSConnection(c *gin.Context, logger *slog.Logger) {
 	upgrader.CheckOrigin = func(r *http.Request) bool {
 		return c.Request.Header.Get("Origin") == "http://localhost:5173"
 	}
@@ -60,16 +63,17 @@ func HandleWSConnection(c *gin.Context, logger *slog.Logger, wsConn *websocket.C
 	}
 }
 
-func SendNotification(message WebsocketMessage, logger *slog.Logger) {
+func SendWebsocketMessage(message WebsocketMessage, logger *slog.Logger) error {
 	for client := range clients {
 		err := client.WriteJSON(message)
 		if err != nil {
 			logger.Error(fmt.Sprintf("WS write error: %v", err))
 			err := client.Close()
 			if err != nil {
-				return
+				return err
 			}
 			delete(clients, client)
 		}
 	}
+	return nil
 }

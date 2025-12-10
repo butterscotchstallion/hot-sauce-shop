@@ -124,7 +124,7 @@ func Votes(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			return
 		}
 
-		lib.SendNotification(lib.WebsocketMessage{
+		lib.SendWebsocketMessage(lib.WebsocketMessage{
 			MessageType: "boardPostUserVoted",
 			Data: gin.H{
 				"postId": postId,

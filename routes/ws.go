@@ -11,6 +11,6 @@ import (
 
 func WS(r *gin.Engine, wsConn *websocket.Conn, logger *slog.Logger) {
 	r.GET("/ws", func(c *gin.Context) {
-		lib.HandleWSConnection(c, logger, wsConn)
+		lib.HandleWSConnection(c, logger)
 	})
 }
