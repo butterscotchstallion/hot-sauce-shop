@@ -11,6 +11,7 @@ interface IChatMessage {
 }
 
 export function ChatWindow() {
+    const [isMinimized, setIsMinimized] = useState<boolean>(false);
     const [recipient] = useState<string>("JalapeñoLover");
     const [outgoingMessage, setOutgoingMessage] = useState<string>("");
     const [messages] = React.useState<IChatMessage[]>([
@@ -31,49 +32,60 @@ export function ChatWindow() {
         <div className="flex justify-between gap-x-2">
             <h2 className="p-4 m-0 pb-0 text-lg font-bold">{recipient}</h2>
             <div className="mt-4 mr-4 max-w-[50px] w-full cursor-pointer flex justify-between">
-                <i className="pi pi-window-minimize hover:text-stone-600" title="minimize"></i>
-                <i className="pi pi-times hover:text-stone-600" title="Close"></i>
+                <i
+                    onClick={() => setIsMinimized(!isMinimized)}
+                    className="pi pi-window-minimize hover:text-stone-600"
+                    title="Minimize chat window"></i>
+                <i
+                    className="pi pi-times hover:text-stone-600"
+                    title="Close chat window"></i>
             </div>
         </div>
     );
 
     return (
-        <div className="chat-window max-w-2/3 min-w-[300px] mb-2 border-1 border-solid border-gray-600">
+        <div
+            className="chat-window max-w-2/3 min-w-[300px] mb-2 border-1 border-solid border-gray-600 justify-end">
             <Card
                 header={header}
                 className="">
-                <section className="w-full h-[200px] overflow-y-scroll bg-stone-800 p-2 mb-2">
-                    <ul className="list-style-none">
-                        {messages.map((item: IChatMessage, index: number) => (
-                            <li key={`chat-message-${index}`} className="mb-4 text-sm">
-                                <div className="flex gap-x-2">
-                                    <aside className="w-[50px] h-[50px]">
-                                        <img src="/images/hot-pepper-thumbnail.png"
-                                             alt="hot pepper"
-                                             width="50"
-                                             height="50"
-                                        />
-                                    </aside>
-                                    <div>
-                                        <strong className="block mb-1">{item.username}</strong>
-                                        <div className="pr-2">{item.message}</div>
-                                    </div>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                </section>
-                <section className="w-full">
-                    <div className="w-full flex gap-x-2">
-                        <InputTextarea
-                            className="w-full"
-                            value={outgoingMessage}
-                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setOutgoingMessage(e.target.value)}
-                            rows={2}
-                            cols={30}/>
-                        <Button icon="pi pi-send">Send</Button>
-                    </div>
-                </section>
+                {!isMinimized && (
+                    <>
+                        <section
+                            className="w-full h-[200px] overflow-y-scroll bg-stone-800 p-2 mb-2">
+                            <ul className="list-style-none">
+                                {messages.map((item: IChatMessage, index: number) => (
+                                    <li key={`chat-message-${index}`} className="mb-4 text-sm">
+                                        <div className="flex gap-x-2">
+                                            <aside className="w-[50px] h-[50px]">
+                                                <img src="/images/hot-pepper-thumbnail.png"
+                                                     alt="hot pepper"
+                                                     width="50"
+                                                     height="50"
+                                                />
+                                            </aside>
+                                            <div>
+                                                <strong className="block mb-1">{item.username}</strong>
+                                                <div className="pr-2">{item.message}</div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                        <section className="w-full">
+                            <div className="w-full flex gap-x-2">
+                                <InputTextarea
+                                    className="w-full"
+                                    value={outgoingMessage}
+                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setOutgoingMessage(e.target.value)}
+                                    rows={2}
+                                    cols={30}/>
+                                <Button icon="pi pi-send">Send</Button>
+                            </div>
+                        </section>
+                    </>
+                )}
             </Card>
         </div>
     )
