@@ -75,6 +75,9 @@ export default function BaseLayout({children}: Props) {
             </main>
             <ChatArea>
                 <ChatWindow/>
+                <ChatWindow/>
+                <ChatWindow/>
+                <ChatWindow/>
             </ChatArea>
         </PrimeReactProvider>
     )

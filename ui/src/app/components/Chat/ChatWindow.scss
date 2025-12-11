@@ -1,5 +1,22 @@
-.chat-window {
-  .p-card .p-card-content, .p-card .p-card-body {
-    padding-top: .5rem !important;
+.p-card .p-card-content, .p-card .p-card-body {
+  padding-top: 0 !important;
+}
+
+.p-card {
+  .p-card-footer {
+    padding-top: 0 !important;
+  }
+
+  .p-card-content {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
+}
+
+.chat-buddy-list {
+  .p-card {
+    .p-card-body {
+      padding: 0 !important;
+    }
   }
 }
