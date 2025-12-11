@@ -3,6 +3,7 @@ import * as React from "react";
 import {useState} from "react";
 import {InputTextarea} from "primereact/inputtextarea";
 import {Button} from "primereact/button";
+import "./ChatWindow.scss";
 
 interface IChatMessage {
     username: string;
@@ -29,17 +30,18 @@ export function ChatWindow() {
     const header = (
         <div className="flex justify-between gap-x-2">
             <h2 className="p-4 m-0 pb-0 text-lg font-bold">{recipient}</h2>
-            <div className="mt-4 mr-4">
-                <i className="pi pi-times"></i>
+            <div className="mt-4 mr-4 max-w-[50px] w-full cursor-pointer flex justify-between">
+                <i className="pi pi-window-minimize hover:text-stone-600" title="minimize"></i>
+                <i className="pi pi-times hover:text-stone-600" title="Close"></i>
             </div>
         </div>
     );
 
     return (
-        <>
+        <div className="chat-window max-w-2/3 min-w-[300px] mb-2 border-1 border-solid border-gray-600">
             <Card
                 header={header}
-                className="max-w-2/3 min-w-[300px] mb-2 border-1 border-solid border-gray-500">
+                className="">
                 <section className="w-full h-[200px] overflow-y-scroll bg-stone-800 p-2 mb-2">
                     <ul className="list-style-none">
                         {messages.map((item: IChatMessage, index: number) => (
@@ -73,6 +75,6 @@ export function ChatWindow() {
                     </div>
                 </section>
             </Card>
-        </>
+        </div>
     )
 }
