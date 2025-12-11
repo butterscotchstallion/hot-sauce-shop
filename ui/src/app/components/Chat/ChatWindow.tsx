@@ -1,5 +1,6 @@
 import {Card} from "primereact/card";
 import * as React from "react";
+import {useState} from "react";
 import {InputTextarea} from "primereact/inputtextarea";
 import {Button} from "primereact/button";
 
@@ -9,14 +10,15 @@ interface IChatMessage {
 }
 
 export function ChatWindow() {
-    const [outgoingMessage, setOutgoingMessage] = React.useState<string>("");
-    const [messages, setMessages] = React.useState<IChatMessage[]>([
+    const [recipient] = useState<string>("JalapeñoLover");
+    const [outgoingMessage, setOutgoingMessage] = useState<string>("");
+    const [messages] = React.useState<IChatMessage[]>([
         {
             username: "SauceBoss",
             message: "How are you enjoying the sauce?"
         },
         {
-            username: "JalapeñoLover",
+            username: recipient,
             message: "It's delicious! I love the balance between tangy and spicy!"
         },
         {
@@ -24,10 +26,20 @@ export function ChatWindow() {
             message: "That's great to hear!"
         }
     ]);
+    const header = (
+        <div className="flex justify-between gap-x-2">
+            <h2 className="p-4 m-0 pb-0 text-lg font-bold">{recipient}</h2>
+            <div className="mt-4 mr-4">
+                <i className="pi pi-times"></i>
+            </div>
+        </div>
+    );
 
     return (
         <>
-            <Card title="JalapeñoLover" className="max-w-2/3 min-w-[300px] mb-2 border-1 border-solid border-gray-500">
+            <Card
+                header={header}
+                className="max-w-2/3 min-w-[300px] mb-2 border-1 border-solid border-gray-500">
                 <section className="w-full h-[200px] overflow-y-scroll bg-stone-800 p-2 mb-2">
                     <ul className="list-style-none">
                         {messages.map((item: IChatMessage, index: number) => (
@@ -42,7 +54,7 @@ export function ChatWindow() {
                                     </aside>
                                     <div>
                                         <strong className="block mb-1">{item.username}</strong>
-                                        {item.message}
+                                        <div className="pr-2">{item.message}</div>
                                     </div>
                                 </div>
                             </li>
