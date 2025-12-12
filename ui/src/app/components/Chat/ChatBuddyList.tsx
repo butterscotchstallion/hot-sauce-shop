@@ -23,7 +23,7 @@ export function ChatBuddyList() {
     return (
         <>
             <section
-                className="chat-buddy-list w-[250px] bg-black-200 border-1 border-solid border-gray-600">
+                className="chat-buddy-list w-[250px] bg-black-200 border-1 border-solid border-gray-600 ml-2">
                 <Card header={header} className="h-full">
                     <ul className="list-style-none">
                         {buddies.map((buddy: string, _: number) => (

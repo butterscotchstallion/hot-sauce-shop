@@ -78,7 +78,7 @@ export function ChatWindow() {
             setMinimizedStyles('h-full');
         } else {
             setIsMinimized(true);
-            setMinimizedStyles('h-[50px]');
+            setMinimizedStyles('h-[50px] mt-auto');
         }
     }
     useEffect(() => {
