@@ -1,6 +1,6 @@
 import {Card} from "primereact/card";
 import * as React from "react";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {InputTextarea} from "primereact/inputtextarea";
 import {Button} from "primereact/button";
 import "./ChatWindow.scss";
@@ -11,12 +11,18 @@ interface IChatMessage {
 }
 
 export function ChatWindow() {
+    const [messagesArea, setMessagesArea] = useState<HTMLElement>();
     const [closed, setClosed] = useState<boolean>(false);
     const [isMinimized, setIsMinimized] = useState<boolean>(false);
     const [minimizedStyles, setMinimizedStyles] = useState<string>('');
     const [recipient] = useState<string>("JalapeñoLover");
     const [outgoingMessage, setOutgoingMessage] = useState<string>("");
-    const [messages] = React.useState<IChatMessage[]>([
+    const scrollToBottom = () => {
+        if (messagesArea) {
+            messagesArea.scrollIntoView({behavior: "smooth"});
+        }
+    }
+    const [messages] = useState<IChatMessage[]>([
         {
             username: "SauceBoss",
             message: "How are you enjoying the sauce?"
@@ -51,17 +57,8 @@ export function ChatWindow() {
             </div>
         </div>
     );
-    const minimize = () => {
-        if (isMinimized) {
-            setIsMinimized(false);
-            setMinimizedStyles('');
-        } else {
-            setIsMinimized(true);
-            setMinimizedStyles('h-[50px]');
-        }
-    }
     const footer = () => {
-        return (
+        return !isMinimized && (
             <section className="w-full">
                 <div className="w-full flex gap-x-2">
                     <InputTextarea
@@ -70,24 +67,42 @@ export function ChatWindow() {
                         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setOutgoingMessage(e.target.value)}
                         rows={2}
                         cols={30}/>
-                    <Button icon="pi pi-send">Send</Button>
+                    <Button icon="pi pi-send" className="min-w-[50px]"/>
                 </div>
             </section>
         )
     }
+    const minimize = () => {
+        if (isMinimized) {
+            setIsMinimized(false);
+            setMinimizedStyles('h-full');
+        } else {
+            setIsMinimized(true);
+            setMinimizedStyles('h-[50px]');
+        }
+    }
+    useEffect(() => {
+        scrollToBottom();
+    }, []);
     return (
         <>
             {!closed && (
                 <div
-                    className={`chat-window max-w-[300px] h-full min-w-[250px] mb-2 border-1 border-solid border-gray-600 ${minimizedStyles}`}>
+                    className={`chat-window max-w-[350px] min-w-[250px] border-1 border-solid border-gray-600 ${minimizedStyles}`}>
                     <Card
                         header={header}
                         footer={footer}
                         className="h-full">
                         {!isMinimized && (
                             <>
+                                {/* Chat messages */}
                                 <section
-                                    className="w-full h-[225px] overflow-y-scroll bg-stone-800 p-2 mb-2 mb-0 pb-0">
+                                    className="w-full h-[225px] overflow-y-scroll bg-stone-800 p-2 mb-2 mb-0 pb-0"
+                                    ref={(el) => {
+                                        if (el) {
+                                            setMessagesArea(el)
+                                        }
+                                    }}>
                                     <ul className="list-style-none">
                                         {messages.map((item: IChatMessage, index: number) => (
                                             <li key={`chat-message-${index}`} className="mb-4 text-sm">

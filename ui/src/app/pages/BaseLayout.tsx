@@ -74,10 +74,10 @@ export default function BaseLayout({children}: Props) {
                 </section>
             </main>
             <ChatArea>
-                <ChatWindow/>
-                <ChatWindow/>
-                <ChatWindow/>
-                <ChatWindow/>
+                <ChatWindow key={1}/>
+                <ChatWindow key={2}/>
+                <ChatWindow key={3}/>
+                <ChatWindow key={4}/>
             </ChatArea>
         </PrimeReactProvider>
     )

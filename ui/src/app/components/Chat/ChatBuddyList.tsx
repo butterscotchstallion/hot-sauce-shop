@@ -12,18 +12,18 @@ export function ChatBuddyList() {
     ])
     const header = () => {
         return (
-            <div className="flex justify-between gap-x-2 bg-stone-800">
+            <div className="flex justify-between gap-x-2 bg-stone-800 cursor-pointer"
+                 onClick={() => minimize()}>
                 <h2 className="p-2 m-0 text-lg font-bold  line-height-2">Buddy List</h2>
-                <i
-                    onClick={() => minimize()}
-                    className="pi pi-window-minimize hover:text-stone-600 mr-4 mt-4"
-                    title="Minimize chat window"></i>
+                <i className="pi pi-window-minimize hover:text-stone-600 mr-4 mt-4"
+                   title="Minimize chat window"></i>
             </div>
         )
     }
     return (
         <>
-            <section className="chat-buddy-list w-[250px] bg-black-200 justify-end">
+            <section
+                className="chat-buddy-list w-[250px] bg-black-200 border-1 border-solid border-gray-600">
                 <Card header={header} className="h-full">
                     <ul className="list-style-none">
                         {buddies.map((buddy: string, _: number) => (
