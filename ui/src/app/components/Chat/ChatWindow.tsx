@@ -4,55 +4,38 @@ import {useEffect, useState} from "react";
 import {InputTextarea} from "primereact/inputtextarea";
 import {Button} from "primereact/button";
 import "./ChatWindow.scss";
+import {IChatMessage} from "./IChatMessage.ts";
 
-interface IChatMessage {
-    username: string;
-    message: string;
+interface IChatWindowProps {
+    conversation: IChatMessage;
 }
 
-export function ChatWindow() {
+export function ChatWindow({conversation}: IChatWindowProps) {
     const [messagesArea, setMessagesArea] = useState<HTMLElement>();
     const [closed, setClosed] = useState<boolean>(false);
     const [isMinimized, setIsMinimized] = useState<boolean>(false);
     const [minimizedStyles, setMinimizedStyles] = useState<string>('');
-    const [recipient] = useState<string>("JalapeñoLover");
+    const [recipient, setRecipient] = useState<string>("JalapeñoLover");
     const [outgoingMessage, setOutgoingMessage] = useState<string>("");
     const scrollToBottom = () => {
         if (messagesArea) {
             messagesArea.scrollIntoView({behavior: "smooth"});
         }
     }
-    const [messages] = useState<IChatMessage[]>([
-        {
-            username: "SauceBoss",
-            message: "How are you enjoying the sauce?"
-        },
-        {
-            username: recipient,
-            message: "It's delicious! I love the balance between tangy and spicy!"
-        },
-        {
-            username: "SauceBoss",
-            message: "That's great to hear!"
-        },
-        {
-            username: recipient,
-            message: "Do you have any sauces with a bit more heat?"
-        }
-    ]);
+    const [messages] = useState<IChatMessage[]>(conversation);
     const header = (
         <div className="flex justify-between gap-x-2 cursor-pointer">
-            <h2 className="p-4 m-0 text-lg font-bold">
+            <h2 className="p-4 pt-2 m-0 text-lg font-bold">
                 {recipient}
             </h2>
             <div className="mt-4 mr-4 max-w-[50px] w-full cursor-pointer flex justify-between">
                 <i
                     onClick={() => minimize()}
-                    className="pi pi-window-minimize hover:text-stone-600"
+                    className="pi pi-window-minimize hover:text-yellow-200"
                     title="Minimize chat window"></i>
                 <i
                     onClick={() => setClosed(true)}
-                    className="pi pi-times hover:text-stone-600"
+                    className="pi pi-times hover:text-yellow-200"
                     title="Close chat window"></i>
             </div>
         </div>
@@ -83,7 +66,8 @@ export function ChatWindow() {
     }
     useEffect(() => {
         scrollToBottom();
-    }, []);
+        setRecipient(messages[0].recipient);
+    }, [messages]);
     return (
         <>
             {!closed && (
@@ -107,15 +91,17 @@ export function ChatWindow() {
                                         {messages.map((item: IChatMessage, index: number) => (
                                             <li key={`chat-message-${index}`} className="mb-4 text-sm">
                                                 <div className="flex gap-x-2">
-                                                    <aside className="w-[50px] h-[50px]">
-                                                        <img src="/images/hot-pepper-thumbnail.png"
+                                                    <aside
+                                                        className="w-[25px] h-[25px] rounded-2xl bg-stone-600 p-4 z-0 relative">
+                                                        <img src="/images/hot-pepper-buddy-icon.png"
                                                              alt="hot pepper"
-                                                             width="50"
-                                                             height="50"
+                                                             width="25"
+                                                             height="25"
+                                                             className="z-500 relative"
                                                         />
                                                     </aside>
-                                                    <div>
-                                                        <strong className="block mb-1">{item.username}</strong>
+                                                    <div className="w-3/4">
+                                                        <strong className="block mb-1">{item.recipient}</strong>
                                                         <div className="pr-2">{item.message}</div>
                                                     </div>
                                                 </div>

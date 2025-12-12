@@ -5,7 +5,6 @@ import {IUser} from "./IUser.ts";
 import {IUserDetails} from "./IUserDetails.ts";
 import {IUserRole} from "./IUserRole.ts";
 import {IBoard} from "../Boards/IBoard.ts";
-import {IUserSessionDetails} from "./IUserSessionDetails.ts";
 
 export enum UserRole {
     USER_ADMIN = "User Admin",
@@ -63,8 +62,8 @@ export function getUsers(): Subject<IUser[]> {
     return users$;
 }
 
-export function getUserDetailsBySessionId(): Subject<IUserSessionDetails> {
-    const user$ = new Subject<IUserSessionDetails>();
+export function getUserDetailsBySessionId(): Subject<IUserDetails> {
+    const user$ = new Subject<IUserDetails>();
     fetch(`${SESSION_URL}`, {
         credentials: 'include'
     }).then((res: Response) => {
