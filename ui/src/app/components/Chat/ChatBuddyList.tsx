@@ -3,13 +3,16 @@ import {Badge} from "primereact/badge";
 import * as React from "react";
 
 export function ChatBuddyList() {
-    const [buddies, setBuddies] = React.useState<string[]>([
+    const [buddies] = React.useState<string[]>([
         "JalapeñoLover",
         "SauceBoss",
         "BaconJamEnjoyer",
         "SweetAndSmokey",
         "TangyHot",
     ])
+    const minimize = () => {
+
+    }
     const header = () => {
         return (
             <div className="flex justify-between gap-x-2 bg-stone-800 cursor-pointer"
@@ -23,7 +26,7 @@ export function ChatBuddyList() {
     return (
         <>
             <section
-                className="chat-buddy-list w-[250px] bg-black-200 border-1 border-solid border-gray-600 ml-2">
+                className="chat-buddy-list min-w-[250px] bg-black-200 border-1 border-solid border-gray-600 ml-2">
                 <Card header={header} className="h-full">
                     <ul className="list-style-none">
                         {buddies.map((buddy: string, _: number) => (

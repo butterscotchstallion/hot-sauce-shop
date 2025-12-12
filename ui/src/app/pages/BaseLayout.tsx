@@ -14,7 +14,6 @@ import {IUserDetails} from "../components/User/IUserDetails.ts";
 import {ErrorBoundary} from "react-error-boundary";
 import {Card} from "primereact/card";
 import {ChatArea} from "../components/Chat/ChatArea.tsx";
-import {ChatWindow} from "../components/Chat/ChatWindow.tsx";
 
 type Props = {
     children: React.ReactNode
@@ -73,12 +72,7 @@ export default function BaseLayout({children}: Props) {
                     )}>{children}</ErrorBoundary>
                 </section>
             </main>
-            <ChatArea>
-                <ChatWindow key={1}/>
-                <ChatWindow key={2}/>
-                <ChatWindow key={3}/>
-                <ChatWindow key={4}/>
-            </ChatArea>
+            <ChatArea/>
         </PrimeReactProvider>
     )
 }
