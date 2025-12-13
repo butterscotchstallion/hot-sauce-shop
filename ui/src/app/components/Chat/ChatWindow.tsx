@@ -92,12 +92,12 @@ export function ChatWindow({conversation}: IChatWindowProps) {
                                             <li key={`chat-message-${index}`} className="mb-4 text-sm">
                                                 <div className="flex gap-x-2">
                                                     <aside
-                                                        className="w-[25px] h-[25px] rounded-2xl bg-stone-600 p-4 z-0 relative">
+                                                        className="w-[25px] h-[25px]">
                                                         <img src="/images/hot-pepper-buddy-icon.png"
                                                              alt="hot pepper"
                                                              width="25"
                                                              height="25"
-                                                             className="z-500 relative"
+                                                             className="rounded-2xl"
                                                         />
                                                     </aside>
                                                     <div className="w-3/4">
