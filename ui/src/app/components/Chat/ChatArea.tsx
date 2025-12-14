@@ -25,6 +25,19 @@ export function ChatArea() {
         }
         return messages;
     }
+    const onNewConversation = (recipient: string) => {
+        const newConversations: IChatMessage[] = conversations;
+        newConversations.push({
+            recipient: recipient,
+            message: ''
+        });
+        setConversations(newConversations);
+        console.log(conversations);
+    }
+    const onConversationClosed = (recipient: string) => {
+        const newConversations: IChatMessage[] = conversations.filter((conversation: IChatMessage) => conversation.recipient !== recipient);
+        setConversations(newConversations);
+    }
     useEffect(() => {
         const conversations: IChatMessage[] = [];
         for (let j = 0; j < 3; j++) {
@@ -34,15 +47,23 @@ export function ChatArea() {
     }, []);
     return (
         <>
-            <section
-                className="fixed w-full bottom-0 right-0 min-h-[350px] flex flex-wrap align-bottom gap-2 m-2 justify-end">
-                <div className="w-3/4 flex gap-2 pl-4 pr-4 justify-end">\
-                    {conversations.map((conversation: IChatMessage, index: number) => (
-                        <ChatWindow key={index} conversation={conversation}/>
-                    ))}
-                    <ChatBuddyList key="buddy-list"/>
-                </div>
-            </section>
+            {conversations.length > 0 && (
+                <section
+                    className="fixed w-full bottom-0 right-0 min-h-[350px] flex flex-wrap align-bottom gap-2 m-2 justify-end">
+                    <div className="w-3/4 flex gap-2 pl-4 pr-4 justify-end">
+                        {conversations.map((conversation: IChatMessage, index: number) => (
+                            <ChatWindow
+                                key={index}
+                                conversation={conversation}
+                                onConversationClosed={onConversationClosed}
+                            />
+                        ))}
+                        <ChatBuddyList
+                            key="buddy-list"
+                            onNewConversation={onNewConversation}/>
+                    </div>
+                </section>
+            )}
         </>
     )
 }

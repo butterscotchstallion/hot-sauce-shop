@@ -8,9 +8,10 @@ import {IChatMessage} from "./IChatMessage.ts";
 
 interface IChatWindowProps {
     conversation: IChatMessage;
+    onConversationClosed: (recipient: string) => void;
 }
 
-export function ChatWindow({conversation}: IChatWindowProps) {
+export function ChatWindow({conversation, onConversationClosed}: IChatWindowProps) {
     const [messagesArea, setMessagesArea] = useState<HTMLElement>();
     const [closed, setClosed] = useState<boolean>(false);
     const [isMinimized, setIsMinimized] = useState<boolean>(false);
@@ -23,6 +24,7 @@ export function ChatWindow({conversation}: IChatWindowProps) {
         }
     }
     const [messages] = useState<IChatMessage[]>(conversation);
+
     const header = (
         <div className="flex justify-between gap-x-2 cursor-pointer">
             <h2 className="p-4 pt-2 m-0 text-lg font-bold">
@@ -34,12 +36,16 @@ export function ChatWindow({conversation}: IChatWindowProps) {
                     className="pi pi-window-minimize hover:text-yellow-200"
                     title="Minimize chat window"></i>
                 <i
-                    onClick={() => setClosed(true)}
+                    onClick={() => closeWindow()}
                     className="pi pi-times hover:text-yellow-200"
                     title="Close chat window"></i>
             </div>
         </div>
     );
+    const closeWindow = () => {
+        onConversationClosed(recipient);
+        setClosed(true);
+    }
     const footer = () => {
         return !isMinimized && (
             <section className="w-full">

@@ -3,7 +3,11 @@ import {Badge} from "primereact/badge";
 import * as React from "react";
 import {useState} from "react";
 
-export function ChatBuddyList() {
+interface IChatBuddyListProps {
+    onNewConversation: (recipient: string) => void;
+}
+
+export function ChatBuddyList({onNewConversation}: IChatBuddyListProps) {
     const [isMinimized, setIsMinimized] = useState<boolean>(false);
     const [minimizedStyles, setMinimizedStyles] = useState<string>('');
     const [buddies] = React.useState<string[]>([
@@ -40,7 +44,9 @@ export function ChatBuddyList() {
                     {!isMinimized && (
                         <ul className="list-style-none block max-h-[100vw] overflow-y-scroll">
                             {buddies.map((buddy: string, index: number) => (
-                                <li className="block p-4 mb-2 cursor-pointer hover:bg-stone-700" key={index}>
+                                <li onClick={() => onNewConversation(buddy)}
+                                    className="block p-4 mb-2 cursor-pointer hover:bg-stone-700"
+                                    key={index}>
                                     <Badge value="" severity="success" className="mr-2"></Badge> {buddy}
                                 </li>
                             ))}
