@@ -5,7 +5,7 @@ go 1.25.3
 require (
 	github.com/BurntSushi/toml v1.5.0
 	github.com/bytedance/gopkg v0.1.3
-	github.com/gabriel-vasile/mimetype v1.4.11
+	github.com/gabriel-vasile/mimetype v1.4.12
 	github.com/gavv/httpexpect/v2 v2.17.0
 	github.com/gin-contrib/cache v1.4.1
 	github.com/gin-gonic/gin v1.11.0
