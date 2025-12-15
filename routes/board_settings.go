@@ -35,4 +35,28 @@ func BoardSettings(
 			},
 		})
 	})
+
+	/**
+	 * 1. Check if the user is a board admin
+	 * 2. Check if the user is super admin
+	 * 3. Update board settings
+	 */
+	r.PUT("/api/v1/board-settings/:boardSlug", func(c *gin.Context) {
+		// Check role (this also checks if the user is signed in)
+		// NOTE: this already sends a JSON response upon failure
+		isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsMessageBoardAdmin(c, dbPool, logger)
+		if isMessageBoardAdminErr != nil {
+			return
+		}
+		if !isMessageBoardAdmin {
+			if !isMessageBoardAdmin {
+				logger.Error("Error updating board settings: user is not message board admin")
+			}
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"status":  "ERROR",
+				"message": "Error updating board settings: permission denied",
+			})
+			return
+		}
+	})
 }

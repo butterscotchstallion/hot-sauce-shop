@@ -619,7 +619,7 @@ func Boards(
 			if !isBoardPostAuthor {
 				logger.Error("Error deleting post: user is not post author")
 			}
-			c.JSON(http.StatusForbidden, gin.H{
+			c.JSON(http.StatusUnauthorized, gin.H{
 				"status":  "ERROR",
 				"message": "Error deleting post: permission denied",
 			})
