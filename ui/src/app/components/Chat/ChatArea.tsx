@@ -4,6 +4,7 @@ import {IChatMessage} from "./IChatMessage.ts";
 import {useEffect, useState} from "react";
 
 export function ChatArea() {
+    const [chatAreaStyles, setChatAreaStyles] = useState<string>('w-full')
     const [conversations, setConversations] = useState<IChatMessage[]>([])
     const getMessage = () => {
         const messages: string[] = [
@@ -35,8 +36,16 @@ export function ChatArea() {
         console.log(conversations);
     }
     const onConversationClosed = (recipient: string) => {
-        const newConversations: IChatMessage[] = conversations.filter((conversation: IChatMessage) => conversation.recipient !== recipient);
+        console.log(`Conversation with ${recipient} closed.`);
+        const newConversations = conversations.filter((conversation: IChatMessage[]) => {
+            return conversation[0].recipient !== recipient
+        });
         setConversations(newConversations);
+        console.log(conversations);
+
+        if (newConversations.length === 0) {
+            setChatAreaStyles('');
+        }
     }
     useEffect(() => {
         const conversations: IChatMessage[] = [];
@@ -47,23 +56,19 @@ export function ChatArea() {
     }, []);
     return (
         <>
-            {conversations.length > 0 && (
-                <section
-                    className="fixed w-full bottom-0 right-0 min-h-[350px] flex flex-wrap align-bottom gap-2 m-2 justify-end">
-                    <div className="w-3/4 flex gap-2 pl-4 pr-4 justify-end">
-                        {conversations.map((conversation: IChatMessage, index: number) => (
-                            <ChatWindow
-                                key={index}
-                                conversation={conversation}
-                                onConversationClosed={onConversationClosed}
-                            />
-                        ))}
-                        <ChatBuddyList
-                            key="buddy-list"
-                            onNewConversation={onNewConversation}/>
-                    </div>
-                </section>
-            )}
+            <section
+                className={`fixed bottom-0 right-0 min-h-[350px] flex flex-wrap align-bottom m-2 flex gap-2 pl-4 pr-4 justify-end ${chatAreaStyles}`}>
+                {conversations.map((conversation: IChatMessage, index: number) => (
+                    <ChatWindow
+                        key={index}
+                        conversation={conversation}
+                        onConversationClosed={onConversationClosed}
+                    />
+                ))}
+                <ChatBuddyList
+                    key="buddy-list"
+                    onNewConversation={onNewConversation}/>
+            </section>
         </>
     )
 }

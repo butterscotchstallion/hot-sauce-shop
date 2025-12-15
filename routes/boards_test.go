@@ -43,7 +43,7 @@ func TestGetBoardPosts(t *testing.T) {
 		Value("boards").Array().Length().Gt(0)
 }
 
-func createBoardAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string) lib.AddBoardResponse {
+func CreateBoardAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string) lib.AddBoardResponse {
 	// Add board
 	boardUUID, boardUUIDErr := uuid.NewRandom()
 	if boardUUIDErr != nil {
@@ -170,7 +170,7 @@ func TestCreateBoard(t *testing.T) {
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
 
-	addBoardResponse := createBoardAndVerify(t, e, sessionID)
+	addBoardResponse := CreateBoardAndVerify(t, e, sessionID)
 
 	log.Printf("Deleting board with slug %v", addBoardResponse.Results.Slug)
 

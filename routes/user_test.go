@@ -31,7 +31,7 @@ func signInAndGetSessionId(t *testing.T, e *httpexpect.Expect, username string, 
 func TestUserJoinBoard(t *testing.T) {
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
-	addBoardResponse := createBoardAndVerify(t, e, sessionID)
+	addBoardResponse := CreateBoardAndVerify(t, e, sessionID)
 
 	var response lib.GenericResponse
 	e.POST(fmt.Sprintf("/api/v1/user/boards/%v", addBoardResponse.Results.BoardId)).

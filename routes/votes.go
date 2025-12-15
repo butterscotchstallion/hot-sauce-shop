@@ -124,13 +124,16 @@ func Votes(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			return
 		}
 
-		lib.SendWebsocketMessage(lib.WebsocketMessage{
+		sendErr := lib.SendWebsocketMessage(lib.WebsocketMessage{
 			MessageType: "boardPostUserVoted",
 			Data: gin.H{
 				"postId": postId,
 				"voteId": voteId,
 			},
 		}, logger)
+		if sendErr != nil {
+			logger.Error(fmt.Sprintf("Error sending websocket message: %v", sendErr.Error()))
+		}
 
 		c.JSON(http.StatusOK, gin.H{
 			"status": "OK",

@@ -464,7 +464,7 @@ func Boards(
 		// Send WS message if experience updated
 		if experienceUpdated {
 			updatedLevel := lib.GetUserLevelByExperience(updatedExperience)
-			lib.SendWebsocketMessage(lib.WebsocketMessage{
+			sendErr := lib.SendWebsocketMessage(lib.WebsocketMessage{
 				MessageType: "userLevelUpdate",
 				Data: gin.H{
 					"updatedExperience":         updatedExperience,
@@ -472,6 +472,9 @@ func Boards(
 					"percentageOfLevelComplete": lib.GetPercentageOfLevelComplete(updatedExperience, updatedLevel),
 				},
 			}, logger)
+			if sendErr != nil {
+				logger.Error(fmt.Sprintf("Error sending websocket message: %v", sendErr.Error()))
+			}
 		}
 
 		c.JSON(http.StatusCreated, gin.H{
