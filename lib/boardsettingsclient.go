@@ -2,7 +2,6 @@ package lib
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -28,25 +27,23 @@ type BoardSettingsUpdateRequest struct {
 
 func GetBoardSettings(dbPool *pgxpool.Pool, boardSlug string) (BoardSettings, error) {
 	const query = `SELECT 
-		bs.is_official AS isOfficial, 
-		bs.is_post_approval_required AS isPostApprovalRequired,
-		bs.updated_at AS updatedAt,
-		bs.board_id AS boardId
+		bs.is_official AS IsOfficial, 
+		bs.is_post_approval_required AS IsPostApprovalRequired,
+		bs.updated_at AS UpdatedAt,
+		bs.board_id AS BoardId
 		FROM board_settings bs
 		JOIN boards b ON b.id = bs.board_id
 		WHERE b.slug = $1`
-	var boardSettings BoardSettings
-	err := dbPool.QueryRow(
-		context.Background(), query, boardSlug).
-		Scan(
-			&boardSettings.IsOfficial,
-			&boardSettings.IsPostApprovalRequired,
-			&boardSettings.UpdatedAt,
-			&boardSettings.BoardId,
-		)
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		return boardSettings, err
+	row, err := dbPool.Query(context.Background(), query, boardSlug)
+	if err != nil {
+		return BoardSettings{}, err
 	}
+	defer row.Close()
+	boardSettings, collectRowsErr := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[BoardSettings])
+	if collectRowsErr != nil {
+		return BoardSettings{}, collectRowsErr
+	}
+
 	return boardSettings, nil
 }
 
