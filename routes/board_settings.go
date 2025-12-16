@@ -27,12 +27,8 @@ func BoardSettings(
 			return
 		}
 		c.JSON(http.StatusOK, lib.BoardSettingsResponse{
-			Status: "OK",
-			Results: lib.BoardSettings{
-				IsOfficial:             boardSettings.IsOfficial,
-				IsPostApprovalRequired: boardSettings.IsPostApprovalRequired,
-				UpdatedAt:              boardSettings.UpdatedAt,
-			},
+			Status:  "OK",
+			Results: boardSettings,
 		})
 	})
 
