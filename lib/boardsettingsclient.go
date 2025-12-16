@@ -28,10 +28,10 @@ type BoardSettingsUpdateRequest struct {
 
 func GetBoardSettings(dbPool *pgxpool.Pool, boardSlug string) (BoardSettings, error) {
 	const query = `SELECT 
-		bs.is_official, 
-		bs.is_post_approval_required,
-		bs.updated_at,
-		bs.board_id
+		bs.is_official AS isOfficial, 
+		bs.is_post_approval_required AS isPostApprovalRequired,
+		bs.updated_at AS updatedAt,
+		bs.board_id AS boardId
 		FROM board_settings bs
 		JOIN boards b ON b.id = bs.board_id
 		WHERE b.slug = $1`

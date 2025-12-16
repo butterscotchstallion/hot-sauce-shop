@@ -45,7 +45,7 @@ func TestUserJoinBoard(t *testing.T) {
 	}
 
 	// Only board admins can delete boards
-	deleteBoardAndVerify(t, e, sessionID, addBoardResponse.Results.Slug)
+	DeleteBoardAndVerify(t, e, sessionID, addBoardResponse.Results.Slug)
 }
 
 func TestGetUserListWithUnprivilegedUser(t *testing.T) {

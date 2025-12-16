@@ -49,8 +49,15 @@ func TestGetBoardSettings(t *testing.T) {
 	if boardSettingsResponse.Status != "OK" {
 		t.Fatal("Failed to get board settings")
 	}
-	if (boardSettingsResponse.Results.IsOfficial != settings.IsOfficial) ||
-		(boardSettingsResponse.Results.IsPostApprovalRequired != settings.IsPostApprovalRequired) {
-		t.Fatal("Board settings mismatch")
+	if boardSettingsResponse.Results.BoardId != settings.BoardId {
+		t.Fatal("boardId mismatch")
 	}
+	if boardSettingsResponse.Results.IsOfficial != settings.IsOfficial {
+		t.Fatal("isOfficial mismatch")
+	}
+	if boardSettingsResponse.Results.IsPostApprovalRequired != settings.IsPostApprovalRequired {
+		t.Fatal("IsPostApprovalRequired mismatch")
+	}
+
+	DeleteBoardAndVerify(t, e, sessionID, addBoardResponse.Results.Slug)
 }

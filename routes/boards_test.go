@@ -83,7 +83,7 @@ func CreateBoardAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string) 
 	return addBoardResponse
 }
 
-func deleteBoardAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string, slug string) {
+func DeleteBoardAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string, slug string) {
 	var boardDeleteResponse lib.BoardDeleteResponse
 	e.DELETE(fmt.Sprintf("/api/v1/boards/%v", slug)).
 		WithCookie("sessionId", sessionID).
@@ -175,7 +175,7 @@ func TestCreateBoard(t *testing.T) {
 	log.Printf("Deleting board with slug %v", addBoardResponse.Results.Slug)
 
 	// Clean up
-	deleteBoardAndVerify(t, e, sessionID, addBoardResponse.Results.Slug)
+	DeleteBoardAndVerify(t, e, sessionID, addBoardResponse.Results.Slug)
 }
 
 func TestCreateBoardPost(t *testing.T) {
