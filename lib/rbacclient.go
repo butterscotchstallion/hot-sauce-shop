@@ -13,11 +13,12 @@ import (
 )
 
 type Role struct {
-	Id         int       `json:"id"`
-	Name       string    `json:"name"`
-	CreatedAt  time.Time `json:"createdAt"`
-	Slug       string    `json:"slug"`
-	ColorClass string    `json:"colorClass"`
+	Id          int       `json:"id"`
+	Name        string    `json:"name"`
+	CreatedAt   time.Time `json:"createdAt"`
+	Slug        string    `json:"slug"`
+	ColorClass  string    `json:"colorClass"`
+	Description string    `json:"description"`
 }
 
 type Permission struct {
@@ -102,6 +103,7 @@ func GetRolesByUserId(dbPool *pgxpool.Pool, logger *slog.Logger, userId int) ([]
 	return roles, nil
 }
 
+// GetUserRoleByRoleName TODO: replace UserHasRole with this
 func GetUserRoleByRoleName(dbPool *pgxpool.Pool, userId int, roleName string) (bool, error) {
 	const query = `
 		SELECT COUNT(*) AS roleCount

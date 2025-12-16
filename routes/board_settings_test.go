@@ -14,16 +14,17 @@ func TestGetBoardSettings(t *testing.T) {
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
 
-	// Create new board
+	// Create a new board
 	addBoardResponse := CreateBoardAndVerify(t, e, sessionID)
 	if addBoardResponse.Status != "OK" {
 		t.Fatal("Failed to create board")
 	}
 
 	// Update board settings
-	settings := lib.BoardSettings{
+	settings := lib.BoardSettingsUpdateRequest{
 		IsOfficial:             true,
 		IsPostApprovalRequired: true,
+		BoardId:                addBoardResponse.Results.BoardId,
 	}
 	var updateSettingsResponse lib.GenericResponse
 	e.PUT(fmt.Sprintf("/api/v1/board-settings/%v", addBoardResponse.Results.Slug)).
@@ -47,5 +48,9 @@ func TestGetBoardSettings(t *testing.T) {
 		Decode(&boardSettingsResponse)
 	if boardSettingsResponse.Status != "OK" {
 		t.Fatal("Failed to get board settings")
+	}
+	if (boardSettingsResponse.Results.IsOfficial != settings.IsOfficial) ||
+		(boardSettingsResponse.Results.IsPostApprovalRequired != settings.IsPostApprovalRequired) {
+		t.Fatal("Board settings mismatch")
 	}
 }

@@ -85,5 +85,31 @@ func BoardSettings(
 				return
 			}
 		}
+
+		var settings lib.BoardSettingsUpdateRequest
+		if err := c.ShouldBind(&settings); err != nil {
+			logger.Error(fmt.Sprintf("UpdateBoardSettings: error binding settings request: %v", err.Error()))
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "ERROR",
+				"message": err.Error(),
+			})
+			return
+		}
+
+		// User is either super message board admin or board admin at this point
+		updateErr := lib.SetBoardSettings(dbPool, settings)
+		if updateErr != nil {
+			logger.Error(fmt.Sprintf("Error updating board settings: %v", updateErr))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": "Error updating board settings",
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, lib.GenericResponse{
+			Status:  "OK",
+			Message: "Board settings updated",
+		})
 	})
 }
