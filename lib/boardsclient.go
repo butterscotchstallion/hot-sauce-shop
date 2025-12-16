@@ -555,10 +555,18 @@ func AddBoard(
 	if err != nil {
 		return 0, err
 	}
+
+	createSettingsErr := CreateDefaultBoardSettinsForBoardId(dbPool, boardId)
+	if createSettingsErr != nil {
+		return 0, createSettingsErr
+	}
+
 	return boardId, nil
 }
 
 func DeleteBoard(dbPool *pgxpool.Pool, boardSlug string) error {
+	// TODO: maybe use cascading here.
+
 	// Delete board settings first
 	deleteBoardSettingsErr := DeleteBoardSettings(dbPool, boardSlug)
 	if deleteBoardSettingsErr != nil {
@@ -566,7 +574,7 @@ func DeleteBoard(dbPool *pgxpool.Pool, boardSlug string) error {
 	}
 	/**
 	 * Board users must be deleted before the board can be deleted
-	 * because of FK constraints. TODO: maybe use cascading here.
+	 * because of FK constraints.
 	 */
 	deleteBoardUsersErr := DeleteBoardUsers(dbPool, boardSlug)
 	if deleteBoardUsersErr != nil {
@@ -760,4 +768,51 @@ func GetPostsFlairsMap(postsFlairs []PostsFlairs, postFlairIdMap map[int]PostFla
 	}
 
 	return postsFlairsMap
+}
+
+// GetBoardsByRole
+// Returns boards the user has the specified role on
+func GetBoardsByRole(dbPool *pgxpool.Pool, userId int, roleName string) ([]Board, error) {
+	whereClause := ""
+
+	// not user supplied - no need to bind here
+	if len(roleName) > 0 {
+		whereClause = fmt.Sprintf("WHERE r.name = '%s'", roleName)
+	}
+
+	query := fmt.Sprintf(`SELECT b.id, b.display_name, b.created_at, b.updated_at, b.slug, b.visible, 
+		CASE WHEN b.thumbnail_filename IS NULL THEN '' ELSE b.thumbnail_filename END AS thumbnail_filename,
+		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description,
+		b.created_by_user_id,
+		u.username AS created_by_username,
+		u.slug AS created_by_user_slug
+		FROM boards b
+		JOIN user_roles_boards urb ON urb.board_id = b.id
+		JOIN roles r on r.id = urb.role_id
+		JOIN users u on urb.user_id = u.id
+		%s
+	`, whereClause)
+	rows, err := dbPool.Query(context.Background(), query, userId)
+	if err != nil {
+		return nil, err
+	}
+	boards, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[Board])
+	if collectRowsErr != nil {
+		return nil, collectRowsErr
+	}
+	return boards, nil
+}
+
+func AddBoardAdmin(dbPool *pgxpool.Pool, userId int, boardId int) error {
+	const boardAdminRoleId = 7
+	const query = `
+		INSERT INTO user_roles_boards (user_id, board_id, role_id)
+		VALUES ($1, $2, $3)
+		ON CONFLICT DO NOTHING
+	`
+	_, err := dbPool.Exec(context.Background(), query, userId, boardId, boardAdminRoleId)
+	if err != nil {
+		return err
+	}
+	return nil
 }

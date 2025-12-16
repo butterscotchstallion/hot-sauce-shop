@@ -65,3 +65,10 @@ func DeleteBoardSettings(dbPool *pgxpool.Pool, boardSlug string) error {
 	_, err := dbPool.Exec(context.Background(), query, boardSlug)
 	return err
 }
+
+func CreateDefaultBoardSettinsForBoardId(dbPool *pgxpool.Pool, boardId int) error {
+	const query = `INSERT INTO board_settings (is_official, is_post_approval_required, updated_at, board_id)
+		VALUES (false, false, NOW(), $1)`
+	_, err := dbPool.Exec(context.Background(), query, boardId)
+	return err
+}

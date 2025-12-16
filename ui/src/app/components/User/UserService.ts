@@ -9,6 +9,7 @@ import {IBoard} from "../Boards/IBoard.ts";
 export enum UserRole {
     USER_ADMIN = "User Admin",
     REVIEWER = "Reviewer",
+    SUPER_MESSAGE_BOARD_ADMIN = "Super Message Board Admin",
 }
 
 export interface ISignInResponse {
@@ -42,6 +43,10 @@ export function isReviewer(roles: IUserRole[]): boolean {
 
 export function isUserAdmin(roles: IUserRole[]): boolean {
     return userHasRole(UserRole.USER_ADMIN, roles);
+}
+
+export function isSuperMessageBoardAdmin(roles: IUserRole[]): boolean {
+    return userHasRole(UserRole.SUPER_MESSAGE_BOARD_ADMIN, roles);
 }
 
 export function getUsers(): Subject<IUser[]> {

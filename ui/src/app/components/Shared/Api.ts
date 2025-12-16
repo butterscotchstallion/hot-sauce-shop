@@ -21,3 +21,4 @@ export const USER_VOTE_MAP_URL: string = BASE_API_URL + '/vote-map';
 export const BOARD_TOTAL_POSTS_URL: string = BASE_API_URL + '/total-posts';
 export const BOARD_TOTAL_REPLIES: string = BASE_API_URL + '/total-replies';
 export const BOARD_PIN_POST_URL: string = BASE_API_URL + '/boards/pin';
+export const BOARD_SETTINGS_URL: string = BASE_API_URL + '/boards/settings';

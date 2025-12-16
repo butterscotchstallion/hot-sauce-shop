@@ -4,6 +4,7 @@ import {
     BOARD_DETAILS_URL,
     BOARD_PIN_POST_URL,
     BOARD_POSTS_URL,
+    BOARD_SETTINGS_URL,
     BOARD_TOTAL_POSTS_URL,
     BOARD_TOTAL_REPLIES,
     BOARDS_URL,
@@ -13,6 +14,7 @@ import {
 import {IBoardPost} from "./IBoardPost.ts";
 import {INewBoardPost} from "./INewBoardPost.ts";
 import {IBoardDetails} from "./IBoardDetails.ts";
+import {IBoardSettings} from "./IBoardSettings.ts";
 
 export function getBoards(): Subject<IBoard[]> {
     const boards$ = new Subject<IBoard[]>();
@@ -118,14 +120,6 @@ export function getBoardByBoardSlug(boardSlug: string): Subject<IBoardDetails> {
 
 export function addPost(post: INewBoardPost, boardSlug: string, postImages: File[]): Subject<IBoardPost> {
     const addPost$ = new Subject<IBoardPost>();
-    /*fetch(BOARD_POSTS_URL.replace(':slug', boardSlug), {
-        credentials: 'include',
-        method: 'POST',
-        body: JSON.stringify(post),
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })*/
     const formData: FormData = new FormData();
     formData.append("title", post.title);
     formData.append("postText", post.postText);
@@ -217,4 +211,22 @@ export function pinPost(post: IBoardPost, boardSlug: string): Subject<boolean> {
         pinPost$.error(err);
     });
     return pinPost$;
+}
+
+export function getBoardSettings(boardSlug: string): Subject<IBoardSettings> {
+    const settings$ = new Subject<IBoardSettings>();
+    fetch(`${BOARD_SETTINGS_URL}/${boardSlug}`, {
+        credentials: 'include'
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                settings$.next(resp.results);
+            });
+        } else {
+            settings$.error(res.statusText);
+        }
+    }).catch((err) => {
+        settings$.error(err);
+    });
+    return settings$;
 }

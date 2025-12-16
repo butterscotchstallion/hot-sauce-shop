@@ -1,7 +1,7 @@
 import {ChatBuddyList} from "./ChatBuddyList.tsx";
 import {ChatWindow} from "./ChatWindow.tsx";
 import {IChatMessage} from "./IChatMessage.ts";
-import {useEffect, useState} from "react";
+import {useState} from "react";
 
 export function ChatArea() {
     const [chatAreaStyles, setChatAreaStyles] = useState<string>('w-full')
@@ -47,13 +47,13 @@ export function ChatArea() {
             setChatAreaStyles('');
         }
     }
-    useEffect(() => {
-        const conversations: IChatMessage[] = [];
-        for (let j = 0; j < 3; j++) {
-            conversations.push(makeConversation())
-        }
-        setConversations(conversations);
-    }, []);
+    // useEffect(() => {
+    //     const conversations: IChatMessage[] = [];
+    //     for (let j = 0; j < 3; j++) {
+    //         conversations.push(makeConversation())
+    //     }
+    //     setConversations(conversations);
+    // }, []);
     return (
         <>
             <section
