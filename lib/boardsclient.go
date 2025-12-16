@@ -559,6 +559,11 @@ func AddBoard(
 }
 
 func DeleteBoard(dbPool *pgxpool.Pool, boardSlug string) error {
+	// Delete board settings first
+	deleteBoardSettingsErr := DeleteBoardSettings(dbPool, boardSlug)
+	if deleteBoardSettingsErr != nil {
+		return deleteBoardSettingsErr
+	}
 	/**
 	 * Board users must be deleted before the board can be deleted
 	 * because of FK constraints. TODO: maybe use cascading here.
@@ -567,6 +572,10 @@ func DeleteBoard(dbPool *pgxpool.Pool, boardSlug string) error {
 	if deleteBoardUsersErr != nil {
 		return deleteBoardUsersErr
 	}
+
+	// Delete board posts?
+
+	// Finally, delete the board
 	const query = `DELETE FROM boards WHERE slug = $1`
 	_, err := dbPool.Exec(
 		context.Background(),

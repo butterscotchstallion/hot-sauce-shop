@@ -59,3 +59,9 @@ func SetBoardSettings(dbPool *pgxpool.Pool, settings BoardSettingsUpdateRequest)
 		context.Background(), query, settings.IsOfficial, settings.IsPostApprovalRequired, settings.BoardId)
 	return err
 }
+
+func DeleteBoardSettings(dbPool *pgxpool.Pool, boardSlug string) error {
+	const query = `DELETE FROM board_settings WHERE board_id = (SELECT id FROM boards WHERE slug = $1)`
+	_, err := dbPool.Exec(context.Background(), query, boardSlug)
+	return err
+}
