@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/bytedance/gopkg/util/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -27,6 +26,10 @@ type Permission struct {
 	CreatedAt time.Time `json:"createdAt"`
 	Slug      string    `json:"slug"`
 }
+
+const UserRoleMessageBoardAdmin = "Message Board Admin"
+const UserRoleSuperAdmin = "Super Message Board Admin"
+const UserRoleUserAdmin = "User Admin"
 
 // UpdateUserRoles
 // - Delete existing user roles
@@ -99,24 +102,21 @@ func GetRolesByUserId(dbPool *pgxpool.Pool, logger *slog.Logger, userId int) ([]
 	return roles, nil
 }
 
-func GetUserRoleByUserName(dbPool *pgxpool.Pool, userId int) ([]Role, error) {
+func GetUserRoleByRoleName(dbPool *pgxpool.Pool, userId int, roleName string) (bool, error) {
 	const query = `
-		SELECT r.*
+		SELECT COUNT(*) AS roleCount
 		FROM roles r
 		LEFT JOIN user_roles ur ON ur.role_id = r.id
 		WHERE ur.user_id = $1
+		AND r.name = $2
 	`
-	rows, err := dbPool.Query(context.Background(), query, userId)
+	var rowCount = 0
+	row := dbPool.QueryRow(context.Background(), query, userId, roleName)
+	err := row.Scan(&rowCount)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Error getting roles by user id: %v", err))
-		return nil, err
+		return false, err
 	}
-	roles, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[Role])
-	if collectRowsErr != nil {
-		logger.Error(fmt.Sprintf("Error collecting roles by user id: %v", collectRowsErr))
-		return nil, collectRowsErr
-	}
-	return roles, nil
+	return rowCount > 0, nil
 }
 
 func IsSignedInAndUserExists(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (int, error) {
