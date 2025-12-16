@@ -491,7 +491,7 @@ func Boards(
 	r.POST("/api/v1/boards", func(c *gin.Context) {
 		// Check role (this also checks if the user is signed in)
 		// NOTE: this already sends a JSON response upon failure
-		isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsMessageBoardAdmin(c, dbPool, logger)
+		isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsSuperMessageBoardAdmin(c, dbPool, logger)
 		if isMessageBoardAdminErr != nil {
 			return
 		}
@@ -556,7 +556,7 @@ func Boards(
 	r.DELETE("/api/v1/boards/:boardSlug", func(c *gin.Context) {
 		// Check role (this also checks if the user is signed in)
 		// NOTE: this already sends a JSON response upon failure
-		isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsMessageBoardAdmin(c, dbPool, logger)
+		isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsSuperMessageBoardAdmin(c, dbPool, logger)
 		if isMessageBoardAdminErr != nil {
 			return
 		}
@@ -608,7 +608,7 @@ func Boards(
 
 		// Check role (this also checks if the user is signed in)
 		// NOTE: this already sends a JSON response upon failure
-		isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsMessageBoardAdmin(c, dbPool, logger)
+		isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsSuperMessageBoardAdmin(c, dbPool, logger)
 		if isMessageBoardAdminErr != nil {
 			return
 		}

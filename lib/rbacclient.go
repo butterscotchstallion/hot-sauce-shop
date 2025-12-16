@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bytedance/gopkg/util/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -98,6 +99,26 @@ func GetRolesByUserId(dbPool *pgxpool.Pool, logger *slog.Logger, userId int) ([]
 	return roles, nil
 }
 
+func GetUserRoleByUserName(dbPool *pgxpool.Pool, userId int) ([]Role, error) {
+	const query = `
+		SELECT r.*
+		FROM roles r
+		LEFT JOIN user_roles ur ON ur.role_id = r.id
+		WHERE ur.user_id = $1
+	`
+	rows, err := dbPool.Query(context.Background(), query, userId)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Error getting roles by user id: %v", err))
+		return nil, err
+	}
+	roles, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[Role])
+	if collectRowsErr != nil {
+		logger.Error(fmt.Sprintf("Error collecting roles by user id: %v", collectRowsErr))
+		return nil, collectRowsErr
+	}
+	return roles, nil
+}
+
 func IsSignedInAndUserExists(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (int, error) {
 	sessionIdCookieValue, err := c.Cookie("sessionId")
 	if err != nil || sessionIdCookieValue == "" {
@@ -149,9 +170,26 @@ func IsUserAdmin(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (boo
 	return UserHasRole(c, dbPool, logger, "User Admin")
 }
 
-// IsMessageBoardAdmin Sends JSON response upon failure
-func IsMessageBoardAdmin(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (bool, error) {
-	return UserHasRole(c, dbPool, logger, "Message Board Admin")
+// IsSuperMessageBoardAdmin Sends JSON response upon failure
+func IsSuperMessageBoardAdmin(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (bool, error) {
+	return UserHasRole(c, dbPool, logger, "Super Message Board Admin")
+}
+
+// IsMessageBoardAdmin - checks admin status of a specific board
+func IsMessageBoardAdmin(dbPool *pgxpool.Pool, boardId int, userId int) (bool, error) {
+	const query = `SELECT COUNT(*) 
+		FROM user_roles_boards bu
+		JOIN roles r ON r.id = bu.role_id
+		WHERE bu.board_id = $1
+		AND bu.user_id = $2
+		AND r.name = 'Message Board Admin'`
+	row := dbPool.QueryRow(context.Background(), query, boardId, userId)
+	var count int
+	err := row.Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 func GetRoleIdsFromRoles(roles []Role) []int {
