@@ -72,13 +72,37 @@ func TestGetUserAdminBoards(t *testing.T) {
 	addBoardResponse := CreateBoardAndVerify(t, e, sessionID)
 
 	// Add board admin
+	var addBoardAdminResponse lib.GenericResponse
+	e.POST(fmt.Sprintf("/api/v1/board-admin/%d", addBoardResponse.Results.BoardId)).
+		WithCookie("sessionId", sessionID).
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&addBoardAdminResponse)
+	if addBoardAdminResponse.Status != "OK" {
+		t.Fatal("Failed to add board admin")
+	}
 
 	// Get board admins and verify
 	var userBoardsResponse lib.UserBoardsResponse
-	e.GET("/api/v1/user/boards").
+	e.GET("/api/v1/board-admin").
 		WithCookie("sessionId", sessionID).
 		Expect().
 		Status(http.StatusOK).
 		JSON().
 		Decode(&userBoardsResponse)
+	if userBoardsResponse.Status != "OK" {
+		t.Fatal("Failed to get board admins")
+	}
+
+	boardFound := false
+	for _, board := range userBoardsResponse.Results.Boards {
+		if board.Id == addBoardResponse.Results.BoardId {
+			boardFound = true
+			break
+		}
+	}
+	if !boardFound {
+		t.Fatal("Board admin not found in board admins list")
+	}
 }

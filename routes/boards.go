@@ -685,6 +685,35 @@ func Boards(
 		})
 	})
 
+	// Returns a list of boards of which the user is a board admin
+	r.GET("/api/v1/board-admin", func(c *gin.Context) {
+		userId, getUserIdErr := GetUserIdFromSessionOrError(c, dbPool, logger)
+		if getUserIdErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": "Error getting user id",
+			})
+			return
+		}
+
+		adminBoards, adminBoardsErr := lib.GetUserAdminBoards(dbPool, userId)
+		if adminBoardsErr != nil {
+			logger.Error(fmt.Sprintf("Error getting board admins: %v", adminBoardsErr))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": "Error getting board admins",
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, lib.BoardAdminsResponse{
+			Status: "OK",
+			Results: lib.BoardAdminsResponseResults{
+				Boards: adminBoards,
+			},
+		})
+	})
+
 	r.POST("/api/v1/board-admin/:boardId", func(c *gin.Context) {
 		isSuperMessageBoardAdmin, isSuperMessageBoardAdminErr := lib.IsSuperMessageBoardAdmin(c, dbPool, logger)
 		if isSuperMessageBoardAdminErr != nil {

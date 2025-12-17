@@ -168,6 +168,14 @@ type PostDetailResponse struct {
 	Results PostDetailResponseResults `json:"results"`
 }
 
+type BoardAdminsResponseResults struct {
+	Boards []Board `json:"boards"`
+}
+type BoardAdminsResponse struct {
+	Status  string                     `json:"status"`
+	Results BoardAdminsResponseResults `json:"results"`
+}
+
 func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
 	// TODO: filter visible boards, or show everything if privileged
 	const query = `
@@ -777,7 +785,7 @@ func GetBoardsByRole(dbPool *pgxpool.Pool, userId int, roleName string) ([]Board
 
 	// not user supplied - no need to bind here
 	if len(roleName) > 0 {
-		whereClause = fmt.Sprintf("WHERE r.name = '%s'", roleName)
+		whereClause = fmt.Sprintf("AND r.name = '%s'", roleName)
 	}
 
 	query := fmt.Sprintf(`SELECT b.id, b.display_name, b.created_at, b.updated_at, b.slug, b.visible, 
@@ -790,6 +798,7 @@ func GetBoardsByRole(dbPool *pgxpool.Pool, userId int, roleName string) ([]Board
 		JOIN user_roles_boards urb ON urb.board_id = b.id
 		JOIN roles r on r.id = urb.role_id
 		JOIN users u on urb.user_id = u.id
+		WHERE urb.user_id = $1
 		%s
 	`, whereClause)
 	rows, err := dbPool.Query(context.Background(), query, userId)
