@@ -803,6 +803,10 @@ func GetBoardsByRole(dbPool *pgxpool.Pool, userId int, roleName string) ([]Board
 	return boards, nil
 }
 
+func GetUserAdminBoards(dbPool *pgxpool.Pool, userId int) ([]Board, error) {
+	return GetBoardsByRole(dbPool, userId, "Message Board Admin")
+}
+
 func AddBoardAdmin(dbPool *pgxpool.Pool, userId int, boardId int) error {
 	const boardAdminRoleId = 7
 	const query = `

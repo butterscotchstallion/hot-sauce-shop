@@ -54,7 +54,6 @@ func CreateBoardAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string) 
 		DisplayName: boardName,
 		Description: "Testing testing 1-2-3",
 	}
-	// checking linter
 	var addBoardResponse lib.AddBoardResponse
 	e.POST("/api/v1/boards").
 		WithCookie("sessionId", sessionID).

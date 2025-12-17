@@ -62,3 +62,23 @@ func TestGetUserListWithUnprivilegedUser(t *testing.T) {
 		t.Fatal("User list response status should have been ERROR")
 	}
 }
+
+func TestGetUserAdminBoards(t *testing.T) {
+	// Get board admin session
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
+
+	// Create board
+	addBoardResponse := CreateBoardAndVerify(t, e, sessionID)
+
+	// Add board admin
+
+	// Get board admins and verify
+	var userBoardsResponse lib.UserBoardsResponse
+	e.GET("/api/v1/user/boards").
+		WithCookie("sessionId", sessionID).
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&userBoardsResponse)
+}

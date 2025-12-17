@@ -685,31 +685,50 @@ func Boards(
 		})
 	})
 
-	// r.GET("/api/v1/posts-flairs/post/:postId", func(c *gin.Context) {
-	// 	postIdParam := c.Param("postId")
-	// 	postId, postIdErr := strconv.Atoi(postIdParam)
-	// 	if postIdErr != nil {
-	// 		logger.Error(fmt.Sprintf("Error parsing post id: %v", postIdErr))
-	// 		c.JSON(http.StatusInternalServerError, lib.GenericResponse{
-	// 			Status:  "ERROR",
-	// 			Message: "Error parsing post id",
-	// 		})
-	// 		return
-	// 	}
-	// 	postFlairs, postFlairsErr := lib.GetPostFlairsForPostId(dbPool, postId)
-	// 	if postFlairsErr != nil {
-	// 		logger.Error(fmt.Sprintf("Error getting post flairs: %v", postFlairsErr))
-	// 		c.JSON(http.StatusInternalServerError, lib.GenericResponse{
-	// 			Status:  "ERROR",
-	// 			Message: "Error getting post flairs",
-	// 		})
-	// 		return
-	// 	}
-	// 	c.JSON(http.StatusOK, lib.PostFlairsResponse{
-	// 		Status: "OK",
-	// 		Results: lib.PostFlairsResponseResults{
-	// 			PostFlairs: postFlairs,
-	// 		},
-	// 	})
-	// })
+	r.POST("/api/v1/board-admin/:boardId", func(c *gin.Context) {
+		isSuperMessageBoardAdmin, isSuperMessageBoardAdminErr := lib.IsSuperMessageBoardAdmin(c, dbPool, logger)
+		if isSuperMessageBoardAdminErr != nil {
+			return
+		}
+		if !isSuperMessageBoardAdmin {
+			logger.Error("Error getting board admins: user is not super message board admin")
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"status":  "ERROR",
+				"message": "Permission denied",
+			})
+			return
+		}
+
+		userId, getUserIdErr := GetUserIdFromSessionOrError(c, dbPool, logger)
+		if getUserIdErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": "Error adding board admin",
+			})
+			return
+		}
+		boardId, boardIdErr := strconv.Atoi(c.Param("boardId"))
+		if boardIdErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "ERROR",
+				"message": "Error adding board admin",
+			})
+			return
+		}
+
+		addMessageBoardAdminErr := lib.AddBoardAdmin(dbPool, userId, boardId)
+		if addMessageBoardAdminErr != nil {
+			logger.Error(fmt.Sprintf("Error adding board admin: %v", addMessageBoardAdminErr))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": "Error adding board admin",
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, lib.GenericResponse{
+			Status:  "OK",
+			Message: "Board admin added",
+		})
+	})
 }
