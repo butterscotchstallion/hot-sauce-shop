@@ -1,4 +1,4 @@
-import {SESSION_URL, USER_BOARDS_URL, USER_PROFILE_URL, USER_URL} from "../Shared/Api.ts";
+import {SESSION_URL, USER_BOARD_ADMIN_LIST, USER_BOARDS_URL, USER_PROFILE_URL, USER_URL} from "../Shared/Api.ts";
 import {Subject} from "rxjs";
 import Cookies from "js-cookie";
 import {IUser} from "./IUser.ts";
@@ -200,4 +200,28 @@ export function userJoinBoard(boardId: number): Subject<boolean> {
         });
     });
     return joinBoard$;
+}
+
+export function getUserAdminBoards(): Subject<IBoard[]> {
+    const boards$ = new Subject<IBoard[]>();
+    fetch(USER_BOARD_ADMIN_LIST, {
+        credentials: 'include'
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                if (resp?.status === "OK") {
+                    boards$.next(resp.results);
+                } else {
+                    boards$.error(resp?.message || "Unknown error");
+                }
+            }).catch((err) => {
+                boards$.error(err);
+            });
+        } else {
+            boards$.error(res.statusText);
+        }
+    }).catch((err) => {
+        boards$.error(err);
+    });
+    return boards$;
 }
