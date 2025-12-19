@@ -9,4 +9,5 @@ export interface IBoard {
     createdByUsername: string;
     createdAtByUserId: number;
     createdByUserSlug: string;
+    visible: boolean;
 }
