@@ -817,7 +817,10 @@ func Boards(
 		} else {
 			isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsSuperMessageBoardAdmin(c, dbPool, logger)
 			if isMessageBoardAdminErr != nil {
-				return
+				c.JSON(http.StatusInternalServerError, lib.GenericResponse{
+					Status:  "ERROR",
+					Message: "Error checking if user is super board admin",
+				})
 			}
 			if isMessageBoardAdmin {
 				canUpdateBoardDetails = true
@@ -841,7 +844,7 @@ func Boards(
 			})
 		} else {
 			logger.Error("Error updating board: user is not message board admin")
-			c.JSON(http.StatusUnauthorized, lib.GenericResponse{
+			c.JSON(http.StatusForbidden, lib.GenericResponse{
 				Status:  "ERROR",
 				Message: "Permission denied",
 			})

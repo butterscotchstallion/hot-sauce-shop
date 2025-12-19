@@ -344,6 +344,42 @@ func TestGetPostFlairsQuery(t *testing.T) {
 	}
 }
 
+type UpdateBoardAndVerifyRequest struct {
+	t                      *testing.T
+	e                      *httpexpect.Expect
+	sessionID              string
+	newBoardResponse       lib.AddBoardResponse
+	expectedResponseStatus string
+	expectedStatus         int
+}
+
+func updateBoardAndVerify(updatedBoardAndVerifyRequest UpdateBoardAndVerifyRequest) {
+	// Update board details
+	var updateBoardDetailsResponse lib.GenericResponse
+	updatedBoardAndVerifyRequest.e.
+		PUT(fmt.Sprintf("/api/v1/boards/%v", updatedBoardAndVerifyRequest.newBoardResponse.Results.Slug)).
+		WithCookie("sessionId", updatedBoardAndVerifyRequest.sessionID).
+		Expect().
+		Status(updatedBoardAndVerifyRequest.expectedStatus).
+		JSON().
+		Decode(&updateBoardDetailsResponse)
+	if updateBoardDetailsResponse.Status != updatedBoardAndVerifyRequest.expectedResponseStatus {
+		updatedBoardAndVerifyRequest.t.Fatal("Failed to update board details")
+	}
+
+	// Verify board details
+	var boardDetailResponse lib.BoardDetailResponse
+	updatedBoardAndVerifyRequest.e.
+		GET(fmt.Sprintf("/api/v1/boards/%v", board)).
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&boardDetailResponse)
+	if boardDetailResponse.Status != "OK" {
+		updatedBoardAndVerifyRequest.t.Fatal("Failed to get board details")
+	}
+}
+
 /**
  * 1. Create a board
  * 2. Update board details
@@ -359,28 +395,41 @@ func TestUpdateBoardDetails(t *testing.T) {
 		t.Fatal("Failed to create board")
 	}
 
-	// Update board details
-	var updateBoardDetailsResponse lib.GenericResponse
-	e.PUT(fmt.Sprintf("/api/v1/boards/%v", newBoardResponse.Results.Slug)).
-		WithCookie("sessionId", sessionID).
-		Expect().
-		Status(http.StatusOK).
-		JSON().
-		Decode(&updateBoardDetailsResponse)
-	if updateBoardDetailsResponse.Status != "OK" {
-		t.Fatal("Failed to update board details")
-	}
-
-	// Verify board details
-	var boardDetailResponse lib.BoardDetailResponse
-	e.GET(fmt.Sprintf("/api/v1/boards/%v", board)).
-		Expect().
-		Status(http.StatusOK).
-		JSON().
-		Decode(&boardDetailResponse)
-	if boardDetailResponse.Status != "OK" {
-		t.Fatal("Failed to get board details")
-	}
+	updateBoardAndVerify(UpdateBoardAndVerifyRequest{
+		t:                      t,
+		e:                      e,
+		sessionID:              sessionID,
+		newBoardResponse:       newBoardResponse,
+		expectedResponseStatus: "OK",
+		expectedStatus:         http.StatusOK,
+	})
 
 	DeleteBoardAndVerify(t, e, sessionID, newBoardResponse.Results.Slug)
+}
+
+func TestUpdateBoardDetailsWithUnprivilegedUser(t *testing.T) {
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	unprivSessionID := signInAndGetSessionId(
+		t, e, config.TestUsers.UnprivilegedUsername, config.TestUsers.UnprivilegedPassword,
+	)
+	adminSessionID := signInAndGetSessionId(
+		t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword,
+	)
+
+	// Create a new board
+	newBoardResponse := CreateBoardAndVerify(t, e, adminSessionID)
+	if newBoardResponse.Status != "OK" {
+		t.Fatal("Failed to create board")
+	}
+
+	updateBoardAndVerify(UpdateBoardAndVerifyRequest{
+		t:                      t,
+		e:                      e,
+		sessionID:              unprivSessionID,
+		newBoardResponse:       newBoardResponse,
+		expectedResponseStatus: "ERROR",
+		expectedStatus:         http.StatusForbidden,
+	})
+
+	DeleteBoardAndVerify(t, e, adminSessionID, newBoardResponse.Results.Slug)
 }
