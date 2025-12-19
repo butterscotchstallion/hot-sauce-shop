@@ -8,6 +8,7 @@ import {InputTextarea} from "primereact/inputtextarea";
 import {IBoardDetails} from "../../components/Boards/IBoardDetails.ts";
 import {Button} from "primereact/button";
 import {Card} from "primereact/card";
+import {FileUpload} from "primereact/fileupload";
 
 export function BoardSettingsPage() {
     const params: Readonly<Params<string>> = useParams();
@@ -36,6 +37,10 @@ export function BoardSettingsPage() {
         if (boardDetails) {
             setBoardDetails({...boardDetails.board, ...{[settingName]: value}});
         }
+    }
+
+    function onUpload() {
+
     }
 
     return (
@@ -101,20 +106,39 @@ export function BoardSettingsPage() {
                     </Card>
                 </div>
 
+                {/* Board details */}
                 <div className="w-1/2">
                     <Card>
-                        <div className="pt-4">
-                            <label
-                                className="block mb-2 cursor-pointer"
-                                htmlFor="boardDescriptionTextbox"><strong>Board Description</strong>
-                                <p className="text-gray-400">
-                                    Appears in board details
-                                </p>
-                            </label>
-                            <InputTextarea value={boardDetails?.board.description}
-                                           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setValue(e.target.value)}
-                                           rows={5} cols={30}/>
-                        </div>
+                        <section className="flex justify-between">
+                            <div className="w-[125px] h-[125px] bg-gray-600 mt-4">
+
+                            </div>
+                            <div className="w-3/4">
+                                <div className="pt-4 mb-4">
+                                    <label
+                                        className="block mb-2 cursor-pointer"
+                                        htmlFor="boardThumbnailFilename"><strong>Board Thumbnail</strong>
+                                    </label>
+                                    <FileUpload
+                                        mode="basic"
+                                        name="boardThumbnailFilename"
+                                        url={``}
+                                        accept="image/*"
+                                        maxFileSize={1000000}
+                                        onUpload={onUpload}
+                                    />
+                                </div>
+                                <div className="">
+                                    <label
+                                        className="block mb-2 cursor-pointer"
+                                        htmlFor="boardDescriptionTextbox"><strong>Board Description</strong>
+                                    </label>
+                                    <InputTextarea value={boardDetails?.board.description}
+                                                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setValue(e.target.value)}
+                                                   rows={5} cols={30}/>
+                                </div>
+                            </div>
+                        </section>
                     </Card>
                 </div>
             </section>
