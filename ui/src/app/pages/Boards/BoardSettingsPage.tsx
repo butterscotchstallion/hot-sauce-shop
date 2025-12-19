@@ -60,7 +60,8 @@ export function BoardSettingsPage() {
                             <div>
                                 <label
                                     className="block mb-2 cursor-pointer"
-                                    htmlFor="isOfficialCheckbox"><strong>Official Board</strong>
+                                    htmlFor="isOfficialCheckbox">
+                                    <i className="pi pi-check"/> <strong>Official Board</strong>
                                     <p className="text-gray-400">
                                         Marks this board as official, adding an icon to the board name. This board also
                                         appears
@@ -79,9 +80,11 @@ export function BoardSettingsPage() {
                             <div>
                                 <label
                                     className="block mb-2 cursor-pointer"
-                                    htmlFor="isPostApprovalRequiredCheckbox"><strong>Post Approval Required</strong>
+                                    htmlFor="isPostApprovalRequiredCheckbox">
+                                    <i className="pi pi-thumbs-up-fill"/> <strong>Post Approval Required</strong>
                                     <p className="text-gray-400">
-                                        Requires all posts to be approved before they are public
+                                        Requires all posts from users to be approved before they are public. Moderators
+                                        and admins can post without approval.
                                     </p>
                                 </label>
                             </div>
@@ -94,7 +97,8 @@ export function BoardSettingsPage() {
                             <div>
                                 <label
                                     className="block mb-2 cursor-pointer"
-                                    htmlFor="isVisibleCheckbox"><strong>Visible</strong>
+                                    htmlFor="isVisibleCheckbox">
+                                    <i className="pi pi-eye"/> <strong>Visible</strong>
                                     <p className="text-gray-400">
                                         Controls whether the board is publicly visible. Moderators and admins can still
                                         see
