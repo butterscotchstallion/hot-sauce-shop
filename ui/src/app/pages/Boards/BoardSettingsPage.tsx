@@ -61,7 +61,7 @@ export function BoardSettingsPage() {
                                 <label
                                     className="block mb-2 cursor-pointer"
                                     htmlFor="isOfficialCheckbox">
-                                    <i className="pi pi-check"/> <strong>Official Board</strong>
+                                    <i className="pi pi-verified"/> <strong>Official Board</strong>
                                     <p className="text-gray-400">
                                         Marks this board as official, adding an icon to the board name. This board also
                                         appears
@@ -121,7 +121,8 @@ export function BoardSettingsPage() {
                                 <div className="pt-4 mb-4">
                                     <label
                                         className="block mb-2 cursor-pointer"
-                                        htmlFor="boardThumbnailFilename"><strong>Board Thumbnail</strong>
+                                        htmlFor="boardThumbnailFilename">
+                                        <i className="pi pi-image"/> <strong>Board Thumbnail</strong>
                                     </label>
                                     <FileUpload
                                         mode="basic"
@@ -135,7 +136,8 @@ export function BoardSettingsPage() {
                                 <div className="">
                                     <label
                                         className="block mb-2 cursor-pointer"
-                                        htmlFor="boardDescriptionTextbox"><strong>Board Description</strong>
+                                        htmlFor="boardDescriptionTextbox">
+                                        <i className="pi pi-file"/> <strong>Board Description</strong>
                                     </label>
                                     <InputTextarea value={boardDetails?.board.description}
                                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setValue(e.target.value)}
