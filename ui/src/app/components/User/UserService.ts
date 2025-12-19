@@ -210,7 +210,7 @@ export function getUserAdminBoards(): Subject<IBoard[]> {
         if (res.ok) {
             res.json().then(resp => {
                 if (resp?.status === "OK") {
-                    boards$.next(resp.results);
+                    boards$.next(resp.results.boards);
                 } else {
                     boards$.error(resp?.message || "Unknown error");
                 }

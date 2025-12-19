@@ -1,21 +1,35 @@
 import {useEffect, useState} from "react";
 import {Button} from "primereact/button";
+import {NavigateFunction, Params, useNavigate, useParams} from "react-router";
+import {isSettingsAreaAvailable} from "./BoardsService.ts";
 
 export function BoardSettingsButton() {
-    const [isSettingsAreaAvailable, setIsSettingsAreaAvailable] = useState<boolean>(false);
+    const params: Readonly<Params<string>> = useParams();
+    const boardSlug: string = params?.boardSlug || '';
+    const navigate: NavigateFunction = useNavigate();
+    const [settingsAreaAvailable, setSettingsAreaAvailable] = useState<boolean>(false);
+
+    const goToSettingsArea = () => {
+        if (settingsAreaAvailable) {
+            navigate(`/boards/${boardSlug}/settings`);
+        }
+    }
 
     useEffect(() => {
-
+        isSettingsAreaAvailable(boardSlug).subscribe({
+            next: (available: boolean) => setSettingsAreaAvailable(available),
+            error: () => setSettingsAreaAvailable(false)
+        })
     }, [])
 
     return (
         <>
-            {isSettingsAreaAvailable && (
+            {settingsAreaAvailable && (
                 <Button
                     label="Settings"
                     icon="pi pi-cog"
                     className="p-button-rounded"
-                    onClick={() => goToSettingsArea(false)}
+                    onClick={() => goToSettingsArea()}
                 />
             )}
         </>

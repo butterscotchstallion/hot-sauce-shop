@@ -15,6 +15,7 @@ import {IBoardPost} from "./IBoardPost.ts";
 import {INewBoardPost} from "./INewBoardPost.ts";
 import {IBoardDetails} from "./IBoardDetails.ts";
 import {IBoardSettings} from "./IBoardSettings.ts";
+import {getUserAdminBoards} from "../User/UserService.ts";
 
 export function getBoards(): Subject<IBoard[]> {
     const boards$ = new Subject<IBoard[]>();
@@ -229,4 +230,24 @@ export function getBoardSettings(boardSlug: string): Subject<IBoardSettings> {
         settings$.error(err);
     });
     return settings$;
+}
+
+export function isSettingsAreaAvailable(boardSlug: string): Subject<boolean> {
+    const settingsAvailable$ = new Subject<boolean>();
+    getUserAdminBoards().subscribe({
+        next: (boards: IBoard[]) => {
+            let isSettingsAreaAvailable = false;
+            for (let j = 0; j < boards.length; j++) {
+                if (boards[j].slug === boardSlug) {
+                    isSettingsAreaAvailable = true;
+                    break;
+                }
+            }
+            return isSettingsAreaAvailable;
+        },
+        error: (err) => {
+            settingsAvailable$.error(err);
+        }
+    });
+    return settingsAvailable$;
 }
