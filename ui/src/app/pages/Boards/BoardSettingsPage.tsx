@@ -61,7 +61,7 @@ export function BoardSettingsPage() {
                                 <label
                                     className="block mb-2 cursor-pointer"
                                     htmlFor="isOfficialCheckbox">
-                                    <i className="pi pi-verified"/> <strong>Official Board</strong>
+                                    <i className="pi pi-verified pr-1"/> <strong>Official Board</strong>
                                     <p className="text-gray-400">
                                         Marks this board as official, adding an icon to the board name. This board also
                                         appears
@@ -81,7 +81,7 @@ export function BoardSettingsPage() {
                                 <label
                                     className="block mb-2 cursor-pointer"
                                     htmlFor="isPostApprovalRequiredCheckbox">
-                                    <i className="pi pi-thumbs-up-fill"/> <strong>Post Approval Required</strong>
+                                    <i className="pi pi-thumbs-up-fill pr-1"/> <strong>Post Approval Required</strong>
                                     <p className="text-gray-400">
                                         Requires all posts from users to be approved before they are public. Moderators
                                         and admins can post without approval.
@@ -98,7 +98,7 @@ export function BoardSettingsPage() {
                                 <label
                                     className="block mb-2 cursor-pointer"
                                     htmlFor="isVisibleCheckbox">
-                                    <i className="pi pi-eye"/> <strong>Visible</strong>
+                                    <i className="pi pi-eye pr-1"/> <strong>Visible</strong>
                                     <p className="text-gray-400">
                                         Controls whether the board is publicly visible. Moderators and admins can still
                                         see
@@ -122,7 +122,7 @@ export function BoardSettingsPage() {
                                     <label
                                         className="block mb-2 cursor-pointer"
                                         htmlFor="boardThumbnailFilename">
-                                        <i className="pi pi-image"/> <strong>Board Thumbnail</strong>
+                                        <i className="pi pi-image pr-1"/> <strong>Board Thumbnail</strong>
                                     </label>
                                     <FileUpload
                                         mode="basic"
@@ -137,7 +137,7 @@ export function BoardSettingsPage() {
                                     <label
                                         className="block mb-2 cursor-pointer"
                                         htmlFor="boardDescriptionTextbox">
-                                        <i className="pi pi-file"/> <strong>Board Description</strong>
+                                        <i className="pi pi-file pr-1"/> <strong>Board Description</strong>
                                     </label>
                                     <InputTextarea value={boardDetails?.board.description}
                                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setValue(e.target.value)}
