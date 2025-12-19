@@ -17,6 +17,24 @@ func BoardSettings(
 	logger *slog.Logger,
 ) {
 	r.GET("/api/v1/board-settings/:boardSlug", func(c *gin.Context) {
+		// Translate boardSlug -> boardId
+		board, boardErr := lib.GetBoardBySlug(dbPool, c.Param("boardSlug"))
+		if boardErr != nil {
+			logger.Error(fmt.Sprintf("Board settings error: %v", boardErr))
+			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: "Error getting board settings",
+			})
+			return
+		}
+
+		// Check access requirements
+		accessPermitted := canAccessBoardSettings(c, board.Id, dbPool, logger)
+		if !accessPermitted {
+			return
+		}
+
+		// Finally, get board settings if permitted
 		boardSettings, boardSettingsErr := lib.GetBoardSettings(dbPool, c.Param("boardSlug"))
 		if boardSettingsErr != nil {
 			logger.Error(fmt.Sprintf("Board settings error: %v", boardSettingsErr))
@@ -48,38 +66,9 @@ func BoardSettings(
 			return
 		}
 
-		userId, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
-		if userSessionErr != nil || userId == 0 {
+		accessPermitted := canAccessBoardSettings(c, board.Id, dbPool, logger)
+		if !accessPermitted {
 			return
-		}
-
-		isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsMessageBoardAdmin(dbPool, board.Id, userId)
-		if isMessageBoardAdminErr != nil {
-			logger.Error(fmt.Sprintf("Error checking if user is board admin: %v", isMessageBoardAdminErr))
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status":  "ERROR",
-				"message": isMessageBoardAdminErr.Error(),
-			})
-			return
-		}
-
-		if !isMessageBoardAdmin {
-			// Check role (this also checks if the user is signed in)
-			// NOTE: this already sends a JSON response upon failure
-			isSuperMessageBoardAdmin, isSuperMessageBoardAdminErr := lib.IsSuperMessageBoardAdmin(c, dbPool, logger)
-			if isSuperMessageBoardAdminErr != nil {
-				return
-			}
-			if !isSuperMessageBoardAdmin {
-				if !isSuperMessageBoardAdmin {
-					logger.Error("Error updating board settings: user is not super message board admin")
-				}
-				c.JSON(http.StatusUnauthorized, gin.H{
-					"status":  "ERROR",
-					"message": "Error updating board settings: permission denied",
-				})
-				return
-			}
 		}
 
 		var settings lib.BoardSettingsUpdateRequest
@@ -108,4 +97,41 @@ func BoardSettings(
 			Message: "Board settings updated",
 		})
 	})
+}
+
+func canAccessBoardSettings(c *gin.Context, boardId int, dbPool *pgxpool.Pool, logger *slog.Logger) bool {
+	userId, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
+	if userSessionErr != nil || userId == 0 {
+		return false
+	}
+
+	isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsMessageBoardAdmin(dbPool, boardId, userId)
+	if isMessageBoardAdminErr != nil {
+		logger.Error(fmt.Sprintf("Error checking if user is board admin: %v", isMessageBoardAdminErr))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "ERROR",
+			"message": isMessageBoardAdminErr.Error(),
+		})
+		return false
+	}
+
+	if !isMessageBoardAdmin {
+		// Check role (this also checks if the user is signed in)
+		// NOTE: this already sends a JSON response upon failure
+		isSuperMessageBoardAdmin, isSuperMessageBoardAdminErr := lib.IsSuperMessageBoardAdmin(c, dbPool, logger)
+		if isSuperMessageBoardAdminErr != nil {
+			return false
+		}
+		if !isSuperMessageBoardAdmin {
+			if !isSuperMessageBoardAdmin {
+				logger.Error("Error updating board settings: user is not super message board admin")
+			}
+			c.JSON(http.StatusForbidden, gin.H{
+				"status":  "ERROR",
+				"message": "Error updating board settings: permission denied",
+			})
+			return false
+		}
+	}
+	return true
 }

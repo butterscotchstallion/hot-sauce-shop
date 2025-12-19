@@ -61,3 +61,32 @@ func TestGetBoardSettings(t *testing.T) {
 
 	DeleteBoardAndVerify(t, e, sessionID, addBoardResponse.Results.Slug)
 }
+
+func TestGetBoardSettingsWithUnprivilegedUser(t *testing.T) {
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	unprivSessionID := signInAndGetSessionId(
+		t, e, config.TestUsers.UnprivilegedUsername, config.TestUsers.UnprivilegedPassword,
+	)
+
+	adminSessionID := signInAndGetSessionId(
+		t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword,
+	)
+
+	// Create a new board
+	addBoardResponse := CreateBoardAndVerify(t, e, adminSessionID)
+	if addBoardResponse.Status != "OK" {
+		t.Fatal("Failed to create board")
+	}
+
+	// Get settings (should be 403)
+	var forbiddenSettingsResponse lib.GenericResponse
+	e.GET(fmt.Sprintf("/api/v1/board-settings/%v", addBoardResponse.Results.Slug)).
+		WithCookie("sessionId", unprivSessionID).
+		Expect().
+		Status(http.StatusForbidden).
+		JSON().
+		Decode(&forbiddenSettingsResponse)
+	if forbiddenSettingsResponse.Status != "ERROR" {
+		t.Fatal("Expected 403 Forbidden response")
+	}
+}
