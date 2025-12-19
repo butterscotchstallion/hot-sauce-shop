@@ -107,8 +107,27 @@ export function BoardSettingsPage() {
                                     <i className="pi pi-eye pr-1"/> <strong>Visible</strong>
                                     <p className="text-gray-400">
                                         Controls whether the board is publicly visible. Moderators and admins can still
-                                        see
-                                        it.
+                                        see it.
+                                    </p>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="mb-4 flex gap-4">
+                            <div className="">
+                                <Checkbox inputId="isPrivateCheckbox"
+                                          onChange={e => updateBoardDetails('private', !!e.checked)}
+                                          checked={!!boardDetails?.board.private}></Checkbox>
+                            </div>
+                            <div>
+                                <label
+                                    className="block mb-2 cursor-pointer"
+                                    htmlFor="isPrivateCheckbox">
+                                    <i className="pi pi-users pr-1"/> <strong>Private</strong>
+                                    <p className="text-gray-400">
+                                        When the board is private, all members that join must be approved. Posts will
+                                        only
+                                        be visible to moderators and admins.
                                     </p>
                                 </label>
                             </div>

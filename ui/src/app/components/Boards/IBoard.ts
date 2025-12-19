@@ -10,4 +10,5 @@ export interface IBoard {
     createdAtByUserId: number;
     createdByUserSlug: string;
     visible: boolean;
+    private: boolean;
 }

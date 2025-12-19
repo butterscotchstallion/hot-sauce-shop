@@ -25,6 +25,7 @@ type Board struct {
 	CreatedByUsername string     `json:"createdByUsername"`
 	CreatedByUserSlug string     `json:"createdByUserSlug"`
 	Description       string     `json:"description"`
+	Private           bool       `json:"private"`
 }
 
 type BoardPost struct {
@@ -101,10 +102,11 @@ type AddBoardResponse struct {
 }
 
 type BoardDetailResponseResults struct {
-	Board              Board    `json:"board"`
-	Moderators         []string `json:"moderators"`
-	NumBoardModerators int      `json:"numBoardModerators"`
-	TotalPosts         int      `json:"totalPosts"`
+	Board              Board  `json:"board"`
+	Moderators         []User `json:"moderators"`
+	NumBoardModerators int    `json:"numBoardModerators"`
+	TotalPosts         int    `json:"totalPosts"`
+	NumBoardMembers    int    `json:"numBoardMembers"`
 }
 type BoardDetailResponse struct {
 	Status  string                     `json:"status"`
@@ -176,12 +178,19 @@ type BoardAdminsResponse struct {
 	Results BoardAdminsResponseResults `json:"results"`
 }
 
+type UpdateBoardRequest struct {
+	Visible           bool   `json:"visible"`
+	Private           bool   `json:"private"`
+	Description       string `json:"description"`
+	ThumbnailFilename string `json:"thumbnailFilename"`
+}
+
 func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
 	// TODO: filter visible boards, or show everything if privileged
 	const query = `
 		SELECT b.id, b.display_name, b.created_at, b.updated_at, b.slug, b.visible, 
 		CASE WHEN b.thumbnail_filename IS NULL THEN '' ELSE b.thumbnail_filename END AS thumbnail_filename,
-		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description,
+		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description, b.private,
 		b.created_by_user_id,
 		u.username AS created_by_username,
 		u.slug AS created_by_user_slug
@@ -790,7 +799,7 @@ func GetBoardsByRole(dbPool *pgxpool.Pool, userId int, roleName string) ([]Board
 
 	query := fmt.Sprintf(`SELECT b.id, b.display_name, b.created_at, b.updated_at, b.slug, b.visible, 
 		CASE WHEN b.thumbnail_filename IS NULL THEN '' ELSE b.thumbnail_filename END AS thumbnail_filename,
-		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description,
+		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description, b.private,
 		b.created_by_user_id,
 		u.username AS created_by_username,
 		u.slug AS created_by_user_slug
@@ -824,6 +833,25 @@ func AddBoardAdmin(dbPool *pgxpool.Pool, userId int, boardId int) error {
 		ON CONFLICT DO NOTHING
 	`
 	_, err := dbPool.Exec(context.Background(), query, userId, boardId, boardAdminRoleId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func UpdateBoard(dbPool *pgxpool.Pool, boardId int, updateBoardRequest UpdateBoardRequest) error {
+	const query = `
+		UPDATE boards 
+		SET description = $1, visible = $2, private = $3, updated_at = NOW()
+		WHERE id = $4
+	`
+	_, err := dbPool.Exec(
+		context.Background(),
+		query,
+		updateBoardRequest.Description,
+		updateBoardRequest.Visible,
+		updateBoardRequest.Private,
+		boardId)
 	if err != nil {
 		return err
 	}

@@ -88,9 +88,9 @@ func Boards(
 			logger.Error(fmt.Sprintf("Error fetching total posts: %v", totalPostsErr.Error()))
 		}
 
-		c.JSON(http.StatusOK, lib.BoardPostResponse{
+		c.JSON(http.StatusOK, lib.BoardDetailResponse{
 			Status: "OK",
-			Results: lib.BoardPostResponseResults{
+			Results: lib.BoardDetailResponseResults{
 				Board:           board,
 				Moderators:      mods,
 				NumBoardMembers: numBoardMembers,
@@ -759,5 +759,92 @@ func Boards(
 			Status:  "OK",
 			Message: "Board admin added",
 		})
+	})
+
+	/**
+	 * 1. Bind update request
+	 * 2. Get board details by slug
+	 * 3. Check if the user is a board admin or super board admin
+	 * 4. Update and send a response
+	 */
+	r.PUT("/api/v1/boards/:boardSlug", func(c *gin.Context) {
+		var updateBoardRequest lib.UpdateBoardRequest
+		if err := c.ShouldBind(&updateBoardRequest); err != nil {
+			logger.Error(fmt.Sprintf("AddPost: error binding update request: %v", err.Error()))
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "ERROR",
+				"message": err.Error(),
+			})
+			return
+		}
+
+		board, boardErr := lib.GetBoardBySlug(dbPool, c.Param("boardSlug"))
+		if boardErr != nil {
+			logger.Error(fmt.Sprintf("Error getting board: %v", boardErr))
+			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: "Error getting board",
+			})
+			return
+		}
+
+		userId, getUserIdErr := GetUserIdFromSessionOrError(c, dbPool, logger)
+		if getUserIdErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": "Error getting user id",
+			})
+			return
+		}
+
+		canUpdateBoardDetails := false
+
+		// Check if the user is board admin
+		isBoardAdmin, isBoardAdminErr := lib.IsMessageBoardAdmin(dbPool, board.Id, userId)
+		if isBoardAdminErr != nil {
+			logger.Error(fmt.Sprintf("Error checking if user is board admin: %v", isBoardAdminErr))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": "Error checking if user is board admin",
+			})
+			return
+		}
+
+		// If the user is a board admin, proceed with updating the board details
+		// If the user is not a board admin, check if they are a super board admin
+		if isBoardAdmin {
+			canUpdateBoardDetails = true
+		} else {
+			isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsSuperMessageBoardAdmin(c, dbPool, logger)
+			if isMessageBoardAdminErr != nil {
+				return
+			}
+			if isMessageBoardAdmin {
+				canUpdateBoardDetails = true
+			}
+		}
+
+		if canUpdateBoardDetails {
+			updateBoardErr := lib.UpdateBoard(dbPool, board.Id, updateBoardRequest)
+			if updateBoardErr != nil {
+				logger.Error(fmt.Sprintf("Error updating board: %v", updateBoardErr))
+				c.JSON(http.StatusInternalServerError, lib.GenericResponse{
+					Status:  "ERROR",
+					Message: "Error updating board",
+				})
+				return
+			}
+
+			c.JSON(http.StatusOK, lib.GenericResponse{
+				Status:  "OK",
+				Message: "Board updated",
+			})
+		} else {
+			logger.Error("Error updating board: user is not message board admin")
+			c.JSON(http.StatusUnauthorized, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: "Permission denied",
+			})
+		}
 	})
 }

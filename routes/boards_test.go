@@ -343,3 +343,44 @@ func TestGetPostFlairsQuery(t *testing.T) {
 		t.Fatalf("Expected query %v, got %v", expectedQuery, query)
 	}
 }
+
+/**
+ * 1. Create a board
+ * 2. Update board details
+ * 3. Verify board details
+ */
+func TestUpdateBoardDetails(t *testing.T) {
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
+
+	// Create a new board
+	newBoardResponse := CreateBoardAndVerify(t, e, sessionID)
+	if newBoardResponse.Status != "OK" {
+		t.Fatal("Failed to create board")
+	}
+
+	// Update board details
+	var updateBoardDetailsResponse lib.GenericResponse
+	e.PUT(fmt.Sprintf("/api/v1/boards/%v", newBoardResponse.Results.Slug)).
+		WithCookie("sessionId", sessionID).
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&updateBoardDetailsResponse)
+	if updateBoardDetailsResponse.Status != "OK" {
+		t.Fatal("Failed to update board details")
+	}
+
+	// Verify board details
+	var boardDetailResponse lib.BoardDetailResponse
+	e.GET(fmt.Sprintf("/api/v1/boards/%v", board)).
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&boardDetailResponse)
+	if boardDetailResponse.Status != "OK" {
+		t.Fatal("Failed to get board details")
+	}
+
+	DeleteBoardAndVerify(t, e, sessionID, newBoardResponse.Results.Slug)
+}
