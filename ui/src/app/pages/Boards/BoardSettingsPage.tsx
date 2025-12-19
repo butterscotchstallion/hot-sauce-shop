@@ -54,9 +54,11 @@ export function BoardSettingsPage() {
                 <div className="w-1/2">
                     <Card>
                         <div className="mb-4 pt-4 flex gap-4">
-                            <Checkbox inputId="isOfficialCheckbox"
-                                      onChange={e => updateSettings('isOfficial', !!e.checked)}
-                                      checked={!!boardSettings?.isOfficial}></Checkbox>
+                            <div className="">
+                                <Checkbox inputId="isOfficialCheckbox"
+                                          onChange={e => updateSettings('isOfficial', !!e.checked)}
+                                          checked={!!boardSettings?.isOfficial}></Checkbox>
+                            </div>
                             <div>
                                 <label
                                     className="block mb-2 cursor-pointer"
@@ -74,9 +76,11 @@ export function BoardSettingsPage() {
                         </div>
 
                         <div className="mb-4 flex gap-4">
-                            <Checkbox inputId="isPostApprovalRequiredCheckbox"
-                                      onChange={e => updateSettings('isPostApprovalRequired', !!e.checked)}
-                                      checked={!!boardSettings?.isPostApprovalRequired}></Checkbox>
+                            <div className="">
+                                <Checkbox inputId="isPostApprovalRequiredCheckbox"
+                                          onChange={e => updateSettings('isPostApprovalRequired', !!e.checked)}
+                                          checked={!!boardSettings?.isPostApprovalRequired}></Checkbox>
+                            </div>
                             <div>
                                 <label
                                     className="block mb-2 cursor-pointer"
@@ -91,9 +95,11 @@ export function BoardSettingsPage() {
                         </div>
 
                         <div className="mb-4 flex gap-4">
-                            <Checkbox inputId="isVisibleCheckbox"
-                                      onChange={e => updateBoardDetails('visible', !!e.checked)}
-                                      checked={!!boardDetails?.board.visible}></Checkbox>
+                            <div className="">
+                                <Checkbox inputId="isVisibleCheckbox"
+                                          onChange={e => updateBoardDetails('visible', !!e.checked)}
+                                          checked={!!boardDetails?.board.visible}></Checkbox>
+                            </div>
                             <div>
                                 <label
                                     className="block mb-2 cursor-pointer"
