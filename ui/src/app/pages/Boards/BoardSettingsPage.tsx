@@ -110,8 +110,8 @@ export function BoardSettingsPage() {
                 <div className="w-1/2">
                     <Card>
                         <section className="flex justify-between">
-                            <div className="w-[125px] h-[125px] bg-gray-600 mt-4">
-
+                            <div className="w-[128px] h-[128px] mt-4">
+                                <img src="/images/hot-pepper.png" width={128} height={128} alt="Board Thumbnail"/>
                             </div>
                             <div className="w-3/4">
                                 <div className="pt-4 mb-4">
