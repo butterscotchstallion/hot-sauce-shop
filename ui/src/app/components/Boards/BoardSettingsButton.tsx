@@ -28,7 +28,6 @@ export function BoardSettingsButton() {
                 <Button
                     label="Settings"
                     icon="pi pi-cog"
-                    className="p-button-rounded"
                     onClick={() => goToSettingsArea()}
                 />
             )}

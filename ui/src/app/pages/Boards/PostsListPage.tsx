@@ -213,9 +213,9 @@ export default function PostsListPage() {
     return (
         <>
             {user && boardSlug && (
-                <section className="flex justify-between">
+                <section className="flex justify-between gap-2">
                     {board && <h1 className="text-3xl font-bold mb-4">{board.displayName}</h1>}
-                    <div className="justify-end">
+                    <div className="justify-end flex gap-2 items-center">
                         <BoardSettingsButton/>
                         {userIsBoardMember ? (
                             <Button onClick={() => navigateToNewPostPage()}>

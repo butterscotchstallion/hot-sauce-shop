@@ -243,7 +243,7 @@ export function isSettingsAreaAvailable(boardSlug: string): Subject<boolean> {
                     break;
                 }
             }
-            return isSettingsAreaAvailable;
+            settingsAvailable$.next(isSettingsAreaAvailable);
         },
         error: (err) => {
             settingsAvailable$.error(err);
