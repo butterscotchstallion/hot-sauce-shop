@@ -44,6 +44,8 @@
 ![admin edit item](screenshots/admin-edit-item.png)
 ## Message Board
 ![message board post](screenshots/message-board-post.png)
+## Message Board Settings
+![message board settings](screenshots/board-settings.png)
 ## New Post
 ![message board new post](screenshots/message-board-new-post.png)
 ## Error page
