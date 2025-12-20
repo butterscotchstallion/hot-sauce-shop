@@ -112,6 +112,7 @@ export default function PostsListPage() {
             postSlug,
             boardSlug,
             offset,
+            perPage,
         });
         postsResponse$.subscribe({
             next: (postsResponse: IBoardPostsResponse) => {
