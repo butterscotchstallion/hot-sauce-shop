@@ -1,5 +1,4 @@
 import {useEffect, useState} from "react";
-import {Button} from "primereact/button";
 import {NavigateFunction, Params, useNavigate, useParams} from "react-router";
 import {isSettingsAreaAvailable} from "./BoardsService.ts";
 
@@ -25,9 +24,13 @@ export function BoardSettingsButton() {
     return (
         <>
             {settingsAreaAvailable && (
-                <Button
-                    label="Settings"
-                    icon="pi pi-cog"
+                // <Button
+                //     label="Board Settings"
+                //     icon="pi pi-cog"
+                //     onClick={() => goToSettingsArea()}
+                // />
+                <i
+                    className="pi pi-cog cursor-pointer hover:text-yellow-200"
                     onClick={() => goToSettingsArea()}
                 />
             )}

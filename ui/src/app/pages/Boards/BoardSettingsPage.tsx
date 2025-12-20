@@ -3,7 +3,7 @@ import * as React from "react";
 import {useEffect, useState} from "react";
 import {IBoardSettings} from "../../components/Boards/IBoardSettings.ts";
 import {getBoardByBoardSlug, getBoardSettings} from "../../components/Boards/BoardsService.ts";
-import {Params, useParams} from "react-router";
+import {Params, useNavigate, useParams} from "react-router";
 import {InputTextarea} from "primereact/inputtextarea";
 import {IBoardDetails} from "../../components/Boards/IBoardDetails.ts";
 import {Button} from "primereact/button";
@@ -17,6 +17,7 @@ export function BoardSettingsPage() {
     const [boardSettings, setBoardSettings] = useState<IBoardSettings>();
     const [boardDetails, setBoardDetails] = useState<IBoardDetails>();
     const [somethingWentWrong, setSomethingWentWrong] = useState<boolean>(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         getBoardSettings(boardSlug).subscribe({
@@ -51,15 +52,22 @@ export function BoardSettingsPage() {
 
     }
 
+    const goToBoardPage = () => {
+        navigate(`/boards/${boardSlug}`);
+    }
+
     return (
         <>
             {somethingWentWrong ? (
                 <DumpsterFireError/>
             ) : (
                 <>
-                    <div className="flex justify-between mb-4">
+                    <div className="flex justify-between mb-4 gap-4">
                         <h1 className="text-3xl font-bold">Board Settings</h1>
-                        <Button label="Save Settings" icon="pi pi-check"/>
+                        <div className="w-3/4 gap-4 flex justify-end">
+                            <Button label="View Board" icon="pi pi-eye" onClick={() => goToBoardPage()}/>
+                            <Button label="Save Settings" icon="pi pi-check"/>
+                        </div>
                     </div>
 
                     <section className="flex justify-between gap-4">

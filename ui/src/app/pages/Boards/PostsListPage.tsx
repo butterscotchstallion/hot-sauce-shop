@@ -16,7 +16,6 @@ import {BoardDetailsSidebar} from "../../components/Boards/BoardDetailsSidebar.t
 import {BoardListSidebar} from "../../components/Boards/BoardListSidebar.tsx";
 import {setPageTitle} from "../../components/Shared/PageTitle.ts";
 import {IBoardDetails} from "../../components/Boards/IBoardDetails.ts";
-import {BoardSettingsButton} from "../../components/Boards/BoardSettingsButton.tsx";
 import {Paginator} from "primereact/paginator";
 import {IBoardPostsResponse} from "../../components/Boards/IBoardPostsResponse.ts";
 
@@ -228,7 +227,6 @@ export default function PostsListPage() {
                 <section className="flex justify-between gap-2">
                     {board && <h1 className="text-3xl font-bold mb-4">{board.displayName}</h1>}
                     <div className="justify-end flex gap-2 items-center">
-                        <BoardSettingsButton/>
                         {userIsBoardMember ? (
                             <Button onClick={() => navigateToNewPostPage()}>
                                 <i className="pi pi-envelope mr-2"></i> Create Post
