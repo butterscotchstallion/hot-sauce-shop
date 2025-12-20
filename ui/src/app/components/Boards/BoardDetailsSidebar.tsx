@@ -22,7 +22,7 @@ export function BoardDetailsSidebar({boardDetails}: IBoardSidebarProps) {
     const header = () => (
         <>
             {boardDetails && (
-                <section className="flex justify-between items-center gap-2 p-4">
+                <section className="flex justify-between items-center gap-2 p-4 pb-0">
                     <h2 className="text-xl">{boardDetails.board.displayName}</h2>
                     <BoardSettingsButton/>
                 </section>

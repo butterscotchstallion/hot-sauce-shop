@@ -351,14 +351,16 @@ func Boards(
 		}
 
 		// Add flair for the post
-		addPostFlairErr := lib.AddPostFlair(dbPool, newPostId, newPost.PostFlairIds)
-		if addPostFlairErr != nil {
-			logger.Error(fmt.Sprintf("Error adding post flair: %v", addPostFlairErr))
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status":  "ERROR",
-				"message": addPostFlairErr.Error(),
-			})
-			return
+		if len(newPost.PostFlairIds) > 0 {
+			addPostFlairErr := lib.AddPostFlair(dbPool, newPostId, newPost.PostFlairIds)
+			if addPostFlairErr != nil {
+				logger.Error(fmt.Sprintf("Error adding post flair: %v", addPostFlairErr))
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"status":  "ERROR",
+					"message": addPostFlairErr.Error(),
+				})
+				return
+			}
 		}
 
 		logger.Info(fmt.Sprintf("Post flair added: %v", newPost.PostFlairIds))

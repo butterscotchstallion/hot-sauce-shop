@@ -787,6 +787,7 @@ func AddPostFlair(dbPool *pgxpool.Pool, postId int, postFlairIds []int) error {
 		return postFlairsDeletedErr
 	}
 	query := GetPostFlairQuery(postId, postFlairIds)
+	logger.Info(fmt.Sprintf("PostFlairsQuery: %v", query))
 	_, insertErr := dbPool.Query(context.Background(), query)
 	if insertErr != nil {
 		logger.Error("AddPostFlair: error inserting post flairs")
