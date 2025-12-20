@@ -72,7 +72,12 @@ export function getPosts({
         }
     }
 
-    url += `?offset=${offset}&perPage=${perPage}`;
+    if (url.indexOf("?") !== -1) {
+        url += "&";
+    } else {
+        url += "?";
+    }
+    url += `offset=${offset}&perPage=${perPage}`;
 
     fetch(url, {
         credentials: 'include'
