@@ -57,7 +57,7 @@ export function ChatArea() {
     return (
         <>
             <section
-                className={`fixed bottom-0 right-0 min-h-[350px] flex flex-wrap align-bottom m-2 flex gap-2 pl-4 pr-4 justify-end ${chatAreaStyles}`}>
+                className={`pointer-events-auto fixed bottom-0 right-0 min-h-[350px] flex flex-wrap align-bottom m-2 flex gap-2 pl-4 pr-4 justify-end ${chatAreaStyles}`}>
                 {conversations.map((conversation: IChatMessage, index: number) => (
                     <ChatWindow
                         key={index}

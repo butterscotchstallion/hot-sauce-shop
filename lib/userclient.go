@@ -115,7 +115,8 @@ func GetUsers(dbPool *pgxpool.Pool, logger *slog.Logger) ([]User, error) {
 	return users, nil
 }
 
-func VerifyUsernameAndPasswordAndReturnUser(dbPool *pgxpool.Pool, logger *slog.Logger, username string, password string) (User, error) {
+func VerifyUsernameAndPasswordAndReturnUser(
+	dbPool *pgxpool.Pool, logger *slog.Logger, username string, password string) (User, error) {
 	const query = `SELECT * FROM users WHERE username = $1`
 	row, err := dbPool.Query(context.Background(), query, username)
 	if err != nil {
@@ -243,7 +244,7 @@ func GetJoinedBoardsByUserId(dbPool *pgxpool.Pool, userId int) ([]Board, error) 
 	const query = `
 		SELECT b.id, b.display_name, b.created_at, b.updated_at, b.slug, b.visible, 
 		CASE WHEN b.thumbnail_filename IS NULL THEN '' ELSE b.thumbnail_filename END AS thumbnail_filename,
-		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description,
+		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description, b.private,
 		b.created_by_user_id,
 		u.username AS created_by_username,
 		u.slug AS created_by_user_slug
