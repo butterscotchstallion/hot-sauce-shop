@@ -1,4 +1,4 @@
-import {RefObject, useEffect, useRef, useState} from "react";
+import {RefObject, SetStateAction, useEffect, useRef, useState} from "react";
 import {IBoardPost} from "../../components/Boards/IBoardPost.ts";
 import {getBoardByBoardSlug, getBoards, getPosts, getTotalPostReplyMap} from "../../components/Boards/BoardsService.ts";
 import PostList from "../../components/Boards/PostList.tsx";
@@ -17,6 +17,7 @@ import {BoardListSidebar} from "../../components/Boards/BoardListSidebar.tsx";
 import {setPageTitle} from "../../components/Shared/PageTitle.ts";
 import {IBoardDetails} from "../../components/Boards/IBoardDetails.ts";
 import {BoardSettingsButton} from "../../components/Boards/BoardSettingsButton.tsx";
+import {Paginator} from "primereact/paginator";
 
 /**
  * Handles multiple scenarios where post(s) are displayed:
@@ -25,6 +26,8 @@ import {BoardSettingsButton} from "../../components/Boards/BoardSettingsButton.t
  * - A single post
  */
 export default function PostsListPage() {
+    const [offset, setOffset] = useState<number>(0);
+    const [perPage, setPerPage] = useState<number>(10);
     const toast: RefObject<Toast | null> = useRef(null);
     const params: Readonly<Params<string>> = useParams();
     const boardSlug: string = params?.boardSlug || '';
@@ -53,6 +56,10 @@ export default function PostsListPage() {
     const [totalPostReplyMap, setTotalPostReplyMap] = useState<Map<number, number>>(new Map());
     const [isCurrentUserBoardMod, setIsCurrentUserBoardMod] = useState<boolean>(false);
     const [boardDetails, setBoardDetails] = useState<IBoardDetails | undefined>();
+    const onPageChange = (event: { first: SetStateAction<number>; rows: SetStateAction<number>; }) => {
+        setOffset(event.first);
+        setPerPage(event.rows);
+    };
 
     const joinBoard = () => {
         if (board) {
@@ -234,12 +241,23 @@ export default function PostsListPage() {
             <section className="flex justify-space-between gap-2 w-full">
                 <section className="w-3/4">
                     {posts.length > 0 ? (
-                        <PostList
-                            posts={posts}
-                            voteMap={userVoteMap}
-                            replyMap={totalPostReplyMap}
-                            isCurrentUserBoardMod={isCurrentUserBoardMod}
-                        />
+                        <>
+                            <PostList
+                                posts={posts}
+                                voteMap={userVoteMap}
+                                replyMap={totalPostReplyMap}
+                                isCurrentUserBoardMod={isCurrentUserBoardMod}
+                            />
+                            {posts.length >= perPage ? (
+                                <div className="card mt-4 mb-4">
+                                    <Paginator first={offset}
+                                               rows={perPage}
+                                               totalRecords={totalProducts}
+                                               rowsPerPageOptions={[10, 20, 30]}
+                                               onPageChange={onPageChange}/>
+                                </div>
+                            ) : ""}
+                        </>
                     ) : "No posts available."}
                 </section>
                 <section className="w-1/4 mt-4">

@@ -185,6 +185,16 @@ type UpdateBoardRequest struct {
 	ThumbnailFilename string `json:"thumbnailFilename"`
 }
 
+type PostListResponseResults struct {
+	Posts      []BoardPost `json:"posts"`
+	TotalPosts int         `json:"totalPosts"`
+}
+
+type PostListResponse struct {
+	Status  string                  `json:"status"`
+	Results PostListResponseResults `json:"results"`
+}
+
 func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
 	// TODO: filter visible boards, or show everything if privileged
 	const query = `
@@ -211,8 +221,32 @@ func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
 	return boards, nil
 }
 
-func getPostsQuery(whereClause string) string {
-	return `
+func GetTotalPosts(dbPool *pgxpool.Pool) (int, error) {
+	const query = `SELECT COUNT(*) AS totalPosts FROM board_posts`
+	row, err := dbPool.Query(context.Background(), query)
+	if err != nil {
+		return 0, err
+	}
+	type totalPostsResult struct {
+		TotalPosts int
+	}
+	result, collectRowsErr := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[totalPostsResult])
+	if collectRowsErr != nil {
+		return 0, collectRowsErr
+	}
+	return result.TotalPosts, nil
+}
+
+func getPostsQuery(whereClause string, paginationData PaginationData) string {
+	limitClause := ""
+	offsetClause := ""
+	if paginationData.PerPage > 0 {
+		limitClause = fmt.Sprintf("LIMIT %d", paginationData.PerPage)
+	}
+	if paginationData.Offset > 0 {
+		offsetClause = fmt.Sprintf("OFFSET %d", paginationData.Offset)
+	}
+	return fmt.Sprintf(`
 		SELECT 
 		    bp.*,
 			u.username AS created_by_username,
@@ -241,9 +275,11 @@ func getPostsQuery(whereClause string) string {
 		JOIN users u on u.id = bp.created_by_user_id
 		JOIN boards b ON b.id = bp.board_id
 		WHERE 1=1
-		` + whereClause + `
+		`+whereClause+`
 		ORDER BY bp.is_pinned DESC, bp.created_at DESC
-	`
+		%s
+		%s
+	`, limitClause, offsetClause)
 }
 
 func GetTotalPostReplyCountByBoardSlug(dbPool *pgxpool.Pool, boardSlug string) (map[int]int, error) {
@@ -290,7 +326,9 @@ func GetTotalPostReplyCountByBoardSlug(dbPool *pgxpool.Pool, boardSlug string) (
 // GetPosts
 // Gets posts, optionally filtered by boardSlug/postSlug
 func GetPosts(
-	dbPool *pgxpool.Pool, boardSlug string, postSlug string, parentId int, logger *slog.Logger) ([]BoardPost, error,
+	dbPool *pgxpool.Pool, boardSlug string, postSlug string, parentId int,
+	logger *slog.Logger, paginationData PaginationData,
+) ([]BoardPost, error,
 ) {
 	whereClause := ""
 	if len(boardSlug) > 0 {
@@ -305,7 +343,7 @@ func GetPosts(
 	} else {
 		whereClause += " AND bp.parent_id = 0"
 	}
-	query := getPostsQuery(whereClause)
+	query := getPostsQuery(whereClause, paginationData)
 	var rows pgx.Rows
 	var err error
 	if len(boardSlug) > 0 && len(postSlug) == 0 {

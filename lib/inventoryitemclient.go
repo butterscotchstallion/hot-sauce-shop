@@ -120,9 +120,13 @@ func GetInventoryItemsOrderedBySortKey(
 		       i.created_at,
 		       i.updated_at,
 		       i.spice_rating,
-		       (SELECT COUNT(*) FROM inventory_item_reviews WHERE inventory_item_id = i.id) AS review_count,
-		       COALESCE((SELECT AVG(rating) FROM inventory_item_reviews WHERE inventory_item_id = i.id), 0) AS average_rating,
-		       COALESCE((SELECT AVG(inventory_item_reviews.spice_rating) FROM inventory_item_reviews WHERE inventory_item_id = i.id), 0) AS average_spice_rating
+		       (SELECT COUNT(*) 
+		        FROM inventory_item_reviews WHERE inventory_item_id = i.id) AS review_count,
+		       COALESCE((SELECT AVG(rating) 
+		                 FROM inventory_item_reviews WHERE inventory_item_id = i.id), 0) AS average_rating,
+		       COALESCE(
+		       	(SELECT AVG(inventory_item_reviews.spice_rating) 
+		       	 FROM inventory_item_reviews WHERE inventory_item_id = i.id), 0) AS average_spice_rating
 		FROM inventories i
 	` + tagIdsJoinClause + `
 		WHERE 1=1

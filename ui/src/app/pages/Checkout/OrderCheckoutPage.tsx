@@ -1,25 +1,25 @@
-import {CartItemsDataTable} from "../components/Cart/CartItemsDataTable.tsx";
+import {CartItemsDataTable} from "../../components/Cart/CartItemsDataTable.tsx";
 import {DataTable, DataTableSelectionSingleChangeEvent} from "primereact/datatable";
 import {Column} from "primereact/column";
 import * as React from "react";
 import {ReactElement, Ref, RefObject, useEffect, useRef, useState} from "react";
 import {Button} from "primereact/button";
 import {useDispatch, useSelector} from "react-redux";
-import {RootState} from "../store.ts";
+import {RootState} from "../../store.ts";
 import {Tooltip} from 'primereact/tooltip';
 import {Card} from "primereact/card";
 import {Link, NavigateFunction, useNavigate} from "react-router";
 import {InputText} from "primereact/inputtext";
-import {getCouponCodeByCode} from "../components/Orders/CouponCodeService.ts";
+import {getCouponCodeByCode} from "../../components/Orders/CouponCodeService.ts";
 import {Toast} from "primereact/toast";
 import {Subscription} from "rxjs";
-import {ICouponCode} from "../components/Orders/ICouponCode.ts";
+import {ICouponCode} from "../../components/Orders/ICouponCode.ts";
 import {Messages} from "primereact/messages";
-import {IShippingOption} from "../components/Orders/IShippingOption.ts";
-import {addDeliveryDateToShippingOptions, getShippingOptions} from "../components/Orders/shippingOptionsService.ts";
-import {CouponTypeName} from "../components/Orders/CouponTypeName.ts";
-import {setCartSubtotal} from "../components/Cart/Cart.slice.ts";
-import {recalculateSubtotal} from "../components/Cart/CartService.ts";
+import {IShippingOption} from "../../components/Orders/IShippingOption.ts";
+import {addDeliveryDateToShippingOptions, getShippingOptions} from "../../components/Orders/shippingOptionsService.ts";
+import {CouponTypeName} from "../../components/Orders/CouponTypeName.ts";
+import {setCartSubtotal} from "../../components/Cart/Cart.slice.ts";
+import {recalculateSubtotal} from "../../components/Cart/CartService.ts";
 
 interface IOrderTotalItems {
     name: string;

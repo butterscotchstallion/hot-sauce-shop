@@ -3,7 +3,7 @@ import {Subject} from "rxjs";
 import {IProductsResults} from "./IProductsResults.ts";
 import {IProduct} from "./IProduct.ts";
 import {IAutocompleteSuggestion} from "./IAutocompleteSuggestion.ts";
-import {IDisplayTag} from "../../pages/ProductListPage.tsx";
+import {IDisplayTag} from "../../pages/Products/ProductListPage.tsx";
 import {IProductDetail} from "./IProductDetail.ts";
 import {IAddProductReviewRequest} from "./IAddProductReviewRequest.ts";
 import {IProductReviewResponse} from "./IProductReviewResponse.ts";

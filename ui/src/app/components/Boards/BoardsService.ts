@@ -39,9 +39,17 @@ interface IGetPostParameters {
     parentId?: number;
     boardSlug?: string;
     postSlug?: string;
+    offset?: number;
+    perPage?: number;
 }
 
-export function getPosts({parentId, boardSlug, postSlug}: IGetPostParameters): Subject<IBoardPost[]> {
+export function getPosts({
+                             parentId,
+                             boardSlug,
+                             postSlug,
+                             offset = 0,
+                             perPage = 10
+                         }: IGetPostParameters): Subject<IBoardPost[]> {
     const posts$ = new Subject<IBoardPost[]>();
     let url: string = POSTS_URL;
 
@@ -62,6 +70,8 @@ export function getPosts({parentId, boardSlug, postSlug}: IGetPostParameters): S
             url += `?boardSlug=${boardSlug}&postSlug=${postSlug}`;
         }
     }
+
+    url += `?offset=${offset}&perPage=${perPage}`;
 
     fetch(url, {
         credentials: 'include'

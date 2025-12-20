@@ -1,16 +1,16 @@
 import {ReactElement, RefObject, SetStateAction, Suspense, useEffect, useRef, useState} from "react";
 import {Card} from "primereact/card";
-import {IProduct} from "../components/Products/IProduct.ts";
+import {IProduct} from "../../components/Products/IProduct.ts";
 import {Subscription} from "rxjs";
-import ProductList from "../components/Products/ProductList.tsx";
-import Throbber from "../components/Shared/Throbber.tsx";
-import {ITag} from "../components/Tag/ITag.ts";
-import {IProductsResults} from "../components/Products/IProductsResults.ts";
+import ProductList from "../../components/Products/ProductList.tsx";
+import Throbber from "../../components/Shared/Throbber.tsx";
+import {ITag} from "../../components/Tag/ITag.ts";
+import {IProductsResults} from "../../components/Products/IProductsResults.ts";
 import {Paginator} from "primereact/paginator";
-import {getProducts} from "../components/Products/ProductService.ts";
+import {getProducts} from "../../components/Products/ProductService.ts";
 import {Toast} from "primereact/toast";
 import {Dropdown} from "primereact/dropdown";
-import ProductFilterList from "../components/Products/ProductFilterList.tsx";
+import ProductFilterList from "../../components/Products/ProductFilterList.tsx";
 
 // Tags with the checked attribute layered on top for
 // the purposes of this component

@@ -188,6 +188,7 @@ func Boards(
 
 	// All posts
 	r.GET("/api/v1/posts", cache.CachePage(store, time.Minute*1, func(c *gin.Context) {
+		paginationData := getValidPaginationData(c)
 		var posts []lib.BoardPost
 		var getPostsErr error
 
@@ -214,7 +215,7 @@ func Boards(
 			),
 		)
 
-		posts, getPostsErr = lib.GetPosts(dbPool, boardSlug, postSlug, parentId, logger)
+		posts, getPostsErr = lib.GetPosts(dbPool, boardSlug, postSlug, parentId, logger, paginationData)
 
 		if getPostsErr != nil {
 			logger.Error(fmt.Sprintf("Error fetching posts: %v", getPostsErr.Error()))
@@ -225,10 +226,10 @@ func Boards(
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"status": "OK",
-			"results": gin.H{
-				"posts": posts,
+		c.JSON(http.StatusOK, lib.PostListResponse{
+			Status: "OK",
+			Results: lib.PostListResponseResults{
+				Posts: posts,
 			},
 		})
 	}))

@@ -433,3 +433,13 @@ func TestUpdateBoardDetailsWithUnprivilegedUser(t *testing.T) {
 
 	DeleteBoardAndVerify(t, e, adminSessionID, newBoardResponse.Results.Slug)
 }
+
+func TestGetPostList(t *testing.T) {
+	var postListResponse lib.PostListResponse
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	e.GET("/api/v1/posts/sauces").
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&postListResponse)
+}

@@ -1,7 +1,7 @@
 import * as React from "react";
 import {ReactElement, useEffect, useState} from "react";
 import {Checkbox, CheckboxChangeEvent} from "primereact/checkbox";
-import {IDisplayTag} from "../../pages/ProductListPage.tsx";
+import {IDisplayTag} from "../../pages/Products/ProductListPage.tsx";
 import {ITag} from "../Tag/ITag.ts";
 import {Subscription} from "rxjs";
 import {getTags} from "../Tag/TagService.ts";

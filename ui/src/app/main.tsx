@@ -8,7 +8,7 @@ import Throbber from "./components/Shared/Throbber.tsx";
 import AdminPage from "./pages/Admin/AdminPage.tsx";
 import AdminInventoryPage from "./pages/Admin/AdminInventoryPage.tsx";
 import {AdminUserDetailPage} from "./pages/Admin/AdminUserDetailPage.tsx";
-import {OrderCheckoutPage} from "./pages/OrderCheckoutPage.tsx";
+import {OrderCheckoutPage} from "./pages/Checkout/OrderCheckoutPage.tsx";
 import {AccountPage} from "./pages/Account/AccountPage.tsx";
 import {AccountSignInPage} from "./pages/Account/AccountSignInPage.tsx";
 import BoardsListPage from "./pages/Boards/BoardsListPage.tsx";
@@ -18,8 +18,8 @@ import UserProfilePage from "./pages/Users/UserProfilePage.tsx";
 import {BoardSettingsPage} from "./pages/Boards/BoardSettingsPage.tsx";
 
 const HomePage = React.lazy(() => import("./pages/HomePage.tsx"));
-const ProductListPage = React.lazy(() => import("./pages/ProductListPage.tsx"));
-const ProductDetailPage = React.lazy(() => import("./pages/ProductDetailPage.tsx"));
+const ProductListPage = React.lazy(() => import("./pages/Products/ProductListPage.tsx"));
+const ProductDetailPage = React.lazy(() => import("./pages/Products/ProductDetailPage.tsx"));
 
 createRoot(document.getElementById('root')!).render(
     <Suspense fallback={<Throbber/>}>
