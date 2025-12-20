@@ -267,3 +267,25 @@ export function isSettingsAreaAvailable(boardSlug: string): Subject<boolean> {
     });
     return settingsAvailable$;
 }
+
+export function updateBoardSettings(boardSettings: IBoardSettings): Subject<boolean> {
+    const updateBoardSettings$ = new Subject<boolean>();
+    fetch(BOARD_SETTINGS_URL, {
+        credentials: 'include',
+        method: 'PUT',
+        body: JSON.stringify(boardSettings),
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then(resp => {
+                updateBoardSettings$.next(resp.results);
+            });
+        } else {
+            res.json().then(resp => {
+                updateBoardSettings$.error(resp?.message || "Unknown error");
+            });
+        }
+    }).catch((err) => {
+        updateBoardSettings$.error(err);
+    });
+    return updateBoardSettings$;
+}

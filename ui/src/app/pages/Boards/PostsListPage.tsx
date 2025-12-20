@@ -1,4 +1,4 @@
-import {RefObject, SetStateAction, useEffect, useRef, useState} from "react";
+import {ReactElement, RefObject, SetStateAction, useEffect, useRef, useState} from "react";
 import {IBoardPost} from "../../components/Boards/IBoardPost.ts";
 import {getBoardByBoardSlug, getBoards, getPosts, getTotalPostReplyMap} from "../../components/Boards/BoardsService.ts";
 import PostList from "../../components/Boards/PostList.tsx";
@@ -18,6 +18,7 @@ import {setPageTitle} from "../../components/Shared/PageTitle.ts";
 import {IBoardDetails} from "../../components/Boards/IBoardDetails.ts";
 import {Paginator} from "primereact/paginator";
 import {IBoardPostsResponse} from "../../components/Boards/IBoardPostsResponse.ts";
+import {Skeleton} from "primereact/skeleton";
 
 /**
  * Handles multiple scenarios where post(s) are displayed:
@@ -26,6 +27,7 @@ import {IBoardPostsResponse} from "../../components/Boards/IBoardPostsResponse.t
  * - A single post
  */
 export default function PostsListPage() {
+    const [postsLoading, setPostsLoading] = useState<boolean>(true);
     const [totalPosts, setTotalPosts] = useState<number>(0);
     const [offset, setOffset] = useState<number>(0);
     const [perPage, setPerPage] = useState<number>(10);
@@ -103,6 +105,9 @@ export default function PostsListPage() {
         }
         return false;
     }
+    const skeletonList: ReactElement[] = new Array(10).fill(0).map((): ReactElement => (
+        <Skeleton size="260px"></Skeleton>
+    ));
 
     // When the board/post changes, get filtered posts based on the scenario
     useEffect(() => {
@@ -115,11 +120,13 @@ export default function PostsListPage() {
         });
         postsResponse$.subscribe({
             next: (postsResponse: IBoardPostsResponse) => {
+                setPostsLoading(false);
                 setPosts(postsResponse.posts);
                 setTotalPosts(postsResponse.totalPosts);
             },
             error: (err) => {
                 console.error(err);
+                setPostsLoading(false);
             }
         });
         // When viewing a specific board...
@@ -187,7 +194,7 @@ export default function PostsListPage() {
         return () => {
             getPostReplies$?.unsubscribe();
         }
-    }, [posts])
+    }, [posts]);
 
     // When posts/user changes, get the posts the user has voted on
     useEffect(() => {
@@ -241,59 +248,60 @@ export default function PostsListPage() {
                     </div>
                 </section>
             )}
-                <section className="flex justify-space-between gap-2 w-full">
-                    <section className="w-3/4">
-                        {posts.length > 0 ? (
-                            <>
-                                <PostList
-                                    posts={posts}
-                                    voteMap={userVoteMap}
-                                    replyMap={totalPostReplyMap}
-                                    isCurrentUserBoardMod={isCurrentUserBoardMod}
-                                />
-                                {posts.length >= perPage ? (
-                                    <div className="card mt-4 mb-4">
-                                        <Paginator first={offset}
-                                                   rows={perPage}
-                                                   totalRecords={totalPosts}
-                                                   rowsPerPageOptions={[10, 20, 30]}
-                                                   onPageChange={onPageChange}/>
-                                    </div>
-                                ) : ""}
-                            </>
-                        ) : "No posts available."}
-                    </section>
-                    <section className="w-1/4 mt-4">
-                        {boardSlug ? (
-                            <>
-                                {board ?
-                                    <BoardDetailsSidebar boardDetails={boardDetails}/> : 'Loading board info...'}
-                            </>
-                        ) : (
-                            <BoardListSidebar boards={boards}/>
-                        )}
-                    </section>
-                </section>
-
-                {postReplies.length > 0 && (
-                    <section className="mt-4">
-                        <h1 className="text-3xl font-bold mb-4">Comments</h1>
-                        <section className="w-3/4">
+            <section className="flex justify-space-between gap-2 w-full">
+                <section className="w-3/4">
+                    {isLoading ? skeletonList : <></>}
+                    {posts.length > 0 ? (
+                        <>
                             <PostList
-                                posts={postReplies}
+                                posts={posts}
                                 voteMap={userVoteMap}
                                 replyMap={totalPostReplyMap}
                                 isCurrentUserBoardMod={isCurrentUserBoardMod}
                             />
-                        </section>
+                            {posts.length >= perPage ? (
+                                <div className="card mt-4 mb-4">
+                                    <Paginator first={offset}
+                                               rows={perPage}
+                                               totalRecords={totalPosts}
+                                               rowsPerPageOptions={[10, 20, 30]}
+                                               onPageChange={onPageChange}/>
+                                </div>
+                            ) : ""}
+                        </>
+                    ) : "No posts available."}
+                </section>
+                <section className="w-1/4 mt-4">
+                    {boardSlug ? (
+                        <>
+                            {board ?
+                                <BoardDetailsSidebar boardDetails={boardDetails}/> : 'Loading board info...'}
+                        </>
+                    ) : (
+                        <BoardListSidebar boards={boards}/>
+                    )}
+                </section>
+            </section>
+
+            {postReplies.length > 0 && (
+                <section className="mt-4">
+                    <h1 className="text-3xl font-bold mb-4">Comments</h1>
+                    <section className="w-3/4">
+                        <PostList
+                            posts={postReplies}
+                            voteMap={userVoteMap}
+                            replyMap={totalPostReplyMap}
+                            isCurrentUserBoardMod={isCurrentUserBoardMod}
+                        />
                     </section>
-                )}
+                </section>
+            )}
 
-                {postSlug && (
-                    <p>No comments on this post yet. Be the first!</p>
-                )}
+            {postSlug && (
+                <p>No comments on this post yet. Be the first!</p>
+            )}
 
-                <Toast ref={toast}/>
+            <Toast ref={toast}/>
         </>
     )
 }

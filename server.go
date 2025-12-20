@@ -19,6 +19,7 @@ import (
 var dbPool *pgxpool.Pool
 
 func main() {
+	gin.SetMode(gin.DebugMode)
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 
 	config, configReadErr := lib.ReadConfig("config.toml")
