@@ -12,8 +12,8 @@ import {getUserDetailsBySessionId} from "../components/User/UserService.ts";
 import {setSignedIn, setUser, setUserExperience, setUserLevel, setUserRoles} from "../components/User/User.slice.ts";
 import {IUserDetails} from "../components/User/IUserDetails.ts";
 import {ErrorBoundary} from "react-error-boundary";
-import {Card} from "primereact/card";
 import {ChatArea} from "../components/Chat/ChatArea.tsx";
+import {DumpsterFireError} from "../components/Shared/DumpsterFireError.tsx";
 
 type Props = {
     children: React.ReactNode
@@ -61,14 +61,7 @@ export default function BaseLayout({children}: Props) {
             <main className="container mx-auto max-w-7xl mb-10">
                 <section className="mt-4">
                     <ErrorBoundary fallback={(
-                        <>
-                            <Card title="Something went wrong">
-                                <section className="min-h-[344px]">
-                                    <img src="/images/dumpster-fire.jpg" width="612" height="344"
-                                         alt="Something went wrong"/>
-                                </section>
-                            </Card>
-                        </>
+                        <DumpsterFireError/>
                     )}>{children}</ErrorBoundary>
                 </section>
             </main>
