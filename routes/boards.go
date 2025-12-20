@@ -226,10 +226,16 @@ func Boards(
 			return
 		}
 
+		totalPosts, totalPostsErr := lib.GetTotalPosts(dbPool)
+		if totalPostsErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching total posts: %v", totalPostsErr.Error()))
+		}
+
 		c.JSON(http.StatusOK, lib.PostListResponse{
 			Status: "OK",
 			Results: lib.PostListResponseResults{
-				Posts: posts,
+				Posts:      posts,
+				TotalPosts: totalPosts,
 			},
 		})
 	}))

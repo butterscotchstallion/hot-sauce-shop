@@ -111,6 +111,7 @@ export default function PostsListPage() {
         const postsResponse$: Subject<IBoardPostsResponse> = getPosts({
             postSlug,
             boardSlug,
+            offset,
         });
         postsResponse$.subscribe({
             next: (postsResponse: IBoardPostsResponse) => {
@@ -166,7 +167,7 @@ export default function PostsListPage() {
                 userVoteMap$.current.unsubscribe()
             )
         }
-    }, [boardSlug, postSlug]);
+    }, [boardSlug, postSlug, offset]);
 
     useEffect(() => {
         let getPostReplies$: Subject<IBoardPostsResponse>;
