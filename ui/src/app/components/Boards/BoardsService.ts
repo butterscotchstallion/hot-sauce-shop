@@ -16,6 +16,7 @@ import {INewBoardPost} from "./INewBoardPost.ts";
 import {IBoardDetails} from "./IBoardDetails.ts";
 import {IBoardSettings} from "./IBoardSettings.ts";
 import {getUserAdminBoards} from "../User/UserService.ts";
+import {IBoardPostsResponse} from "./IBoardPostsResponse.ts";
 
 export function getBoards(): Subject<IBoard[]> {
     const boards$ = new Subject<IBoard[]>();
@@ -49,8 +50,8 @@ export function getPosts({
                              postSlug,
                              offset = 0,
                              perPage = 10
-                         }: IGetPostParameters): Subject<IBoardPost[]> {
-    const posts$ = new Subject<IBoardPost[]>();
+                         }: IGetPostParameters): Subject<IBoardPostsResponse> {
+    const posts$ = new Subject<IBoardPostsResponse>();
     let url: string = POSTS_URL;
 
     /**
@@ -78,7 +79,7 @@ export function getPosts({
     }).then((res: Response) => {
         if (res.ok) {
             res.json().then(resp => {
-                posts$.next(resp.results.posts);
+                posts$.next(resp.results);
             });
         } else {
             posts$.error(res.statusText);
