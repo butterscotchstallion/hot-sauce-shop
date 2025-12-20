@@ -24,12 +24,8 @@ export function BoardSettingsButton() {
     return (
         <>
             {settingsAreaAvailable && (
-                // <Button
-                //     label="Board Settings"
-                //     icon="pi pi-cog"
-                //     onClick={() => goToSettingsArea()}
-                // />
                 <i
+                    title="Board Settings"
                     className="pi pi-cog cursor-pointer hover:text-yellow-200"
                     onClick={() => goToSettingsArea()}
                 />
