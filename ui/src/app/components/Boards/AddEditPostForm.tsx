@@ -15,12 +15,18 @@ import {INewBoardPost} from "./types/INewBoardPost.ts";
 import {NavigateFunction, useNavigate} from "react-router";
 import {FileUpload} from "primereact/fileupload";
 import "../../pages/Boards/NewPostPage.css";
+import {useDebounce} from "primereact/hooks";
 
 interface AddEditPostFormProps {
     post?: IBoardPost;
     boardSlug: string;
     parentSlug?: string;
     addPostCallback?: () => void;
+}
+
+interface IAddEditPostFormState {
+    title?: string;
+    postText: string;
 }
 
 export default function AddEditPostForm({post, boardSlug, parentSlug, addPostCallback}: AddEditPostFormProps) {
@@ -30,6 +36,8 @@ export default function AddEditPostForm({post, boardSlug, parentSlug, addPostCal
     const toast: RefObject<Toast | null> = useRef<Toast>(null);
     const [postTitle, setPostTitle] = useState<string>("");
     const [postText, setPostText] = useState<string>("");
+    const [debouncedPostText] = useDebounce(postText, 1000);
+    const [debouncedPostTitle] = useDebounce(postTitle, 1000);
     const [postImages, setPostImages] = useState<File[]>([]);
     const navigate: NavigateFunction = useNavigate();
     const navigateToNewPost = (newPost: IBoardPost) => {
@@ -59,7 +67,6 @@ export default function AddEditPostForm({post, boardSlug, parentSlug, addPostCal
     }
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const valid: boolean = validate();
         const post: INewBoardPost = {
             title: postTitle,
             postText: postText
@@ -67,6 +74,7 @@ export default function AddEditPostForm({post, boardSlug, parentSlug, addPostCal
         if (parentSlug) {
             post.parentSlug = parentSlug;
         }
+        const valid: boolean = validate();
         if (valid) {
             addPost$ = addPost(post, boardSlugRef.current, postImages);
             addPost$.subscribe({
@@ -109,11 +117,13 @@ export default function AddEditPostForm({post, boardSlug, parentSlug, addPostCal
         }
     }
     const validate = (): boolean => {
+        console.log('validating');
         try {
-            PostSchema.parse({
-                title: postTitle,
-                postText: postText,
-            });
+            const fieldsToParse: IAddEditPostFormState = {postText};
+            if (!parentSlug) {
+                fieldsToParse.title = postTitle;
+            }
+            PostSchema.parse(fieldsToParse);
             resetErrata();
             return true;
         } catch (err: z.ZodError | unknown) {
@@ -147,6 +157,10 @@ export default function AddEditPostForm({post, boardSlug, parentSlug, addPostCal
         }
     }, [post]);
 
+    useEffect(() => {
+        setIsValid(validate());
+    }, [debouncedPostText, debouncedPostTitle]);
+
     return (
         <>
             <form onSubmit={onSubmit} className="w-full m-0 p-0">
@@ -158,7 +172,6 @@ export default function AddEditPostForm({post, boardSlug, parentSlug, addPostCal
                                 className="w-full"
                                 onChange={(e) => {
                                     setPostTitle(e.target.value);
-                                    validate();
                                 }}
                                 value={postTitle}
                                 maxLength={150}
@@ -181,14 +194,13 @@ export default function AddEditPostForm({post, boardSlug, parentSlug, addPostCal
                         </div>
                     </>
                 )}
-                
+
                 <div className="w-full">
                     <label className="mb-2 block" htmlFor="post-text">Post text</label>
                     <InputTextarea
                         className="w-full"
                         onChange={(e) => {
                             setPostText(e.target.value);
-                            validate();
                         }}
                         value={postText}
                         invalid={!!formErrata.postText}
