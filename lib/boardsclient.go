@@ -51,7 +51,7 @@ type BoardPost struct {
 
 type AddPostRequest struct {
 	Title        string                  `json:"title" form:"title"`
-	ParentId     int                     `json:"parentId" form:"parentId"`
+	ParentSlug   string                  `json:"parentSlug" form:"parentSlug"`
 	PostText     string                  `json:"postText" form:"postText" binding:"required"`
 	PostImages   []*multipart.FileHeader `json:"postImages" form:"postImages"`
 	Slug         string                  `json:"slug" form:"slug"`
@@ -525,7 +525,21 @@ func GetNumBoardMembers(dbPool *pgxpool.Pool, boardSlug string) (int, error) {
 	return numBoardMembers, nil
 }
 
+func getPostParentIdBySlug(dbPool *pgxpool.Pool, postSlug string) (int, error) {
+	const query = `SELECT id FROM board_posts WHERE slug = $1`
+	var parentId int
+	scanErr := dbPool.QueryRow(context.Background(), query, postSlug).Scan(&parentId)
+	if scanErr != nil {
+		return 0, scanErr
+	}
+	return parentId, nil
+}
+
 func AddPost(dbPool *pgxpool.Pool, post AddPostRequest, userId int, boardId int) (int, error) {
+	parentPostId, parentPostErr := getPostParentIdBySlug(dbPool, post.ParentSlug)
+	if parentPostErr != nil {
+		return 0, parentPostErr
+	}
 	lastInsertId := 0
 	const query = `
 		INSERT INTO board_posts (title, created_by_user_id, board_id, parent_id, slug, post_text) 
@@ -538,7 +552,7 @@ func AddPost(dbPool *pgxpool.Pool, post AddPostRequest, userId int, boardId int)
 		post.Title,
 		userId,
 		boardId,
-		post.ParentId,
+		parentPostId,
 		post.Slug,
 		post.PostText,
 	).Scan(&lastInsertId)

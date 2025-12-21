@@ -19,11 +19,11 @@ import "../../pages/Boards/NewPostPage.css";
 interface AddEditPostFormProps {
     post?: IBoardPost;
     boardSlug: string;
-    parentId?: number;
+    parentSlug?: string;
     addPostCallback?: () => void;
 }
 
-export default function AddEditPostForm({post, boardSlug, parentId, addPostCallback}: AddEditPostFormProps) {
+export default function AddEditPostForm({post, boardSlug, parentSlug, addPostCallback}: AddEditPostFormProps) {
     let addPost$: Subject<IBoardPost>;
     const boardSlugRef = useRef<string>(boardSlug);
     const [isValid, setIsValid] = useState<boolean>(false);
@@ -33,7 +33,13 @@ export default function AddEditPostForm({post, boardSlug, parentId, addPostCallb
     const [postImages, setPostImages] = useState<File[]>([]);
     const navigate: NavigateFunction = useNavigate();
     const navigateToNewPost = (newPost: IBoardPost) => {
-        navigate(`/boards/${boardSlug}/posts/${newPost.slug}`);
+        let url = `/boards/${boardSlug}/posts/`;
+        if (parentSlug) {
+            url += parentSlug;
+        } else {
+            url += newPost.slug;
+        }
+        navigate(url);
     };
     const uploadOptions = {icon: '', iconOnly: true, className: 'hidden-upload-button'};
     const defaultErrata: IFormErrata = {
@@ -58,8 +64,8 @@ export default function AddEditPostForm({post, boardSlug, parentId, addPostCallb
             title: postTitle,
             postText: postText
         }
-        if (parentId) {
-            post.parentId = parentId;
+        if (parentSlug) {
+            post.parentSlug = parentSlug;
         }
         if (valid) {
             addPost$ = addPost(post, boardSlugRef.current, postImages);
@@ -144,34 +150,38 @@ export default function AddEditPostForm({post, boardSlug, parentId, addPostCallb
     return (
         <>
             <form onSubmit={onSubmit} className="w-full m-0 p-0">
-                <div className="w-full mb-4">
-                    <label className="mb-2 block" htmlFor="post-title">Title</label>
-                    <InputText
-                        className="w-full"
-                        onChange={(e) => {
-                            setPostTitle(e.target.value);
-                            validate();
-                        }}
-                        value={postTitle}
-                        maxLength={150}
-                        invalid={!!formErrata.postTitle}
-                        id="post-title"/>
-                    <p className="text-red-500 pt-2">{formErrata.postTitle}</p>
-                </div>
+                {!parentSlug && (
+                    <>
+                        <div className="w-full mb-4">
+                            <label className="mb-2 block" htmlFor="post-title">Title</label>
+                            <InputText
+                                className="w-full"
+                                onChange={(e) => {
+                                    setPostTitle(e.target.value);
+                                    validate();
+                                }}
+                                value={postTitle}
+                                maxLength={150}
+                                invalid={!!formErrata.postTitle}
+                                id="post-title"/>
+                            <p className="text-red-500 pt-2">{formErrata.postTitle}</p>
+                        </div>
 
-                <div className="w-full mb-4">
-                    <FileUpload name="postImages[]"
-                                url={''}
-                                multiple
-                                accept="image/*"
-                                maxFileSize={10000000}
-                                customUpload={true}
-                                uploadOptions={uploadOptions}
-                                uploadHandler={e => console.log(e)}
-                                onSelect={e => onFilesSelected(e)}
-                                emptyTemplate={<p className="m-0">Drag and drop files to here to upload.</p>}/>
-                </div>
-
+                        <div className="w-full mb-4">
+                            <FileUpload name="postImages[]"
+                                        url={''}
+                                        multiple
+                                        accept="image/*"
+                                        maxFileSize={10000000}
+                                        customUpload={true}
+                                        uploadOptions={uploadOptions}
+                                        uploadHandler={e => console.log(e)}
+                                        onSelect={e => onFilesSelected(e)}
+                                        emptyTemplate={<p className="m-0">Drag and drop files to here to upload.</p>}/>
+                        </div>
+                    </>
+                )}
+                
                 <div className="w-full">
                     <label className="mb-2 block" htmlFor="post-text">Post text</label>
                     <InputTextarea

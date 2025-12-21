@@ -48,7 +48,7 @@ export default function PostsListPage() {
         // If there is a post slug, we're viewing a specific post and there should
         // only be one post in the list
         if (postSlug) {
-            replyParam += "?parentId=" + posts[0].id;
+            replyParam += "?parentSlug=" + posts[0].slug;
         }
         const url = `/boards/${boardSlug}/posts/new${replyParam}`;
         navigate(url);

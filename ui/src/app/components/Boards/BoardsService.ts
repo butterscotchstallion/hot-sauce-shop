@@ -143,8 +143,8 @@ export function addPost(post: INewBoardPost, boardSlug: string, postImages: File
     postImages.forEach(image => {
         formData.append("postImages", image);
     });
-    if (post?.parentId) {
-        formData.append("parentId", post.parentId.toString());
+    if (post?.parentSlug) {
+        formData.append("parentSlug", post.parentSlug);
     }
     fetch(BOARD_POSTS_URL.replace(':slug', boardSlug), {
         credentials: 'include',

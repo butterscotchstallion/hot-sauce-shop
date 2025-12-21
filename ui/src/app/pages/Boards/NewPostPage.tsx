@@ -12,12 +12,12 @@ export default function NewPostPage() {
     const [searchParams] = useSearchParams();
     const [board, setBoard] = useState<IBoard>();
     const board$: RefObject<Subject<IBoardDetails> | null> = useRef<Subject<IBoardDetails>>(null);
-    const parentId = useRef<number | null>(0);
+    const parentSlug = useRef<string>('');
 
     useEffect(() => {
-        const parentIdParam: string | null = searchParams.get("parentId");
-        if (parentIdParam && parentIdParam.length > 0) {
-            parentId.current = parseInt(parentIdParam);
+        const parentSlugParam: string | null = searchParams.get("parentSlug");
+        if (parentSlugParam && parentSlugParam.length > 0) {
+            parentSlug.current = parentSlugParam;
         }
         if (boardSlug) {
             board$.current = getBoardByBoardSlug(boardSlug);
@@ -43,7 +43,7 @@ export default function NewPostPage() {
                 {board && (
                     <AddEditPostForm
                         boardSlug={board.slug}
-                        parentId={parentId.current || 0}
+                        parentSlug={parentSlug.current}
                     />
                 )}
             </section>
