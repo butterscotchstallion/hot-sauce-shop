@@ -185,7 +185,7 @@ export default function BoardPost({boardPost, voteMap, replyMap, isCurrentUserBo
                             width={post.thumbnailWidth}
                             height={post.thumbnailHeight}
                             preview/>
-                        <div className="ml-6 min-h-[2rem]">
+                        <div className="ml-6 min-h-[2rem] w-3/4">
                             {post.postText}
                         </div>
                     </div>
