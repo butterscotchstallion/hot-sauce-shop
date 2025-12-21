@@ -6,14 +6,14 @@ import * as z from "zod";
 import {ZodIssue} from "zod";
 import {IFormErrata} from "../Shared/IFormErrata.ts";
 import * as React from "react";
-import {RefObject, useEffect, useRef, useState} from "react";
+import {ChangeEvent, RefObject, useEffect, useRef, useState} from "react";
 import {PostSchema} from "./PostSchema.ts";
 import {Subject} from "rxjs";
 import {addPost} from "./BoardsService.ts";
 import {Toast} from "primereact/toast";
 import {INewBoardPost} from "./types/INewBoardPost.ts";
 import {NavigateFunction, useNavigate} from "react-router";
-import {FileUpload} from "primereact/fileupload";
+import {FileUpload, FileUploadSelectEvent} from "primereact/fileupload";
 import "../../pages/Boards/NewPostPage.css";
 import {useDebounce} from "primereact/hooks";
 
@@ -88,10 +88,10 @@ export default function AddEditPostForm({post, boardSlug, parentSlug, addPostCal
                         })
                     }
                     resetForm();
-                    navigateToNewPost(newPost);
                     if (addPostCallback) {
                         addPostCallback();
                     }
+                    navigateToNewPost(newPost);
                 },
                 error: (err) => {
                     console.log(err);
@@ -139,7 +139,7 @@ export default function AddEditPostForm({post, boardSlug, parentSlug, addPostCal
         }
     }
 
-    const onFilesSelected = (e) => {
+    const onFilesSelected = (e: FileUploadSelectEvent) => {
         setPostImages(e.files);
     }
 
@@ -199,7 +199,7 @@ export default function AddEditPostForm({post, boardSlug, parentSlug, addPostCal
                     <label className="mb-2 block" htmlFor="post-text">Post text</label>
                     <InputTextarea
                         className="w-full"
-                        onChange={(e) => {
+                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
                             setPostText(e.target.value);
                         }}
                         value={postText}
