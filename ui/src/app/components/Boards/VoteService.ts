@@ -1,7 +1,7 @@
 import {Subject} from "rxjs";
 import {USER_VOTE_MAP_URL, VOTE_ADD_UPDATE_URL} from "../Shared/Api.ts";
-import {IVoteRequest} from "./IVoteRequest.ts";
-import {IVoteMap} from "./IVoteMap.ts";
+import {IVoteRequest} from "./types/IVoteRequest.ts";
+import {IVoteMap} from "./types/IVoteMap.ts";
 
 export function addUpdateVote(postId: number, voteValue: number): Subject<number> {
     const addVote$ = new Subject<number>();

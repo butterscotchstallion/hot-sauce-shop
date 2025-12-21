@@ -1,5 +1,5 @@
 import {Card} from "primereact/card";
-import {IBoard} from "./IBoard.ts";
+import {IBoard} from "./types/IBoard.ts";
 import {NavLink} from "react-router";
 
 interface BoardListSidebarProps {

@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 import {IUser} from "./IUser.ts";
 import {IUserDetails} from "./IUserDetails.ts";
 import {IUserRole} from "./IUserRole.ts";
-import {IBoard} from "../Boards/IBoard.ts";
+import {IBoard} from "../Boards/types/IBoard.ts";
 
 export enum UserRole {
     USER_ADMIN = "User Admin",

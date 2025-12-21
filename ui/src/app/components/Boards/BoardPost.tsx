@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import {Card} from "primereact/card";
 import {NavLink, Params, useParams} from "react-router";
 import TimeAgo from "react-timeago";
-import {IBoardPost} from "./IBoardPost.ts";
+import {IBoardPost} from "./types/IBoardPost.ts";
 import {Button} from "primereact/button";
 import {RefObject, useEffect, useRef, useState} from "react";
 import {Subject} from "rxjs";
@@ -142,7 +142,7 @@ export default function BoardPost({boardPost, voteMap, replyMap, isCurrentUserBo
      */
     useEffect(() => {
         setPost(boardPost);
-        
+
         if (boardPost.thumbnailFilename) {
             postImagePath.current = `/images/posts/${boardPost.thumbnailFilename}`;
         }
@@ -178,6 +178,7 @@ export default function BoardPost({boardPost, voteMap, replyMap, isCurrentUserBo
                 <div>
                     <div className="flex flex-column">
                         <Image
+                            onError={() => postImagePath.current = '/images/hot-pepper.png'}
                             src={postImagePath.current}
                             zoomSrc={postImagePath.current}
                             alt="Post Image"

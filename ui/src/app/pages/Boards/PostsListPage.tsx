@@ -1,5 +1,5 @@
 import {ReactElement, RefObject, SetStateAction, useEffect, useRef, useState} from "react";
-import {IBoardPost} from "../../components/Boards/IBoardPost.ts";
+import {IBoardPost} from "../../components/Boards/types/IBoardPost.ts";
 import {getBoardByBoardSlug, getBoards, getPosts, getTotalPostReplyMap} from "../../components/Boards/BoardsService.ts";
 import PostList from "../../components/Boards/PostList.tsx";
 import {getUserVoteMap} from "../../components/Boards/VoteService.ts";
@@ -9,15 +9,15 @@ import {Button} from "primereact/button";
 import {IUser} from "../../components/User/IUser.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../store.ts";
-import {IBoard} from "../../components/Boards/IBoard.ts";
+import {IBoard} from "../../components/Boards/types/IBoard.ts";
 import {getJoinedBoards, userJoinBoard} from "../../components/User/UserService.ts";
 import {Toast} from "primereact/toast";
 import {BoardDetailsSidebar} from "../../components/Boards/BoardDetailsSidebar.tsx";
 import {BoardListSidebar} from "../../components/Boards/BoardListSidebar.tsx";
 import {setPageTitle} from "../../components/Shared/PageTitle.ts";
-import {IBoardDetails} from "../../components/Boards/IBoardDetails.ts";
+import {IBoardDetails} from "../../components/Boards/types/IBoardDetails.ts";
 import {Paginator} from "primereact/paginator";
-import {IBoardPostsResponse} from "../../components/Boards/IBoardPostsResponse.ts";
+import {IBoardPostsResponse} from "../../components/Boards/types/IBoardPostsResponse.ts";
 import {Skeleton} from "primereact/skeleton";
 
 /**

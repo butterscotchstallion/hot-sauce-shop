@@ -1,4 +1,4 @@
-import {IBoard} from "./IBoard.ts";
+import {IBoard} from "./types/IBoard.ts";
 import {classNames} from "primereact/utils";
 import {DataView} from 'primereact/dataview';
 import {ReactElement} from "react";

@@ -1,10 +1,10 @@
 import AddEditPostForm from "../../components/Boards/AddEditPostForm.tsx";
 import {Params, useParams, useSearchParams} from "react-router";
-import {IBoard} from "../../components/Boards/IBoard.ts";
+import {IBoard} from "../../components/Boards/types/IBoard.ts";
 import {RefObject, useEffect, useRef, useState} from "react";
 import {getBoardByBoardSlug} from "../../components/Boards/BoardsService.ts";
 import {Subject} from "rxjs";
-import {IBoardDetails} from "../../components/Boards/IBoardDetails.ts";
+import {IBoardDetails} from "../../components/Boards/types/IBoardDetails.ts";
 
 export default function NewPostPage() {
     const params: Readonly<Params<string>> = useParams();

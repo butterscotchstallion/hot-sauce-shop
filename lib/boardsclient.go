@@ -434,8 +434,7 @@ func GetPostDetail(dbPool *pgxpool.Pool, boardSlug string, postSlug string) (Boa
 		FROM board_posts bp
 		JOIN users u on u.id = bp.created_by_user_id
 		JOIN boards b ON b.id = bp.board_id
-		WHERE b.slug = $1
-		AND bp.slug = $2
+		WHERE bp.slug = $2
 	`
 	row, err := dbPool.Query(context.Background(), query, boardSlug, postSlug)
 	if err != nil {

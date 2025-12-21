@@ -1,4 +1,4 @@
-import {IBoard} from "./IBoard.ts";
+import {IBoard} from "./types/IBoard.ts";
 import {Subject} from "rxjs";
 import {
     BOARD_DETAILS_URL,
@@ -11,12 +11,12 @@ import {
     POST_DETAILS_URL,
     POSTS_URL
 } from "../Shared/Api.ts";
-import {IBoardPost} from "./IBoardPost.ts";
-import {INewBoardPost} from "./INewBoardPost.ts";
-import {IBoardDetails} from "./IBoardDetails.ts";
-import {IBoardSettings} from "./IBoardSettings.ts";
+import {IBoardPost} from "./types/IBoardPost.ts";
+import {INewBoardPost} from "./types/INewBoardPost.ts";
+import {IBoardDetails} from "./types/IBoardDetails.ts";
+import {IBoardSettings} from "./types/IBoardSettings.ts";
 import {getUserAdminBoards} from "../User/UserService.ts";
-import {IBoardPostsResponse} from "./IBoardPostsResponse.ts";
+import {IBoardPostsResponse} from "./types/IBoardPostsResponse.ts";
 
 export function getBoards(): Subject<IBoard[]> {
     const boards$ = new Subject<IBoard[]>();

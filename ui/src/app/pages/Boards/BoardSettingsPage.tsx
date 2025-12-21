@@ -1,11 +1,11 @@
 import {Checkbox} from "primereact/checkbox";
 import * as React from "react";
 import {useEffect, useState} from "react";
-import {IBoardSettings} from "../../components/Boards/IBoardSettings.ts";
+import {IBoardSettings} from "../../components/Boards/types/IBoardSettings.ts";
 import {getBoardByBoardSlug, getBoardSettings} from "../../components/Boards/BoardsService.ts";
 import {Params, useNavigate, useParams} from "react-router";
 import {InputTextarea} from "primereact/inputtextarea";
-import {IBoardDetails} from "../../components/Boards/IBoardDetails.ts";
+import {IBoardDetails} from "../../components/Boards/types/IBoardDetails.ts";
 import {Button} from "primereact/button";
 import {Card} from "primereact/card";
 import {FileUpload} from "primereact/fileupload";

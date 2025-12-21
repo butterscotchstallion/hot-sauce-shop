@@ -1,4 +1,4 @@
-import {IBoardPost} from "./IBoardPost.ts";
+import {IBoardPost} from "./types/IBoardPost.ts";
 import {ReactElement} from "react";
 import BoardPost from "./BoardPost.tsx";
 

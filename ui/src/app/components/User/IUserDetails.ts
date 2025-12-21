@@ -1,6 +1,6 @@
 import {IUser} from "./IUser.ts";
 import {IUserRole} from "./IUserRole.ts";
-import {IBoard} from "../Boards/IBoard.ts";
+import {IBoard} from "../Boards/types/IBoard.ts";
 import {IUserLevelInfo} from "./IUserLevelInfo.ts";
 
 export interface IUserDetails {

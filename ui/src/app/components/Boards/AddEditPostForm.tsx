@@ -1,4 +1,4 @@
-import {IBoardPost} from "./IBoardPost.ts";
+import {IBoardPost} from "./types/IBoardPost.ts";
 import {InputText} from "primereact/inputtext";
 import {InputTextarea} from "primereact/inputtextarea";
 import {Button} from "primereact/button";
@@ -11,7 +11,7 @@ import {PostSchema} from "./PostSchema.ts";
 import {Subject} from "rxjs";
 import {addPost} from "./BoardsService.ts";
 import {Toast} from "primereact/toast";
-import {INewBoardPost} from "./INewBoardPost.ts";
+import {INewBoardPost} from "./types/INewBoardPost.ts";
 import {NavigateFunction, useNavigate} from "react-router";
 import {FileUpload} from "primereact/fileupload";
 import "../../pages/Boards/NewPostPage.css";
