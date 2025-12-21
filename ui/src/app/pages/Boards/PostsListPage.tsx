@@ -194,7 +194,7 @@ export default function PostsListPage() {
         return () => {
             getPostReplies$?.unsubscribe();
         }
-    }, [posts]);
+    }, [posts, postSlug]);
 
     // When posts/user changes, get the posts the user has voted on
     useEffect(() => {
