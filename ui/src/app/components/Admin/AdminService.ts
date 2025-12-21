@@ -1,7 +1,7 @@
 import {Subject} from "rxjs";
-import {IUserRole} from "../User/IUserRole.ts";
+import {IUserRole} from "../User/types/IUserRole.ts";
 import {ADMIN_USER_DETAIL_URL, ADMIN_USER_ROLE_LIST} from "../Shared/Api.ts";
-import {IUser} from "../User/IUser.ts";
+import {IUser} from "../User/types/IUser.ts";
 
 export function updateUser(user: IUser, roles: IUserRole[]): Subject<boolean> {
     const updateUser$ = new Subject<boolean>();

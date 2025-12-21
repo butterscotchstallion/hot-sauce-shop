@@ -1,4 +1,4 @@
-import {IUser} from "../User/IUser.ts";
+import {IUser} from "../User/types/IUser.ts";
 
 export interface ICart {
     id: number;

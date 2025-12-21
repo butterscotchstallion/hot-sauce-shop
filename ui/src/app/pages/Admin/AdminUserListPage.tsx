@@ -1,5 +1,5 @@
 import {ReactElement, useEffect, useState} from "react";
-import {IUser} from "../../components/User/IUser.ts";
+import {IUser} from "../../components/User/types/IUser.ts";
 import {getUsers} from "../../components/User/UserService.ts";
 import Throbber from "../../components/Shared/Throbber.tsx";
 import {DataTable} from "primereact/datatable";

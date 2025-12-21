@@ -1,5 +1,5 @@
 import {Subject} from "rxjs";
-import {IUser} from "./IUser.ts";
+import {IUser} from "./types/IUser.ts";
 import {ADMIN_USER_DETAIL_URL} from "../Shared/Api.ts";
 
 export function getUserBySlug(slug: string): Subject<IUser> {

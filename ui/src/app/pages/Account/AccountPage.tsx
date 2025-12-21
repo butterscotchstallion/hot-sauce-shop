@@ -1,8 +1,8 @@
-import {IUser} from "../../components/User/IUser.ts";
+import {IUser} from "../../components/User/types/IUser.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../store.ts";
 import {UserRoleList} from "../../components/User/UserRoleList.tsx";
-import {IUserRole} from "../../components/User/IUserRole.ts";
+import {IUserRole} from "../../components/User/types/IUserRole.ts";
 
 export function AccountPage() {
     const user: IUser | null = useSelector((state: RootState) => state.user.user);

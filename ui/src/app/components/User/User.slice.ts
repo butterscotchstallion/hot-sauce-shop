@@ -1,6 +1,6 @@
 import {createSlice, Slice} from "@reduxjs/toolkit";
-import {IUser} from "./IUser.ts";
-import {IUserRole} from "./IUserRole.ts";
+import {IUser} from "./types/IUser.ts";
+import {IUserRole} from "./types/IUserRole.ts";
 
 interface IInitialUserState {
     isSignedIn: boolean;

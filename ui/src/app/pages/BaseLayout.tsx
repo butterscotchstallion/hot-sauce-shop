@@ -10,7 +10,7 @@ import {Subscription} from "rxjs";
 import Cookies from "js-cookie";
 import {getUserDetailsBySessionId} from "../components/User/UserService.ts";
 import {setSignedIn, setUser, setUserExperience, setUserLevel, setUserRoles} from "../components/User/User.slice.ts";
-import {IUserDetails} from "../components/User/IUserDetails.ts";
+import {IUserDetails} from "../components/User/types/IUserDetails.ts";
 import {ErrorBoundary} from "react-error-boundary";
 import {DumpsterFireError} from "../components/Shared/DumpsterFireError.tsx";
 

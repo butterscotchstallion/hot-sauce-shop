@@ -10,7 +10,7 @@ import {Sidebar} from "primereact/sidebar";
 import {ConfirmDialog} from "primereact/confirmdialog";
 import {NavigateFunction, useNavigate} from "react-router";
 import {CartItemsDataTable} from "./CartItemsDataTable.tsx";
-import {IUser} from "../User/IUser.ts";
+import {IUser} from "../User/types/IUser.ts";
 
 export default function CartSidebar() {
     const [sidebarVisible, setSidebarVisible] = React.useState<boolean>(false);

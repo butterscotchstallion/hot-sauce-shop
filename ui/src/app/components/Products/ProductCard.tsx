@@ -10,7 +10,7 @@ import {RootState} from "../../store.ts";
 import {useDispatch, useSelector} from "react-redux";
 import {addCartItem} from "../Cart/CartService.ts";
 import {cartItemAdded} from "../Cart/Cart.slice.ts";
-import {IUser} from "../User/IUser.ts";
+import {IUser} from "../User/types/IUser.ts";
 
 interface IProductCardProps {
     product: IProduct,

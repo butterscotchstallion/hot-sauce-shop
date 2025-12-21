@@ -1,7 +1,7 @@
 import {Tag} from "primereact/tag";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../store.ts";
-import {IUser} from "./IUser.ts";
+import {IUser} from "./types/IUser.ts";
 import {Badge} from "primereact/badge";
 import {UserLevelModal} from "./UserLevelModal.tsx";
 import {RefObject, useEffect, useRef, useState} from "react";

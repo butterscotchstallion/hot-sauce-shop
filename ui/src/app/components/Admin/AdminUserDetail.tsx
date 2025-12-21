@@ -1,7 +1,7 @@
-import {IUser} from "../User/IUser.ts";
+import {IUser} from "../User/types/IUser.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../store.ts";
-import {IUserRole} from "../User/IUserRole.ts";
+import {IUserRole} from "../User/types/IUserRole.ts";
 import {ReactElement, RefObject, useEffect, useRef, useState} from "react";
 import {PickList} from "primereact/picklist";
 import {Card} from "primereact/card";

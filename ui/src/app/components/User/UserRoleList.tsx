@@ -1,4 +1,4 @@
-import {IUserRole} from "./IUserRole.ts";
+import {IUserRole} from "./types/IUserRole.ts";
 import {useEffect, useState} from "react";
 import {Tag} from "primereact/tag";
 

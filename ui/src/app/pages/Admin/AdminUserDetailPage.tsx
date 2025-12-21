@@ -1,6 +1,6 @@
 import {AdminUserDetail} from "../../components/Admin/AdminUserDetail.tsx";
 import {RefObject, useEffect, useRef, useState} from "react";
-import {IUser} from "../../components/User/IUser.ts";
+import {IUser} from "../../components/User/types/IUser.ts";
 import {Params, useParams} from "react-router";
 import {getUserBySlug} from "../../components/User/AdminService.ts";
 import {Subscription} from "rxjs";

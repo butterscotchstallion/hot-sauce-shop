@@ -1,9 +1,9 @@
 import {SESSION_URL, USER_BOARD_ADMIN_LIST, USER_BOARDS_URL, USER_PROFILE_URL, USER_URL} from "../Shared/Api.ts";
 import {Subject} from "rxjs";
 import Cookies from "js-cookie";
-import {IUser} from "./IUser.ts";
-import {IUserDetails} from "./IUserDetails.ts";
-import {IUserRole} from "./IUserRole.ts";
+import {IUser} from "./types/IUser.ts";
+import {IUserDetails} from "./types/IUserDetails.ts";
+import {IUserRole} from "./types/IUserRole.ts";
 import {IBoard} from "../Boards/types/IBoard.ts";
 
 export enum UserRole {

@@ -3,7 +3,7 @@ import TimeAgo from "react-timeago";
 import {useEffect, useState} from "react";
 import dayjs from "dayjs";
 import {NavLink} from "react-router";
-import {IUser} from "../User/IUser.ts";
+import {IUser} from "../User/types/IUser.ts";
 import {IBoardDetails} from "./types/IBoardDetails.ts";
 import {BoardSettingsButton} from "./BoardSettingsButton.tsx";
 

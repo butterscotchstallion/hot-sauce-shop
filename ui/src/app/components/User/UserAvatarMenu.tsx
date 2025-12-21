@@ -6,7 +6,7 @@ import {Button} from "primereact/button";
 import {UserSignInModal} from "./UserSignInModal.tsx";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../store.ts";
-import {IUser} from "./IUser.ts";
+import {IUser} from "./types/IUser.ts";
 import {confirmDialog} from "primereact/confirmdialog";
 import {removeSessionCookie} from "./UserService.ts";
 import {setSignedOut} from "./User.slice.ts";

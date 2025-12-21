@@ -6,7 +6,7 @@ import {getUserVoteMap} from "../../components/Boards/VoteService.ts";
 import {Subject} from "rxjs";
 import {NavigateFunction, Params, useNavigate, useParams} from "react-router";
 import {Button} from "primereact/button";
-import {IUser} from "../../components/User/IUser.ts";
+import {IUser} from "../../components/User/types/IUser.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../store.ts";
 import {IBoard} from "../../components/Boards/types/IBoard.ts";
@@ -285,7 +285,7 @@ export default function PostsListPage() {
 
             {postReplies.length > 0 && (
                 <section className="mt-4">
-                    <h1 className="text-3xl font-bold mb-4">Comments</h1>
+                    <h1 className="text-3xl font-bold mb-4">Comments ({postReplies.length})</h1>
                     <section className="w-3/4">
                         <PostList
                             posts={postReplies}

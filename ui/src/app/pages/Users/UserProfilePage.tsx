@@ -2,13 +2,13 @@ import {NavLink, Params, useParams} from "react-router";
 import {ReactElement, useEffect, useRef, useState} from "react";
 import {Subject} from "rxjs";
 import {getUserProfileBySlug} from "../../components/User/UserService.ts";
-import {IUserDetails} from "../../components/User/IUserDetails.ts";
+import {IUserDetails} from "../../components/User/types/IUserDetails.ts";
 import TimeAgo from "react-timeago";
 import {Card} from "primereact/card";
 import {Button} from "primereact/button";
 import {UserRoleList} from "../../components/User/UserRoleList.tsx";
 import {setPageTitle} from "../../components/Shared/PageTitle.ts";
-import {IUserRole} from "../../components/User/IUserRole.ts";
+import {IUserRole} from "../../components/User/types/IUserRole.ts";
 
 export default function UserProfilePage() {
     const params: Readonly<Params<string>> = useParams();
@@ -58,59 +58,61 @@ export default function UserProfilePage() {
 
     return (
         <>
-            <h1 className="text-3xl font-bold mb-4">User Profile</h1>
-
             {details && (
-                <section className="flex gap-4 w-full">
-                    {userAvatar}
-                    <div className={"w-2/3"}>
-                        <Card>
-                            <section className="flex justify-between">
-                                <ul>
-                                    <li className="mb-2">
-                                        <strong
-                                            className="pr-2 mb-1 block">Created</strong>
-                                        {<TimeAgo date={details.user.createdAt}
-                                                  title={createdAtFormatted.current}/>}
-                                    </li>
-                                    <li className="mb-2">
-                                        <strong
-                                            className="pr-2 mb-1 block">Karma</strong> {details.userPostVoteSum}
-                                    </li>
-                                    <li className="mb-2">
-                                        <strong
-                                            className="pr-2 mb-1 block">Posts</strong> {details.userPostCount}
-                                    </li>
-                                    <li className="mb-2">
-                                        <strong className="pr-2 mb-1 block">Roles</strong>
-                                        {details.roles ? <UserRoleList roles={details.roles}/> : 'No rules assigned'}
-                                    </li>
-
-                                    {isMessageBoardMod && (
+                <>
+                    <h1 className="text-3xl font-bold mb-4">{details.user.username}</h1>
+                    <section className="flex gap-4 w-full">
+                        {userAvatar}
+                        <div className={"w-2/3"}>
+                            <Card>
+                                <section className="flex justify-between">
+                                    <ul>
                                         <li className="mb-2">
-                                            <strong className="pr-2 mb-1 block">Message Board Moderator on
-                                                Boards</strong>
-                                            {details.userModeratedBoards ? (
-                                                <ul>
-                                                    {details.userModeratedBoards.map((board) => (
-                                                        <li key={board.id}>
-                                                            <NavLink
-                                                                to={`/boards/${board.slug}`}>{board.displayName}</NavLink>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            ) : "No boards assigned."}
+                                            <strong
+                                                className="pr-2 mb-1 block">Created</strong>
+                                            {<TimeAgo date={details.user.createdAt}
+                                                      title={createdAtFormatted.current}/>}
                                         </li>
-                                    )}
-                                </ul>
+                                        <li className="mb-2">
+                                            <strong
+                                                className="pr-2 mb-1 block">Karma</strong> {details.userPostVoteSum}
+                                        </li>
+                                        <li className="mb-2">
+                                            <strong
+                                                className="pr-2 mb-1 block">Posts</strong> {details.userPostCount}
+                                        </li>
+                                        <li className="mb-2">
+                                            <strong className="pr-2 mb-1 block">Roles</strong>
+                                            {details.roles ?
+                                                <UserRoleList roles={details.roles}/> : 'No rules assigned'}
+                                        </li>
 
-                                <div>
-                                    <Button label="Follow" icon="pi pi-user-plus" className="mr-2"></Button>
-                                </div>
-                            </section>
-                        </Card>
-                    </div>
-                </section>
+                                        {isMessageBoardMod && (
+                                            <li className="mb-2">
+                                                <strong className="pr-2 mb-1 block">Message Board Moderator on
+                                                    Boards</strong>
+                                                {details.userModeratedBoards ? (
+                                                    <ul>
+                                                        {details.userModeratedBoards.map((board) => (
+                                                            <li key={board.id}>
+                                                                <NavLink
+                                                                    to={`/boards/${board.slug}`}>{board.displayName}</NavLink>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                ) : "No boards assigned."}
+                                            </li>
+                                        )}
+                                    </ul>
+
+                                    <div>
+                                        <Button label="Follow" icon="pi pi-user-plus" className="mr-2"></Button>
+                                    </div>
+                                </section>
+                            </Card>
+                        </div>
+                    </section>
+                </>
             )}
         </>
     )
