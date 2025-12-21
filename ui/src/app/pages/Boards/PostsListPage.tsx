@@ -297,7 +297,7 @@ export default function PostsListPage() {
                 </section>
             )}
 
-            {postSlug && (
+            {postSlug && postReplies.length === 0 && (
                 <p>No comments on this post yet. Be the first!</p>
             )}
 
