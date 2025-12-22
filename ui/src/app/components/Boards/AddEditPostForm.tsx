@@ -31,7 +31,7 @@ interface IAddEditPostFormState {
 
 export default function AddEditPostForm({post, boardSlug, parentSlug, addPostCallback}: AddEditPostFormProps) {
     let addPost$: Subject<IBoardPost>;
-    const boardSlugRef = useRef<string>(boardSlug);
+    const boardSlugRef: RefObject<string> = useRef<string>(boardSlug);
     const [isValid, setIsValid] = useState<boolean>(false);
     const toast: RefObject<Toast | null> = useRef<Toast>(null);
     const [postTitle, setPostTitle] = useState<string>("");
