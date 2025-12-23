@@ -18,7 +18,6 @@ var config lib.HotSauceShopConfig
 
 // Used to add post flair to board post
 var postFlairIds = []int{1, 2, 3}
-var board = "sauces"
 
 func TestMain(m *testing.M) {
 	setup()
@@ -102,18 +101,17 @@ func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID stri
 	}
 	postName := postUUID.String()
 
+	boardResponse := CreateBoardAndVerify(t, e, sessionID)
+
 	// TODO: figure out how the heck to do images
 	newPost := lib.AddPostRequest{
 		Title:        postName,
 		ParentSlug:   "",
 		PostText:     "Follow the white rabbit, Neo.",
-		Slug:         postName,
 		PostFlairIds: postFlairIds,
 	}
 	var addPostResponse lib.AddPostResponse
-	// Probably should create the board here but...
-	// /api/v1/boards/:slug/posts
-	e.POST(fmt.Sprintf("/api/v1/boards/%v/posts", board)).
+	e.POST(fmt.Sprintf("/api/v1/boards/%v/posts", boardResponse.Results.Slug)).
 		WithCookie("sessionId", sessionID).
 		WithJSON(newPost).
 		Expect().
@@ -123,11 +121,17 @@ func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID stri
 	if addPostResponse.Status != "OK" {
 		t.Fatal("Failed to add post")
 	}
+	if addPostResponse.Results.Post.Title != newPost.Title {
+		t.Fatal("New post title mismatch")
+	}
+	if addPostResponse.Results.Post.PostText != newPost.PostText {
+		t.Fatal("New post text mismatch")
+	}
 
 	// Verify with post detail
 	var postDetailResponse lib.PostDetailResponse
 	// /api/v1/posts/:boardSlug/:postSlug
-	e.GET(fmt.Sprintf("/api/v1/posts/%v/%v", board, postName)).
+	e.GET(fmt.Sprintf("/api/v1/posts/%v/%v", boardResponse.Results.Slug, addPostResponse.Results.Post.Slug)).
 		Expect().
 		Status(http.StatusOK).
 		JSON().
@@ -148,7 +152,8 @@ func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID stri
 func deleteBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string, postSlug string) {
 	// Delete post
 	var boardPostDeleteResponse lib.BoardPostDeleteResponse
-	e.DELETE(fmt.Sprintf("/api/v1/%v/posts/%v", board, postSlug)).
+	// 							  /api/v1/boards/posts/:postSlug
+	e.DELETE(fmt.Sprintf("/api/v1/boards/posts/%v", postSlug)).
 		WithCookie("sessionId", sessionID).
 		Expect().
 		Status(http.StatusOK).
@@ -185,11 +190,11 @@ func TestCreateBoardPost(t *testing.T) {
 	 */
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
-	postName := createBoardPostAndVerify(t, e, sessionID)
-	if postName == "" {
-		t.Fatal("Failed to create board post")
+	postSlug := createBoardPostAndVerify(t, e, sessionID)
+	if postSlug == "" {
+		t.Fatal("Failed to create board post: slug is blank")
 	}
-	deleteBoardPostAndVerify(t, e, sessionID, postName)
+	deleteBoardPostAndVerify(t, e, sessionID, postSlug)
 }
 
 func TestCreateBoardPostWithoutSession(t *testing.T) {
@@ -355,7 +360,7 @@ type UpdateBoardAndVerifyRequest struct {
 }
 
 func updateBoardAndVerify(updatedBoardAndVerifyRequest UpdateBoardAndVerifyRequest) {
-	// Update board details
+	// Update boardSlug details
 	var updateBoardDetailsResponse lib.GenericResponse
 	updatedBoardAndVerifyRequest.e.
 		PUT(fmt.Sprintf("/api/v1/boards/%v", updatedBoardAndVerifyRequest.newBoardResponse.Results.Slug)).
@@ -371,7 +376,7 @@ func updateBoardAndVerify(updatedBoardAndVerifyRequest UpdateBoardAndVerifyReque
 	// Verify board details
 	var boardDetailResponse lib.BoardDetailResponse
 	updatedBoardAndVerifyRequest.e.
-		GET(fmt.Sprintf("/api/v1/boards/%v", board)).
+		GET(fmt.Sprintf("/api/v1/boards/%v", updatedBoardAndVerifyRequest.newBoardResponse.Results.Slug)).
 		Expect().
 		Status(http.StatusOK).
 		JSON().
@@ -380,19 +385,21 @@ func updateBoardAndVerify(updatedBoardAndVerifyRequest UpdateBoardAndVerifyReque
 		updatedBoardAndVerifyRequest.t.Fatal("Failed to get board details")
 	}
 
-	// Verify updated board details
-	if boardDetailResponse.Results.Board.IsPrivate != updatedBoardAndVerifyRequest.payload.IsPrivate {
-		updatedBoardAndVerifyRequest.t.Fatal("Updated board is not private")
-	}
-	if boardDetailResponse.Results.Board.IsOfficial != updatedBoardAndVerifyRequest.payload.IsOfficial {
-		updatedBoardAndVerifyRequest.t.Fatal("Updated board is not official")
-	}
-	if boardDetailResponse.Results.Board.IsPostApprovalRequired !=
-		updatedBoardAndVerifyRequest.payload.IsPostApprovalRequired {
-		updatedBoardAndVerifyRequest.t.Fatal("Updated board requires post approval")
-	}
-	if boardDetailResponse.Results.Board.Description != updatedBoardAndVerifyRequest.payload.Description {
-		updatedBoardAndVerifyRequest.t.Fatal("Updated board description does not match")
+	// Verify updated board details - only if the expected status is OK
+	if updatedBoardAndVerifyRequest.expectedResponseStatus == "OK" {
+		if boardDetailResponse.Results.Board.IsPrivate != updatedBoardAndVerifyRequest.payload.IsPrivate {
+			updatedBoardAndVerifyRequest.t.Fatal("Updated board is not private")
+		}
+		if boardDetailResponse.Results.Board.IsOfficial != updatedBoardAndVerifyRequest.payload.IsOfficial {
+			updatedBoardAndVerifyRequest.t.Fatal("Updated board is not official")
+		}
+		if boardDetailResponse.Results.Board.IsPostApprovalRequired !=
+			updatedBoardAndVerifyRequest.payload.IsPostApprovalRequired {
+			updatedBoardAndVerifyRequest.t.Fatal("Updated board requires post approval")
+		}
+		if boardDetailResponse.Results.Board.Description != updatedBoardAndVerifyRequest.payload.Description {
+			updatedBoardAndVerifyRequest.t.Fatal("Updated board description does not match")
+		}
 	}
 }
 
@@ -415,8 +422,8 @@ func TestUpdateBoardDetails(t *testing.T) {
 		IsPrivate:              true,
 		IsOfficial:             true,
 		IsPostApprovalRequired: true,
-		Description:            "I HAVE SWEATY BOOT RASH",
-		ThumbnailFilename:      "test-thumbnail.jpg",
+		Description:            "Let this corny slice of Americana be your tomb!",
+		ThumbnailFilename:      "mr-brainly.jpg",
 	}
 	updateBoardAndVerify(UpdateBoardAndVerifyRequest{
 		t:                      t,
@@ -440,10 +447,10 @@ func TestUpdateBoardDetailsWithUnprivilegedUser(t *testing.T) {
 		t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword,
 	)
 
-	// Create a new board
+	// Create a new boardSlug
 	newBoardResponse := CreateBoardAndVerify(t, e, adminSessionID)
 	if newBoardResponse.Status != "OK" {
-		t.Fatal("Failed to create board")
+		t.Fatal("Failed to create boardSlug")
 	}
 
 	updateBoardAndVerify(UpdateBoardAndVerifyRequest{
@@ -461,7 +468,7 @@ func TestUpdateBoardDetailsWithUnprivilegedUser(t *testing.T) {
 func TestGetPostList(t *testing.T) {
 	var postListResponse lib.PostListResponse
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
-	e.GET("/api/v1/posts/sauces").
+	e.GET("/api/v1/posts").
 		Expect().
 		Status(http.StatusOK).
 		JSON().

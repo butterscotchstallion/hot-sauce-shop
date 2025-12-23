@@ -241,10 +241,8 @@ func GetUserBySlug(dbPool *pgxpool.Pool, logger *slog.Logger, slug string) (User
 }
 
 func GetJoinedBoardsByUserId(dbPool *pgxpool.Pool, userId int) ([]Board, error) {
-	const query = `
-		SELECT b.id, b.display_name, b.created_at, b.updated_at, b.slug, b.visible, 
-		CASE WHEN b.thumbnail_filename IS NULL THEN '' ELSE b.thumbnail_filename END AS thumbnail_filename,
-		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description, b.private,
+	query := fmt.Sprintf(`
+		SELECT %s
 		b.created_by_user_id,
 		u.username AS created_by_username,
 		u.slug AS created_by_user_slug
@@ -253,7 +251,7 @@ func GetJoinedBoardsByUserId(dbPool *pgxpool.Pool, userId int) ([]Board, error) 
 		JOIN boards_users bu ON bu.board_id = b.id
 		WHERE bu.user_id = $1
 		ORDER BY b.display_name
-	`
+	`, getBoardColumns())
 	rows, err := dbPool.Query(context.Background(), query, userId)
 	if err != nil {
 		return nil, err
@@ -277,9 +275,7 @@ func AddBoardUser(dbPool *pgxpool.Pool, userId int, boardId int) error {
 // GetUserModeratedBoards
 // Returns boards the user is a moderator on
 func GetUserModeratedBoards(dbPool *pgxpool.Pool, userId int) ([]Board, error) {
-	const query = `SELECT b.id, b.display_name, b.created_at, b.updated_at, b.slug, b.visible, 
-		CASE WHEN b.thumbnail_filename IS NULL THEN '' ELSE b.thumbnail_filename END AS thumbnail_filename,
-		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description,
+	query := fmt.Sprintf(`SELECT %s
 		b.created_by_user_id,
 		u.username AS created_by_username,
 		u.slug AS created_by_user_slug
@@ -287,7 +283,7 @@ func GetUserModeratedBoards(dbPool *pgxpool.Pool, userId int) ([]Board, error) {
 		JOIN user_roles_boards urb ON urb.board_id = b.id
 		JOIN users u on urb.user_id = u.id
 		WHERE urb.user_id = $1
-		ORDER BY b.display_name`
+		ORDER BY b.display_name`, getBoardColumns())
 	rows, err := dbPool.Query(context.Background(), query, userId)
 	if err != nil {
 		return nil, err

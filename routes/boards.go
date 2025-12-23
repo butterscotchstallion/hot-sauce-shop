@@ -60,7 +60,6 @@ func Boards(
 				"status":  "ERROR",
 				"message": getBoardErr.Error(),
 			})
-
 			return
 		}
 
@@ -74,7 +73,6 @@ func Boards(
 				"status":  "ERROR",
 				"message": "Board not found",
 			})
-
 			return
 		}
 
@@ -152,9 +150,8 @@ func Boards(
 
 	// Post detail
 	r.GET("/api/v1/posts/:boardSlug/:postSlug", func(c *gin.Context) {
-		boardSlug := c.Param("boardSlug")
 		postSlug := c.Param("postSlug")
-		post, getPostDetailErr := lib.GetPostDetail(dbPool, boardSlug, postSlug)
+		post, getPostDetailErr := lib.GetPostDetail(dbPool, postSlug)
 		if getPostDetailErr != nil && !errors.Is(getPostDetailErr, sql.ErrNoRows) {
 			logger.Error(fmt.Sprintf("Error fetching post details: %v", getPostDetailErr.Error()))
 			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
@@ -300,11 +297,10 @@ func Boards(
 				"status":  "ERROR",
 				"message": err.Error(),
 			})
-
 			return
 		}
 
-		// Get board for this post - used to convert board slug to board id, which
+		// Get board for this post - used to convert boardSlug slug to board id, which
 		// is used below when adding the post
 		boardSlug := c.Param("slug")
 		logger.Info("GetBoardBySlug: fetching board by slug: " + boardSlug)
@@ -315,7 +311,6 @@ func Boards(
 				"status":  "ERROR",
 				"message": getBoardErr.Error(),
 			})
-
 			return
 		}
 		if board == (lib.Board{}) {
@@ -323,7 +318,6 @@ func Boards(
 				"status":  "ERROR",
 				"message": "Board not found",
 			})
-
 			return
 		}
 
@@ -599,6 +593,8 @@ func Boards(
 	r.DELETE("/api/v1/boards/posts/:postSlug", func(c *gin.Context) {
 		postSlug := c.Param("postSlug")
 
+		// TODO: refactor this into a reusable function for use in editing permission check
+
 		userId, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
 		if userSessionErr != nil || userId == 0 {
 			return
@@ -798,7 +794,7 @@ func Boards(
 			return
 		}
 
-		accessPermitted := canAccessBoardSettings(c, board.Id, dbPool, logger)
+		accessPermitted := canAccessBoardDetails(c, board.Id, dbPool, logger)
 		if !accessPermitted {
 			return
 		}

@@ -204,7 +204,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		})
 	})
 
-	// Join board
+	// Join boardSlug
 	r.POST("/api/v1/user/boards/:boardId", func(c *gin.Context) {
 		boardIdSlug := c.Param("boardId")
 		if len(boardIdSlug) == 0 {

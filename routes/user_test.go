@@ -68,7 +68,7 @@ func TestGetUserAdminBoards(t *testing.T) {
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
 
-	// Create board
+	// Create boardSlug
 	addBoardResponse := CreateBoardAndVerify(t, e, sessionID)
 
 	// Add board admin

@@ -29,7 +29,7 @@ func BoardSettings(
 		}
 
 		// Check access requirements
-		accessPermitted := canAccessBoardSettings(c, board.Id, dbPool, logger)
+		accessPermitted := canAccessBoardDetails(c, board.Id, dbPool, logger)
 		if !accessPermitted {
 			return
 		}
@@ -66,7 +66,7 @@ func BoardSettings(
 			return
 		}
 
-		accessPermitted := canAccessBoardSettings(c, board.Id, dbPool, logger)
+		accessPermitted := canAccessBoardDetails(c, board.Id, dbPool, logger)
 		if !accessPermitted {
 			return
 		}
@@ -99,7 +99,7 @@ func BoardSettings(
 	})
 }
 
-func canAccessBoardSettings(c *gin.Context, boardId int, dbPool *pgxpool.Pool, logger *slog.Logger) bool {
+func canAccessBoardDetails(c *gin.Context, boardId int, dbPool *pgxpool.Pool, logger *slog.Logger) bool {
 	userId, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
 	if userSessionErr != nil || userId == 0 {
 		return false

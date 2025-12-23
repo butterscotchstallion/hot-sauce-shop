@@ -201,17 +201,15 @@ type PostListResponse struct {
 
 func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
 	// TODO: filter visible boards, or show everything if privileged
-	const query = `
-		SELECT b.id, b.display_name, b.created_at, b.updated_at, b.slug, b.is_visible, 
-		CASE WHEN b.thumbnail_filename IS NULL THEN '' ELSE b.thumbnail_filename END AS thumbnail_filename,
-		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description, b.is_private,
+	query := fmt.Sprintf(`
+		SELECT %s
 		b.created_by_user_id,
 		u.username AS created_by_username,
 		u.slug AS created_by_user_slug
 		FROM boards b
 		JOIN users u on u.id = b.created_by_user_id
 		ORDER BY b.display_name
-	`
+	`, getBoardColumns())
 	rows, err := dbPool.Query(context.Background(), query)
 	if err != nil {
 		return nil, err
@@ -409,7 +407,7 @@ func GetBoardBySlug(dbPool *pgxpool.Pool, slug string) (Board, error) {
 	return board, nil
 }
 
-func GetPostDetail(dbPool *pgxpool.Pool, boardSlug string, postSlug string) (BoardPost, error) {
+func GetPostDetail(dbPool *pgxpool.Pool, postSlug string) (BoardPost, error) {
 	query := `
 		SELECT 
 		    bp.*,
@@ -689,6 +687,15 @@ func DeleteBoardUsers(dbPool *pgxpool.Pool, boardSlug string) error {
 }
 
 func DeleteBoardPost(dbPool *pgxpool.Pool, boardPostSlug string) error {
+	post, postErr := GetPostDetail(dbPool, boardPostSlug)
+	if postErr != nil {
+		return postErr
+	}
+	deleteFlairErr := DeleteBoardPostFlairs(dbPool, post.Id)
+	if deleteFlairErr != nil {
+		return deleteFlairErr
+	}
+
 	const query = `DELETE FROM board_posts WHERE slug = $1`
 	_, err := dbPool.Exec(
 		context.Background(),
@@ -853,9 +860,7 @@ func GetBoardsByRole(dbPool *pgxpool.Pool, userId int, roleName string) ([]Board
 		whereClause = fmt.Sprintf("AND r.name = '%s'", roleName)
 	}
 
-	query := fmt.Sprintf(`SELECT b.id, b.display_name, b.created_at, b.updated_at, b.slug, b.is_visible, 
-		CASE WHEN b.thumbnail_filename IS NULL THEN '' ELSE b.thumbnail_filename END AS thumbnail_filename,
-		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description, b.is_private,
+	query := fmt.Sprintf(`SELECT %s
 		b.created_by_user_id,
 		u.username AS created_by_username,
 		u.slug AS created_by_user_slug
@@ -865,7 +870,7 @@ func GetBoardsByRole(dbPool *pgxpool.Pool, userId int, roleName string) ([]Board
 		JOIN users u on urb.user_id = u.id
 		WHERE urb.user_id = $1
 		%s
-	`, whereClause)
+	`, getBoardColumns(), whereClause)
 	rows, err := dbPool.Query(context.Background(), query, userId)
 	if err != nil {
 		return nil, err
@@ -919,4 +924,20 @@ func UpdateBoard(dbPool *pgxpool.Pool, boardId int, updateBoardRequest UpdateBoa
 		return err
 	}
 	return nil
+}
+
+func getBoardColumns() string {
+	return `
+		b.id,
+		b.display_name,
+		b.created_at,
+		b.updated_at,
+		b.slug,
+		CASE WHEN b.thumbnail_filename IS NULL THEN '' ELSE b.thumbnail_filename END AS thumbnail_filename,
+		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description,
+		b.is_visible, 
+		b.is_private,
+		b.is_official,
+		b.is_post_approval_required,
+	`
 }
