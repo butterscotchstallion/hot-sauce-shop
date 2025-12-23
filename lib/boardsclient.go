@@ -900,9 +900,11 @@ func UpdateBoard(dbPool *pgxpool.Pool, boardId int, updateBoardRequest UpdateBoa
 		UPDATE boards 
 		SET description = $1, 
 		    is_visible = $2, 
-		    is_private = $3, 
+		    is_private = $3,
+		    is_official = $4,
+		    is_post_approval_required = $5,
 		    updated_at = NOW()
-		WHERE id = $4
+		WHERE id = $6
 	`
 	_, err := dbPool.Exec(
 		context.Background(),
@@ -910,6 +912,8 @@ func UpdateBoard(dbPool *pgxpool.Pool, boardId int, updateBoardRequest UpdateBoa
 		updateBoardRequest.Description,
 		updateBoardRequest.IsVisible,
 		updateBoardRequest.IsPrivate,
+		updateBoardRequest.IsOfficial,
+		updateBoardRequest.IsPostApprovalRequired,
 		boardId)
 	if err != nil {
 		return err

@@ -387,7 +387,8 @@ func updateBoardAndVerify(updatedBoardAndVerifyRequest UpdateBoardAndVerifyReque
 	if boardDetailResponse.Results.Board.IsOfficial != updatedBoardAndVerifyRequest.payload.IsOfficial {
 		updatedBoardAndVerifyRequest.t.Fatal("Updated board is not official")
 	}
-	if boardDetailResponse.Results.Board.IsPostApprovalRequired != updatedBoardAndVerifyRequest.payload.IsPostApprovalRequired {
+	if boardDetailResponse.Results.Board.IsPostApprovalRequired !=
+		updatedBoardAndVerifyRequest.payload.IsPostApprovalRequired {
 		updatedBoardAndVerifyRequest.t.Fatal("Updated board requires post approval")
 	}
 	if boardDetailResponse.Results.Board.Description != updatedBoardAndVerifyRequest.payload.Description {
