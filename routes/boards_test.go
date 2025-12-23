@@ -105,7 +105,7 @@ func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID stri
 	// TODO: figure out how the heck to do images
 	newPost := lib.AddPostRequest{
 		Title:        postName,
-		ParentId:     0,
+		ParentSlug:   "",
 		PostText:     "Follow the white rabbit, Neo.",
 		Slug:         postName,
 		PostFlairIds: postFlairIds,
@@ -202,7 +202,7 @@ func TestCreateBoardPostWithoutSession(t *testing.T) {
 	// TODO: figure out how the heck to do images
 	newPost := lib.AddPostRequest{
 		Title:        postName,
-		ParentId:     0,
+		ParentSlug:   "",
 		PostText:     "Follow the white rabbit, Neo.",
 		Slug:         postName,
 		PostFlairIds: postFlairIds,
@@ -351,6 +351,7 @@ type UpdateBoardAndVerifyRequest struct {
 	newBoardResponse       lib.AddBoardResponse
 	expectedResponseStatus string
 	expectedStatus         int
+	payload                lib.UpdateBoardRequest
 }
 
 func updateBoardAndVerify(updatedBoardAndVerifyRequest UpdateBoardAndVerifyRequest) {
@@ -378,6 +379,20 @@ func updateBoardAndVerify(updatedBoardAndVerifyRequest UpdateBoardAndVerifyReque
 	if boardDetailResponse.Status != "OK" {
 		updatedBoardAndVerifyRequest.t.Fatal("Failed to get board details")
 	}
+
+	// Verify updated board details
+	if boardDetailResponse.Results.Board.IsPrivate != updatedBoardAndVerifyRequest.payload.IsPrivate {
+		updatedBoardAndVerifyRequest.t.Fatal("Updated board is not private")
+	}
+	if boardDetailResponse.Results.Board.IsOfficial != updatedBoardAndVerifyRequest.payload.IsOfficial {
+		updatedBoardAndVerifyRequest.t.Fatal("Updated board is not official")
+	}
+	if boardDetailResponse.Results.Board.IsPostApprovalRequired != updatedBoardAndVerifyRequest.payload.IsPostApprovalRequired {
+		updatedBoardAndVerifyRequest.t.Fatal("Updated board requires post approval")
+	}
+	if boardDetailResponse.Results.Board.Description != updatedBoardAndVerifyRequest.payload.Description {
+		updatedBoardAndVerifyRequest.t.Fatal("Updated board description does not match")
+	}
 }
 
 /**
@@ -395,6 +410,13 @@ func TestUpdateBoardDetails(t *testing.T) {
 		t.Fatal("Failed to create board")
 	}
 
+	updateBoardPayload := lib.UpdateBoardRequest{
+		IsPrivate:              true,
+		IsOfficial:             true,
+		IsPostApprovalRequired: true,
+		Description:            "I HAVE SWEATY BOOT RASH",
+		ThumbnailFilename:      "test-thumbnail.jpg",
+	}
 	updateBoardAndVerify(UpdateBoardAndVerifyRequest{
 		t:                      t,
 		e:                      e,
@@ -402,6 +424,7 @@ func TestUpdateBoardDetails(t *testing.T) {
 		newBoardResponse:       newBoardResponse,
 		expectedResponseStatus: "OK",
 		expectedStatus:         http.StatusOK,
+		payload:                updateBoardPayload,
 	})
 
 	DeleteBoardAndVerify(t, e, sessionID, newBoardResponse.Results.Slug)

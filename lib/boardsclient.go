@@ -14,18 +14,20 @@ import (
 )
 
 type Board struct {
-	Id                int        `json:"id"`
-	DisplayName       string     `json:"displayName"`
-	CreatedAt         *time.Time `json:"createdAt"`
-	UpdatedAt         *time.Time `json:"updatedAt"`
-	Slug              string     `json:"slug"`
-	Visible           bool       `json:"visible"`
-	ThumbnailFilename string     `json:"thumbnailFilename"`
-	CreatedByUserId   int        `json:"createdByUserId"`
-	CreatedByUsername string     `json:"createdByUsername"`
-	CreatedByUserSlug string     `json:"createdByUserSlug"`
-	Description       string     `json:"description"`
-	Private           bool       `json:"private"`
+	Id                     int        `json:"id"`
+	DisplayName            string     `json:"displayName"`
+	CreatedAt              *time.Time `json:"createdAt"`
+	UpdatedAt              *time.Time `json:"updatedAt"`
+	Slug                   string     `json:"slug"`
+	ThumbnailFilename      string     `json:"thumbnailFilename"`
+	CreatedByUserId        int        `json:"createdByUserId"`
+	CreatedByUsername      string     `json:"createdByUsername"`
+	CreatedByUserSlug      string     `json:"createdByUserSlug"`
+	Description            string     `json:"description"`
+	IsVisible              bool       `json:"IsVisible"`
+	IsPrivate              bool       `json:"isPrivate"`
+	IsOfficial             bool       `json:"isOfficial"`
+	IsPostApprovalRequired bool       `json:"isPostApprovalRequired"`
 }
 
 type BoardPost struct {
@@ -179,10 +181,12 @@ type BoardAdminsResponse struct {
 }
 
 type UpdateBoardRequest struct {
-	Visible           bool   `json:"visible"`
-	Private           bool   `json:"private"`
-	Description       string `json:"description"`
-	ThumbnailFilename string `json:"thumbnailFilename"`
+	IsVisible              bool   `json:"isVisible"`
+	IsPrivate              bool   `json:"isPrivate"`
+	IsOfficial             bool   `json:"isOfficial"`
+	IsPostApprovalRequired bool   `json:"isPostApprovalRequired"`
+	Description            string `json:"description"`
+	ThumbnailFilename      string `json:"thumbnailFilename"`
 }
 
 type PostListResponseResults struct {
@@ -198,9 +202,9 @@ type PostListResponse struct {
 func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
 	// TODO: filter visible boards, or show everything if privileged
 	const query = `
-		SELECT b.id, b.display_name, b.created_at, b.updated_at, b.slug, b.visible, 
+		SELECT b.id, b.display_name, b.created_at, b.updated_at, b.slug, b.is_visible, 
 		CASE WHEN b.thumbnail_filename IS NULL THEN '' ELSE b.thumbnail_filename END AS thumbnail_filename,
-		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description, b.private,
+		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description, b.is_private,
 		b.created_by_user_id,
 		u.username AS created_by_username,
 		u.slug AS created_by_user_slug
@@ -849,9 +853,9 @@ func GetBoardsByRole(dbPool *pgxpool.Pool, userId int, roleName string) ([]Board
 		whereClause = fmt.Sprintf("AND r.name = '%s'", roleName)
 	}
 
-	query := fmt.Sprintf(`SELECT b.id, b.display_name, b.created_at, b.updated_at, b.slug, b.visible, 
+	query := fmt.Sprintf(`SELECT b.id, b.display_name, b.created_at, b.updated_at, b.slug, b.is_visible, 
 		CASE WHEN b.thumbnail_filename IS NULL THEN '' ELSE b.thumbnail_filename END AS thumbnail_filename,
-		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description, b.private,
+		CASE WHEN b.description IS NULL THEN '' ELSE b.description END AS description, b.is_private,
 		b.created_by_user_id,
 		u.username AS created_by_username,
 		u.slug AS created_by_user_slug
@@ -894,15 +898,18 @@ func AddBoardAdmin(dbPool *pgxpool.Pool, userId int, boardId int) error {
 func UpdateBoard(dbPool *pgxpool.Pool, boardId int, updateBoardRequest UpdateBoardRequest) error {
 	const query = `
 		UPDATE boards 
-		SET description = $1, visible = $2, private = $3, updated_at = NOW()
+		SET description = $1, 
+		    is_visible = $2, 
+		    is_private = $3, 
+		    updated_at = NOW()
 		WHERE id = $4
 	`
 	_, err := dbPool.Exec(
 		context.Background(),
 		query,
 		updateBoardRequest.Description,
-		updateBoardRequest.Visible,
-		updateBoardRequest.Private,
+		updateBoardRequest.IsVisible,
+		updateBoardRequest.IsPrivate,
 		boardId)
 	if err != nil {
 		return err

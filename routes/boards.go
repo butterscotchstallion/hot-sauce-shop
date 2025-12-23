@@ -771,6 +771,7 @@ func Boards(
 	})
 
 	/**
+	 * Update Board
 	 * 1. Bind update request
 	 * 2. Get board details by slug
 	 * 3. Check if the user is a board admin or super board admin
