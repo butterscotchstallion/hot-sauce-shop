@@ -9,6 +9,8 @@ export interface IBoard {
     createdByUsername: string;
     createdAtByUserId: number;
     createdByUserSlug: string;
-    visible: boolean;
-    private: boolean;
+    isVisible: boolean;
+    isPrivate: boolean;
+    isPostApprovalRequired: boolean;
+    isOfficial: boolean;
 }

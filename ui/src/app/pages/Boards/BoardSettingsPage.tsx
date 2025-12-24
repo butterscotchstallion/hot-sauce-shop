@@ -1,9 +1,8 @@
 import {Checkbox} from "primereact/checkbox";
 import * as React from "react";
 import {useEffect, useState} from "react";
-import {IBoardSettings} from "../../components/Boards/types/IBoardSettings.ts";
-import {getBoardByBoardSlug, getBoardSettings} from "../../components/Boards/BoardsService.ts";
-import {Params, useNavigate, useParams} from "react-router";
+import {getBoardByBoardSlug} from "../../components/Boards/BoardsService.ts";
+import {NavigateFunction, Params, useNavigate, useParams} from "react-router";
 import {InputTextarea} from "primereact/inputtextarea";
 import {IBoardDetails} from "../../components/Boards/types/IBoardDetails.ts";
 import {Button} from "primereact/button";
@@ -14,33 +13,21 @@ import {DumpsterFireError} from "../../components/Shared/DumpsterFireError.tsx";
 export function BoardSettingsPage() {
     const params: Readonly<Params<string>> = useParams();
     const boardSlug: string = params?.boardSlug || '';
-    const [boardSettings, setBoardSettings] = useState<IBoardSettings>();
     const [boardDetails, setBoardDetails] = useState<IBoardDetails>();
     const [somethingWentWrong, setSomethingWentWrong] = useState<boolean>(false);
-    const navigate = useNavigate();
+    const navigate: NavigateFunction = useNavigate();
 
     useEffect(() => {
-        getBoardSettings(boardSlug).subscribe({
-            next: (settings: IBoardSettings) => setBoardSettings(settings),
-            error: (err) => {
-                console.error(err);
-                setSomethingWentWrong(true);
-            }
-        });
         getBoardByBoardSlug(boardSlug).subscribe({
-            next: (boardDetails: IBoardDetails) => setBoardDetails(boardDetails),
+            next: (boardDetails: IBoardDetails) => {
+                setBoardDetails(boardDetails)
+            },
             error: (err) => {
                 console.error(err);
                 setSomethingWentWrong(true);
             },
         })
     }, []);
-
-    function updateSettings(settingName: string, value: string | boolean) {
-        if (boardSettings) {
-            setBoardSettings({...boardSettings, ...{[settingName]: value}});
-        }
-    }
 
     function updateBoardDetails(settingName: string, value: string | boolean) {
         if (boardDetails) {
@@ -76,8 +63,8 @@ export function BoardSettingsPage() {
                                 <div className="mb-4 pt-4 flex gap-4">
                                     <div className="">
                                         <Checkbox inputId="isOfficialCheckbox"
-                                                  onChange={e => updateSettings('isOfficial', !!e.checked)}
-                                                  checked={!!boardSettings?.isOfficial}></Checkbox>
+                                                  onChange={e => updateBoardDetails('isOfficial', !!e.checked)}
+                                                  checked={!!boardDetails?.board.isOfficial}></Checkbox>
                                     </div>
                                     <div>
                                         <label
@@ -86,11 +73,7 @@ export function BoardSettingsPage() {
                                             <i className="pi pi-verified pr-1"/> <strong>Official Board</strong>
                                             <p className="text-gray-400">
                                                 Marks this board as official, adding an icon to the board name. This
-                                                board also
-                                                appears
-                                                in
-                                                the
-                                                unfiltered post list.
+                                                board also appears in the unfiltered post list.
                                             </p>
                                         </label>
                                     </div>
@@ -99,8 +82,8 @@ export function BoardSettingsPage() {
                                 <div className="mb-4 flex gap-4">
                                     <div className="">
                                         <Checkbox inputId="isPostApprovalRequiredCheckbox"
-                                                  onChange={e => updateSettings('isPostApprovalRequired', !!e.checked)}
-                                                  checked={!!boardSettings?.isPostApprovalRequired}></Checkbox>
+                                                  onChange={e => updateBoardDetails('isPostApprovalRequired', !!e.checked)}
+                                                  checked={!!boardDetails?.board.isPostApprovalRequired}></Checkbox>
                                     </div>
                                     <div>
                                         <label
@@ -110,8 +93,7 @@ export function BoardSettingsPage() {
                                             Required</strong>
                                             <p className="text-gray-400">
                                                 Requires all posts from users to be approved before they are public.
-                                                Moderators
-                                                and admins can post without approval.
+                                                Moderators and admins can post without approval.
                                             </p>
                                         </label>
                                     </div>
@@ -120,8 +102,8 @@ export function BoardSettingsPage() {
                                 <div className="mb-4 flex gap-4">
                                     <div className="">
                                         <Checkbox inputId="isVisibleCheckbox"
-                                                  onChange={e => updateBoardDetails('visible', !!e.checked)}
-                                                  checked={!!boardDetails?.board.visible}></Checkbox>
+                                                  onChange={e => updateBoardDetails('isVisible', !!e.checked)}
+                                                  checked={!!boardDetails?.board.isVisible}></Checkbox>
                                     </div>
                                     <div>
                                         <label
@@ -140,8 +122,8 @@ export function BoardSettingsPage() {
                                 <div className="mb-4 flex gap-4">
                                     <div className="">
                                         <Checkbox inputId="isPrivateCheckbox"
-                                                  onChange={e => updateBoardDetails('private', !!e.checked)}
-                                                  checked={!!boardDetails?.board.private}></Checkbox>
+                                                  onChange={e => updateBoardDetails('isPrivate', !!e.checked)}
+                                                  checked={!!boardDetails?.board.isPrivate}></Checkbox>
                                     </div>
                                     <div>
                                         <label
@@ -150,9 +132,7 @@ export function BoardSettingsPage() {
                                             <i className="pi pi-users pr-1"/> <strong>Private</strong>
                                             <p className="text-gray-400">
                                                 When the board is private, all members that join must be approved. Posts
-                                                will
-                                                only
-                                                be visible to moderators and admins.
+                                                will only be visible to moderators and admins.
                                             </p>
                                         </label>
                                     </div>
@@ -191,7 +171,11 @@ export function BoardSettingsPage() {
                                                 <i className="pi pi-file pr-1"/> <strong>Board Description</strong>
                                             </label>
                                             <InputTextarea value={boardDetails?.board.description}
-                                                           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setValue(e.target.value)}
+                                                           onChange={
+                                                               (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                                                                   updateBoardDetails('description', e.target.value)
+                                                               }
+                                                           }
                                                            rows={5} cols={30}/>
                                         </div>
                                     </div>

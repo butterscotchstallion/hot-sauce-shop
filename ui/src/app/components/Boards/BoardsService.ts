@@ -17,6 +17,7 @@ import {IBoardDetails} from "./types/IBoardDetails.ts";
 import {IBoardSettings} from "./types/IBoardSettings.ts";
 import {getUserAdminBoards} from "../User/UserService.ts";
 import {IBoardPostsResponse} from "./types/IBoardPostsResponse.ts";
+import {IBoardDetailsPayload} from "./types/IBoardDetailsPayload.ts";
 
 export function getBoards(): Subject<IBoard[]> {
     const boards$ = new Subject<IBoard[]>();
@@ -230,22 +231,33 @@ export function pinPost(post: IBoardPost, boardSlug: string): Subject<boolean> {
     return pinPost$;
 }
 
-export function getBoardSettings(boardSlug: string): Subject<IBoardSettings> {
-    const settings$ = new Subject<IBoardSettings>();
-    fetch(`${BOARD_SETTINGS_URL}/${boardSlug}`, {
-        credentials: 'include'
+export function saveBoardDetails(boardDetails: IBoardDetailsPayload): Subject<boolean | string> {
+    const details$ = new Subject<boolean>();
+    fetch(BOARD_DETAILS_URL, {
+        credentials: 'include',
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(boardDetails)
     }).then((res: Response) => {
         if (res.ok) {
-            res.json().then(resp => {
-                settings$.next(resp.results);
+            res.json().then((result) => {
+                if (result.status === "OK") {
+                    details$.next(true);
+                } else {
+                    details$.error(result.message || "Unknown error");
+                }
             });
         } else {
-            settings$.error(res.statusText);
+            res.json().then(resp => {
+                details$.error(resp?.message || "Unknown error");
+            });
         }
     }).catch((err) => {
-        settings$.error(err);
+        details$.error(err);
     });
-    return settings$;
+    return details$;
 }
 
 export function isSettingsAreaAvailable(boardSlug: string): Subject<boolean> {
