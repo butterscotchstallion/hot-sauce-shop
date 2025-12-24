@@ -17,15 +17,21 @@ export function BoardSettingsPage() {
     const toast: RefObject<Toast | null> = useRef<Toast>(null);
     const params: Readonly<Params<string>> = useParams();
     const boardSlug: string = params?.boardSlug || '';
-    const [boardDetails, setBoardDetails] = useState<IBoardDetails>();
     const [somethingWentWrong, setSomethingWentWrong] = useState<boolean>(false);
     const navigate: NavigateFunction = useNavigate();
     const saveSettings$ = React.useRef<Subscription>(null);
+    const [boardUpdatePayload, setBoardUpdatePayload] = useState<IBoardDetailsPayload>();
 
     useEffect(() => {
         getBoardByBoardSlug(boardSlug).subscribe({
             next: (boardDetails: IBoardDetails) => {
-                setBoardDetails(boardDetails);
+                setBoardUpdatePayload({
+                    isPrivate: boardDetails.board.isPrivate,
+                    isVisible: boardDetails.board.isVisible,
+                    isPostApprovalRequired: boardDetails.board.isPostApprovalRequired,
+                    isOfficial: boardDetails.board.isOfficial,
+                    description: boardDetails.board.description,
+                })
                 console.log(boardDetails);
             },
             error: (err) => {
@@ -36,8 +42,8 @@ export function BoardSettingsPage() {
     }, []);
 
     function updateBoardDetails(settingName: string, value: string | boolean) {
-        if (boardDetails) {
-            setBoardDetails({...boardDetails.board, ...{[settingName]: value}});
+        if (boardUpdatePayload) {
+            setBoardUpdatePayload({...boardUpdatePayload, ...{[settingName]: value}});
         }
     }
 
@@ -50,15 +56,8 @@ export function BoardSettingsPage() {
     }
 
     const onSaveButtonClicked = () => {
-        if (boardDetails) {
-            const payload: IBoardDetailsPayload = {
-                isPrivate: boardDetails.board.isPrivate,
-                isVisible: boardDetails.board.isVisible,
-                isPostApprovalRequired: boardDetails.board.isPostApprovalRequired,
-                isOfficial: boardDetails.board.isOfficial,
-                description: boardDetails.board.description,
-            }
-            saveSettings$.current = saveBoardDetails(payload).subscribe({
+        if (boardUpdatePayload) {
+            saveSettings$.current = saveBoardDetails(boardUpdatePayload).subscribe({
                 next: () => {
                     if (toast.current) {
                         toast.current.show({
@@ -97,7 +96,7 @@ export function BoardSettingsPage() {
                                     <div className="">
                                         <Checkbox inputId="isOfficialCheckbox"
                                                   onChange={e => updateBoardDetails('isOfficial', !!e.checked)}
-                                                  checked={!!boardDetails?.board.isOfficial}></Checkbox>
+                                                  checked={!!boardUpdatePayload?.isOfficial}></Checkbox>
                                     </div>
                                     <div>
                                         <label
@@ -116,7 +115,7 @@ export function BoardSettingsPage() {
                                     <div className="">
                                         <Checkbox inputId="isPostApprovalRequiredCheckbox"
                                                   onChange={e => updateBoardDetails('isPostApprovalRequired', !!e.checked)}
-                                                  checked={!!boardDetails?.board.isPostApprovalRequired}></Checkbox>
+                                                  checked={!!boardUpdatePayload?.isPostApprovalRequired}></Checkbox>
                                     </div>
                                     <div>
                                         <label
@@ -136,7 +135,7 @@ export function BoardSettingsPage() {
                                     <div className="">
                                         <Checkbox inputId="isVisibleCheckbox"
                                                   onChange={e => updateBoardDetails('isVisible', !!e.checked)}
-                                                  checked={!!boardDetails?.board.isVisible}></Checkbox>
+                                                  checked={!!boardUpdatePayload?.isVisible}></Checkbox>
                                     </div>
                                     <div>
                                         <label
@@ -155,7 +154,7 @@ export function BoardSettingsPage() {
                                     <div className="">
                                         <Checkbox inputId="isPrivateCheckbox"
                                                   onChange={e => updateBoardDetails('isPrivate', !!e.checked)}
-                                                  checked={!!boardDetails?.board.isPrivate}></Checkbox>
+                                                  checked={!!boardUpdatePayload?.isPrivate}></Checkbox>
                                     </div>
                                     <div>
                                         <label
@@ -202,7 +201,7 @@ export function BoardSettingsPage() {
                                                 htmlFor="boardDescriptionTextbox">
                                                 <i className="pi pi-file pr-1"/> <strong>Board Description</strong>
                                             </label>
-                                            <InputTextarea value={boardDetails?.board.description}
+                                            <InputTextarea value={boardUpdatePayload?.description}
                                                            onChange={
                                                                (e: React.ChangeEvent<HTMLTextAreaElement>) => {
                                                                    updateBoardDetails('description', e.target.value)
