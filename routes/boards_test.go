@@ -462,6 +462,14 @@ func TestUpdateBoardDetailsWithUnprivilegedUser(t *testing.T) {
 		newBoardResponse:       newBoardResponse,
 		expectedResponseStatus: "ERROR",
 		expectedStatus:         http.StatusForbidden,
+		payload: lib.UpdateBoardRequest{
+			IsVisible:              true,
+			IsPrivate:              true,
+			IsOfficial:             true,
+			IsPostApprovalRequired: true,
+			Description:            "We don't talk about Bruno no no no",
+			ThumbnailFilename:      "mr-brainly.jpg",
+		},
 	})
 
 	DeleteBoardAndVerify(t, e, adminSessionID, newBoardResponse.Results.Slug)
