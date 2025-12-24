@@ -24,7 +24,7 @@ type Board struct {
 	CreatedByUsername      string     `json:"createdByUsername"`
 	CreatedByUserSlug      string     `json:"createdByUserSlug"`
 	Description            string     `json:"description"`
-	IsVisible              bool       `json:"IsVisible"`
+	IsVisible              bool       `json:"isVisible"`
 	IsPrivate              bool       `json:"isPrivate"`
 	IsOfficial             bool       `json:"isOfficial"`
 	IsPostApprovalRequired bool       `json:"isPostApprovalRequired"`

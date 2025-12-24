@@ -25,7 +25,8 @@ export function BoardSettingsPage() {
     useEffect(() => {
         getBoardByBoardSlug(boardSlug).subscribe({
             next: (boardDetails: IBoardDetails) => {
-                setBoardDetails(boardDetails)
+                setBoardDetails(boardDetails);
+                console.log(boardDetails);
             },
             error: (err) => {
                 console.error(err);
@@ -144,8 +145,7 @@ export function BoardSettingsPage() {
                                             <i className="pi pi-eye pr-1"/> <strong>Visible</strong>
                                             <p className="text-gray-400">
                                                 Controls whether the board is publicly visible. Moderators and admins
-                                                can still
-                                                see it.
+                                                can still see it.
                                             </p>
                                         </label>
                                     </div>
@@ -163,8 +163,8 @@ export function BoardSettingsPage() {
                                             htmlFor="isPrivateCheckbox">
                                             <i className="pi pi-users pr-1"/> <strong>Private</strong>
                                             <p className="text-gray-400">
-                                                When the board is private, all members that join must be approved. Posts
-                                                will only be visible to moderators and admins.
+                                                When the board is private, all members must be approved prior to
+                                                joining. Posts will only be visible to members.
                                             </p>
                                         </label>
                                     </div>
