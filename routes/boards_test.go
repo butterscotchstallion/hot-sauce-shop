@@ -483,4 +483,10 @@ func TestGetPostList(t *testing.T) {
 		Status(http.StatusOK).
 		JSON().
 		Decode(&postListResponse)
+	if postListResponse.Status != "OK" {
+		t.Fatal("Failed to get post list")
+	}
+	if len(postListResponse.Results.Posts) == 0 {
+		t.Fatal("Post list is empty!")
+	}
 }
