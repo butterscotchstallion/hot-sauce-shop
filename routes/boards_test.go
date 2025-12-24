@@ -365,6 +365,7 @@ func updateBoardAndVerify(updatedBoardAndVerifyRequest UpdateBoardAndVerifyReque
 	updatedBoardAndVerifyRequest.e.
 		PUT(fmt.Sprintf("/api/v1/boards/%v", updatedBoardAndVerifyRequest.newBoardResponse.Results.Slug)).
 		WithCookie("sessionId", updatedBoardAndVerifyRequest.sessionID).
+		WithJSON(updatedBoardAndVerifyRequest.payload).
 		Expect().
 		Status(updatedBoardAndVerifyRequest.expectedStatus).
 		JSON().
@@ -419,6 +420,7 @@ func TestUpdateBoardDetails(t *testing.T) {
 	}
 
 	updateBoardPayload := lib.UpdateBoardRequest{
+		IsVisible:              true,
 		IsPrivate:              true,
 		IsOfficial:             true,
 		IsPostApprovalRequired: true,

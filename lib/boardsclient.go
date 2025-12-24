@@ -181,12 +181,12 @@ type BoardAdminsResponse struct {
 }
 
 type UpdateBoardRequest struct {
-	IsVisible              bool   `json:"isVisible"`
-	IsPrivate              bool   `json:"isPrivate"`
-	IsOfficial             bool   `json:"isOfficial"`
-	IsPostApprovalRequired bool   `json:"isPostApprovalRequired"`
-	Description            string `json:"description"`
-	ThumbnailFilename      string `json:"thumbnailFilename"`
+	IsVisible              bool   `json:"isVisible"              validate:"required,boolean"`
+	IsPrivate              bool   `json:"isPrivate"              validate:"required,boolean"`
+	IsOfficial             bool   `json:"isOfficial"             validate:"required,boolean"`
+	IsPostApprovalRequired bool   `json:"isPostApprovalRequired" validate:"required,boolean"`
+	Description            string `json:"description"            validate:"required,min=10,max=1000000"`
+	ThumbnailFilename      string `json:"thumbnailFilename"      validate:"required"`
 }
 
 type PostListResponseResults struct {
@@ -900,7 +900,8 @@ func AddBoardAdmin(dbPool *pgxpool.Pool, userId int, boardId int) error {
 	return nil
 }
 
-func UpdateBoard(dbPool *pgxpool.Pool, boardId int, updateBoardRequest UpdateBoardRequest) error {
+func UpdateBoard(
+	dbPool *pgxpool.Pool, boardId int, updateBoardRequest UpdateBoardRequest, logger *slog.Logger) (bool, error) {
 	const query = `
 		UPDATE boards 
 		SET description = $1, 
@@ -911,7 +912,8 @@ func UpdateBoard(dbPool *pgxpool.Pool, boardId int, updateBoardRequest UpdateBoa
 		    updated_at = NOW()
 		WHERE id = $6
 	`
-	_, err := dbPool.Exec(
+	logger.Info(fmt.Sprintf("UpdateBoard: query: %v", query))
+	result, err := dbPool.Exec(
 		context.Background(),
 		query,
 		updateBoardRequest.Description,
@@ -921,9 +923,12 @@ func UpdateBoard(dbPool *pgxpool.Pool, boardId int, updateBoardRequest UpdateBoa
 		updateBoardRequest.IsPostApprovalRequired,
 		boardId)
 	if err != nil {
-		return err
+		return false, err
 	}
-	return nil
+
+	logger.Info(fmt.Sprintf("UpdateBoard: updated board #%v result: %v", boardId, result.RowsAffected()))
+
+	return result.RowsAffected() > 0, nil
 }
 
 func getBoardColumns() string {

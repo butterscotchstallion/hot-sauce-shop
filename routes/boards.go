@@ -16,6 +16,7 @@ import (
 	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/gosimple/slug"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -50,7 +51,7 @@ func Boards(
 	}))
 
 	// Board detail
-	r.GET("/api/v1/boards/:slug", cache.CachePage(store, time.Minute*1, func(c *gin.Context) {
+	r.GET("/api/v1/boards/:slug", func(c *gin.Context) {
 		boardSlug := c.Param("slug")
 		logger.Info("GetBoardBySlug: fetching board by slug: " + boardSlug)
 		board, getBoardErr := lib.GetBoardBySlug(dbPool, boardSlug)
@@ -95,7 +96,7 @@ func Boards(
 				TotalPosts:      totalPosts,
 			},
 		})
-	}))
+	})
 
 	// Board total posts
 	r.GET("/api/v1/total-posts/:boardSlug", func(c *gin.Context) {
@@ -776,10 +777,21 @@ func Boards(
 	r.PUT("/api/v1/boards/:boardSlug", func(c *gin.Context) {
 		var updateBoardRequest lib.UpdateBoardRequest
 		if err := c.ShouldBind(&updateBoardRequest); err != nil {
-			logger.Error(fmt.Sprintf("AddPost: error binding update request: %v", err.Error()))
+			logger.Error(fmt.Sprintf("Update board: error binding update request: %v", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status":  "ERROR",
 				"message": err.Error(),
+			})
+			return
+		}
+
+		validate := validator.New(validator.WithRequiredStructEnabled())
+		err := validate.Struct(updateBoardRequest)
+		if err != nil {
+			logger.Error(err.Error())
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "ERROR",
+				"message": fmt.Sprintf("Update board: validation failed: %v", err),
 			})
 			return
 		}
@@ -794,17 +806,30 @@ func Boards(
 			return
 		}
 
+		logger.Info(fmt.Sprintf("UpdateBoard: found board id %v", board.Id))
+
 		accessPermitted := canAccessBoardDetails(c, board.Id, dbPool, logger)
 		if !accessPermitted {
 			return
 		}
 
-		updateBoardErr := lib.UpdateBoard(dbPool, board.Id, updateBoardRequest)
+		logger.Info("UpdateBoard: access permitted")
+
+		updateSuccessful, updateBoardErr := lib.UpdateBoard(dbPool, board.Id, updateBoardRequest, logger)
 		if updateBoardErr != nil {
 			logger.Error(fmt.Sprintf("Error updating board: %v", updateBoardErr))
 			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
 				Status:  "ERROR",
 				Message: "Error updating board",
+			})
+			return
+		}
+
+		if !updateSuccessful {
+			logger.Error("Error updating board: no changes made")
+			c.JSON(http.StatusNotFound, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: "No changes made",
 			})
 			return
 		}
