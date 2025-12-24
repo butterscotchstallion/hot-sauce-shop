@@ -1,7 +1,7 @@
 import {Checkbox} from "primereact/checkbox";
 import * as React from "react";
-import {useEffect, useState} from "react";
-import {getBoardByBoardSlug} from "../../components/Boards/BoardsService.ts";
+import {RefObject, useEffect, useRef, useState} from "react";
+import {getBoardByBoardSlug, saveBoardDetails} from "../../components/Boards/BoardsService.ts";
 import {NavigateFunction, Params, useNavigate, useParams} from "react-router";
 import {InputTextarea} from "primereact/inputtextarea";
 import {IBoardDetails} from "../../components/Boards/types/IBoardDetails.ts";
@@ -9,13 +9,18 @@ import {Button} from "primereact/button";
 import {Card} from "primereact/card";
 import {FileUpload} from "primereact/fileupload";
 import {DumpsterFireError} from "../../components/Shared/DumpsterFireError.tsx";
+import {Subscription} from "rxjs";
+import {Toast} from "primereact/toast";
+import {IBoardDetailsPayload} from "../../components/Boards/types/IBoardDetailsPayload.ts";
 
 export function BoardSettingsPage() {
+    const toast: RefObject<Toast | null> = useRef<Toast>(null);
     const params: Readonly<Params<string>> = useParams();
     const boardSlug: string = params?.boardSlug || '';
     const [boardDetails, setBoardDetails] = useState<IBoardDetails>();
     const [somethingWentWrong, setSomethingWentWrong] = useState<boolean>(false);
     const navigate: NavigateFunction = useNavigate();
+    const saveSettings$ = React.useRef<Subscription>(null);
 
     useEffect(() => {
         getBoardByBoardSlug(boardSlug).subscribe({
@@ -43,6 +48,33 @@ export function BoardSettingsPage() {
         navigate(`/boards/${boardSlug}`);
     }
 
+    const onSaveButtonClicked = () => {
+        if (boardDetails) {
+            const payload: IBoardDetailsPayload = {
+                isPrivate: boardDetails.board.isPrivate,
+                isVisible: boardDetails.board.isVisible,
+                isPostApprovalRequired: boardDetails.board.isPostApprovalRequired,
+                isOfficial: boardDetails.board.isOfficial,
+                description: boardDetails.board.description,
+            }
+            saveSettings$.current = saveBoardDetails(payload).subscribe({
+                next: () => {
+                    if (toast.current) {
+                        toast.current.show({
+                            severity: 'success',
+                            summary: 'Success',
+                            detail: 'Board settings saved',
+                            life: 3000
+                        });
+                    }
+                },
+                error: (err) => {
+                    console.error("Error saving board settings:", err);
+                }
+            })
+        }
+    }
+
     return (
         <>
             {somethingWentWrong ? (
@@ -53,7 +85,7 @@ export function BoardSettingsPage() {
                         <h1 className="text-3xl font-bold">Board Settings</h1>
                         <div className="w-3/4 gap-4 flex justify-end">
                             <Button label="View Board" icon="pi pi-eye" onClick={() => goToBoardPage()}/>
-                            <Button label="Save Settings" icon="pi pi-check"/>
+                            <Button label="Save Settings" icon="pi pi-check" onClick={onSaveButtonClicked}/>
                         </div>
                     </div>
 
@@ -183,6 +215,7 @@ export function BoardSettingsPage() {
                             </Card>
                         </div>
                     </section>
+                    <Toast ref={toast}/>
                 </>
             )}
         </>

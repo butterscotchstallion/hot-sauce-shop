@@ -4,7 +4,6 @@ import {
     BOARD_DETAILS_URL,
     BOARD_PIN_POST_URL,
     BOARD_POSTS_URL,
-    BOARD_SETTINGS_URL,
     BOARD_TOTAL_POSTS_URL,
     BOARD_TOTAL_REPLIES,
     BOARDS_URL,
@@ -14,7 +13,6 @@ import {
 import {IBoardPost} from "./types/IBoardPost.ts";
 import {INewBoardPost} from "./types/INewBoardPost.ts";
 import {IBoardDetails} from "./types/IBoardDetails.ts";
-import {IBoardSettings} from "./types/IBoardSettings.ts";
 import {getUserAdminBoards} from "../User/UserService.ts";
 import {IBoardPostsResponse} from "./types/IBoardPostsResponse.ts";
 import {IBoardDetailsPayload} from "./types/IBoardDetailsPayload.ts";
@@ -278,26 +276,4 @@ export function isSettingsAreaAvailable(boardSlug: string): Subject<boolean> {
         }
     });
     return settingsAvailable$;
-}
-
-export function updateBoardSettings(boardSettings: IBoardSettings): Subject<boolean> {
-    const updateBoardSettings$ = new Subject<boolean>();
-    fetch(BOARD_SETTINGS_URL, {
-        credentials: 'include',
-        method: 'PUT',
-        body: JSON.stringify(boardSettings),
-    }).then((res: Response) => {
-        if (res.ok) {
-            res.json().then(resp => {
-                updateBoardSettings$.next(resp.results);
-            });
-        } else {
-            res.json().then(resp => {
-                updateBoardSettings$.error(resp?.message || "Unknown error");
-            });
-        }
-    }).catch((err) => {
-        updateBoardSettings$.error(err);
-    });
-    return updateBoardSettings$;
 }
