@@ -42,17 +42,7 @@ func TestGetBoardPosts(t *testing.T) {
 		Value("boards").Array().Length().Gt(0)
 }
 
-func CreateBoardAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string) lib.AddBoardResponse {
-	// Add board
-	boardUUID, boardUUIDErr := uuid.NewRandom()
-	if boardUUIDErr != nil {
-		t.Fatal("Failed to generate board UUID")
-	}
-	boardName := boardUUID.String()
-	newBoardPayload := lib.AddBoardRequest{
-		DisplayName: boardName,
-		Description: "Testing testing 1-2-3",
-	}
+func CreateBoardAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string, newBoardPayload lib.AddBoardRequest) lib.AddBoardResponse {
 	var addBoardResponse lib.AddBoardResponse
 	e.POST("/api/v1/boards").
 		WithCookie("sessionId", sessionID).
@@ -157,8 +147,11 @@ func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID stri
 		t.Fatal("Failed to generate post UUID")
 	}
 	postName := postUUID.String()
-
-	boardResponse := CreateBoardAndVerify(t, e, sessionID)
+	newBoardPayload := lib.AddBoardRequest{
+		DisplayName: postName,
+		Description: "Testing testing 1-2-3",
+	}
+	boardResponse := CreateBoardAndVerify(t, e, sessionID, newBoardPayload)
 
 	// TODO: figure out how the heck to do images
 	newPost := lib.AddPostRequest{
@@ -183,9 +176,7 @@ func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID stri
 }
 
 func deleteBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string, postSlug string) {
-	// Delete post
 	var boardPostDeleteResponse lib.BoardPostDeleteResponse
-	// 							  /api/v1/boards/posts/:postSlug
 	e.DELETE(fmt.Sprintf("/api/v1/boards/posts/%v", postSlug)).
 		WithCookie("sessionId", sessionID).
 		Expect().
@@ -206,8 +197,15 @@ func TestCreateBoard(t *testing.T) {
 	 */
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
-
-	addBoardResponse := CreateBoardAndVerify(t, e, sessionID)
+	newBoardPayload := lib.AddBoardRequest{
+		DisplayName:            GenerateUniqueName(),
+		Description:            "Testing testing 1-2-3",
+		IsVisible:              true,
+		IsPrivate:              false,
+		IsOfficial:             false,
+		IsPostApprovalRequired: false,
+	}
+	addBoardResponse := CreateBoardAndVerify(t, e, sessionID, newBoardPayload)
 
 	log.Printf("Deleting board with slug %v", addBoardResponse.Results.Slug)
 
@@ -447,7 +445,15 @@ func TestUpdateBoardDetails(t *testing.T) {
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
 
 	// Create a new board
-	newBoardResponse := CreateBoardAndVerify(t, e, sessionID)
+	newBoardPayload := lib.AddBoardRequest{
+		DisplayName:            GenerateUniqueName(),
+		Description:            "Testing testing 1-2-3",
+		IsVisible:              true,
+		IsPrivate:              false,
+		IsOfficial:             false,
+		IsPostApprovalRequired: false,
+	}
+	newBoardResponse := CreateBoardAndVerify(t, e, sessionID, newBoardPayload)
 	if newBoardResponse.Status != "OK" {
 		t.Fatal("Failed to create board")
 	}
@@ -483,7 +489,15 @@ func TestUpdateBoardDetailsWithUnprivilegedUser(t *testing.T) {
 	)
 
 	// Create a new boardSlug
-	newBoardResponse := CreateBoardAndVerify(t, e, adminSessionID)
+	newBoardPayload := lib.AddBoardRequest{
+		DisplayName:            GenerateUniqueName(),
+		Description:            "Testing testing 1-2-3",
+		IsVisible:              true,
+		IsPrivate:              false,
+		IsOfficial:             false,
+		IsPostApprovalRequired: false,
+	}
+	newBoardResponse := CreateBoardAndVerify(t, e, adminSessionID, newBoardPayload)
 	if newBoardResponse.Status != "OK" {
 		t.Fatal("Failed to create boardSlug")
 	}
@@ -540,12 +554,16 @@ func TestBoardRequiresPostApprovalWithPrivilegedUser(t *testing.T) {
 
 	// Refactor the part with adding a post where we can specify the board
 	// so we can create the post using an unprivileged user
-	newBoardResponse := CreateBoardAndVerify(t, e, adminSessionID)
-	postUUID, postUUIDErr := uuid.NewRandom()
-	if postUUIDErr != nil {
-		t.Fatal("Failed to generate post UUID")
+	newBoardPayload := lib.AddBoardRequest{
+		DisplayName:            GenerateUniqueName(),
+		Description:            "Testing testing 1-2-3",
+		IsVisible:              true,
+		IsPrivate:              false,
+		IsOfficial:             false,
+		IsPostApprovalRequired: false,
 	}
-	postName := postUUID.String()
+	newBoardResponse := CreateBoardAndVerify(t, e, adminSessionID, newBoardPayload)
+	postName := GenerateUniqueName()
 	newPost := lib.AddPostRequest{
 		Title:        postName,
 		ParentSlug:   "",
@@ -562,4 +580,35 @@ func TestBoardRequiresPostApprovalWithPrivilegedUser(t *testing.T) {
 		post:           newPostResponse.Results.Post,
 		boardResponse:  newBoardResponse,
 	})
+
+	deleteBoardPostAndVerify(t, e, adminSessionID, postName)
+}
+
+/**
+ * 1. Add a new board with isPostApprovalRequired set to true
+ * 2. Add a new post with an unprivileged user
+ * 3. Get the post list and verify that it is empty
+ */
+func TestBoardPostListApprovedFilterWithUnprivilegedUser(t *testing.T) {
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	unprivSessionID := signInAndGetSessionId(
+		t, e, config.TestUsers.UnprivilegedUsername, config.TestUsers.UnprivilegedPassword,
+	)
+	adminSessionID := signInAndGetSessionId(
+		t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword,
+	)
+
+	newBoardPayload := lib.AddBoardRequest{
+		DisplayName:            GenerateUniqueName(),
+		Description:            "Testing testing 1-2-3",
+		IsVisible:              true,
+		IsPrivate:              false,
+		IsOfficial:             false,
+		IsPostApprovalRequired: true,
+	}
+	newBoardResponse := CreateBoardAndVerify(t, e, adminSessionID, newBoardPayload)
+	newPostSlug := createBoardPostAndVerify(t, e, unprivSessionID)
+
+	DeleteBoardAndVerify(t, e, adminSessionID, newBoardResponse.Results.Slug)
+	deleteBoardPostAndVerify(t, e, unprivSessionID, newPostSlug)
 }

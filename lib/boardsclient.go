@@ -48,9 +48,9 @@ type BoardPost struct {
 	VoteSum           int        `json:"voteSum"`
 	IsPinned          bool       `json:"isPinned"`
 	IsApproved        bool       `json:"isApproved"`
-	ThumbnailFilename string     `db:"thumbnail_filename" json:"thumbnailFilename"`
-	ThumbnailWidth    *float32   `db:"thumbnail_width"    json:"thumbnailWidth"`
-	ThumbnailHeight   *float32   `db:"thumbnail_height"   json:"thumbnailHeight"`
+	ThumbnailFilename string     `db:"thumbnail_filename"   json:"thumbnailFilename"`
+	ThumbnailWidth    *float32   `db:"thumbnail_width"      json:"thumbnailWidth"`
+	ThumbnailHeight   *float32   `db:"thumbnail_height"     json:"thumbnailHeight"`
 }
 
 type AddPostRequest struct {
@@ -63,9 +63,13 @@ type AddPostRequest struct {
 }
 
 type AddBoardRequest struct {
-	DisplayName       string `json:"displayName" validate:"required,min=10,max=255"`
-	ThumbnailFilename string `json:"thumbnailFilename"`
-	Description       string `json:"description"`
+	DisplayName            string `json:"displayName"            validate:"required,min=10,max=255"`
+	ThumbnailFilename      string `json:"thumbnailFilename"`
+	Description            string `json:"description"`
+	IsPostApprovalRequired bool   `json:"isPostApprovalRequired"`
+	IsPrivate              bool   `json:"isPrivate"`
+	IsOfficial             bool   `json:"isOfficial"`
+	IsVisible              bool   `json:"isVisible"`
 }
 
 type AddPostResponseResults struct {

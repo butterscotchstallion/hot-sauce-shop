@@ -339,7 +339,7 @@ func Boards(
 		 * 3. If the user is moderator/board admin/super admin, then the post is approved
 		 * 4. If not, then the post is unapproved
 		 */
-		isPostApproved := false
+		isPostApproved := true
 		boardRequiresPostApproval, boardRequiresPostApprovalErr := lib.IsPostApprovalRequiredForBoard(dbPool, board.Id)
 		if boardRequiresPostApprovalErr != nil {
 			logger.Error(
@@ -356,8 +356,11 @@ func Boards(
 			canBypass, canBypassError := CanBypassPostApproval(c, dbPool, board, logger)
 			if canBypassError != nil {
 				logger.Error(fmt.Sprintf("Error checking if user can bypass post approval: %v", canBypassError.Error()))
-			} else if canBypass {
+			}
+			if canBypass {
 				isPostApproved = true
+			} else {
+				isPostApproved = false
 			}
 		}
 
@@ -839,6 +842,10 @@ func Boards(
 		// This error is logged within the function, and we don't need to check it in this context
 		accessPermitted, _ := canAccessBoardDetails(c, board.Id, dbPool, logger)
 		if !accessPermitted {
+			c.JSON(http.StatusForbidden, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: "Access denied",
+			})
 			return
 		}
 

@@ -31,7 +31,14 @@ func signInAndGetSessionId(t *testing.T, e *httpexpect.Expect, username string, 
 func TestUserJoinBoard(t *testing.T) {
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
-	addBoardResponse := CreateBoardAndVerify(t, e, sessionID)
+	addBoardResponse := CreateBoardAndVerify(t, e, sessionID, lib.AddBoardRequest{
+		DisplayName:            GenerateUniqueName(),
+		Description:            "Testing testing 1-2-3",
+		IsVisible:              true,
+		IsPrivate:              false,
+		IsOfficial:             false,
+		IsPostApprovalRequired: false,
+	})
 
 	var response lib.GenericResponse
 	e.POST(fmt.Sprintf("/api/v1/user/boards/%v", addBoardResponse.Results.BoardId)).
@@ -69,7 +76,14 @@ func TestGetUserAdminBoards(t *testing.T) {
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
 
 	// Create boardSlug
-	addBoardResponse := CreateBoardAndVerify(t, e, sessionID)
+	addBoardResponse := CreateBoardAndVerify(t, e, sessionID, lib.AddBoardRequest{
+		DisplayName:            GenerateUniqueName(),
+		Description:            "Testing testing 1-2-3",
+		IsVisible:              true,
+		IsPrivate:              false,
+		IsOfficial:             false,
+		IsPostApprovalRequired: false,
+	})
 
 	// Add board admin
 	var addBoardAdminResponse lib.GenericResponse
