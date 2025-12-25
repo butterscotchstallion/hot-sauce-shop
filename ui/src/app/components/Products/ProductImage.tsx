@@ -1,4 +1,4 @@
-import {IProduct} from "./IProduct.ts";
+import {IProduct} from "./types/IProduct.ts";
 import {Card} from "primereact/card";
 import {ReactElement} from "react";
 

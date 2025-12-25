@@ -8,6 +8,7 @@ export interface IBoardPost {
     boardId: number;
     boardName: string;
     boardSlug: string;
+    boardIsOfficial: boolean;
     parentId: number;
     createdAtUserId: number;
     createdByUsername: string;

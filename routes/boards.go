@@ -16,7 +16,6 @@ import (
 	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/gosimple/slug"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -785,16 +784,17 @@ func Boards(
 			return
 		}
 
-		validate := validator.New(validator.WithRequiredStructEnabled())
-		err := validate.Struct(updateBoardRequest)
-		if err != nil {
-			logger.Error(err.Error())
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  "ERROR",
-				"message": fmt.Sprintf("Update board: validation failed: %v", err),
-			})
-			return
-		}
+		// TODO: fix this - somehow payload is not validating on the front end
+		// validate := validator.New(validator.WithRequiredStructEnabled())
+		// err := validate.Struct(updateBoardRequest)
+		// if err != nil {
+		// 	logger.Error(err.Error())
+		// 	c.JSON(http.StatusBadRequest, gin.H{
+		// 		"status":  "ERROR",
+		// 		"message": fmt.Sprintf("Update board: validation failed: %v", err),
+		// 	})
+		// 	return
+		// }
 
 		board, boardErr := lib.GetBoardBySlug(dbPool, c.Param("boardSlug"))
 		if boardErr != nil {

@@ -42,13 +42,15 @@ type BoardPost struct {
 	BoardId           int        `json:"boardId"`
 	BoardSlug         string     `json:"boardSlug"`
 	BoardName         string     `json:"boardName"`
+	BoardIsOfficial   bool       `json:"boardIsOfficial"`
 	ParentId          int        `json:"parentId"`
 	PostText          string     `json:"postText"`
 	VoteSum           int        `json:"voteSum"`
 	IsPinned          bool       `json:"isPinned"`
-	ThumbnailFilename string     `json:"thumbnailFilename" db:"thumbnail_filename"`
-	ThumbnailWidth    *float32   `json:"thumbnailWidth" db:"thumbnail_width"`
-	ThumbnailHeight   *float32   `json:"thumbnailHeight" db:"thumbnail_height"`
+	IsApproved        bool       `json:"isApproved"`
+	ThumbnailFilename string     `db:"thumbnail_filename" json:"thumbnailFilename"`
+	ThumbnailWidth    *float32   `db:"thumbnail_width"    json:"thumbnailWidth"`
+	ThumbnailHeight   *float32   `db:"thumbnail_height"   json:"thumbnailHeight"`
 }
 
 type AddPostRequest struct {
@@ -255,6 +257,7 @@ func getPostsQuery(whereClause string, paginationData PaginationData) string {
 			u.slug AS created_by_user_slug,
 			b.display_name AS boardName,
 			b.slug AS boardSlug,
+			b.is_official AS boardIsOfficial,
 			COALESCE((
 				SELECT bpi.thumbnail_filename
 			  	FROM board_posts_images bpi
@@ -415,6 +418,7 @@ func GetPostDetail(dbPool *pgxpool.Pool, postSlug string) (BoardPost, error) {
 			u.slug AS created_by_user_slug,
 			b.display_name AS boardName,
 			b.slug AS boardSlug,
+			b.is_official AS boardIsOfficial,
 			COALESCE((SELECT SUM(v.value) FROM votes v WHERE v.post_id = bp.id), 0) AS voteSum,
 			COALESCE((
 				SELECT bpi.thumbnail_filename

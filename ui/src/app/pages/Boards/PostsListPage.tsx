@@ -152,7 +152,7 @@ export default function PostsListPage() {
                 error: (err) => console.error(err),
             });
         } else {
-            // on "All posts" page
+            // on the "All posts" page
             setPageTitle("All Posts");
             getBoards$ = getBoards();
             getBoards$.subscribe({
@@ -288,6 +288,7 @@ export default function PostsListPage() {
                     <h1 className="text-3xl font-bold mb-4">Comments ({postReplies.length})</h1>
                     <section className="w-3/4">
                         <PostList
+                            board={board}
                             posts={postReplies}
                             voteMap={userVoteMap}
                             replyMap={totalPostReplyMap}

@@ -1,5 +1,5 @@
 import {InputText} from "primereact/inputtext";
-import {IProduct} from "../Products/IProduct.ts";
+import {IProduct} from "../Products/types/IProduct.ts";
 import {FormEvent, ReactElement, RefObject, useEffect, useRef, useState} from "react";
 import {InputTextarea} from "primereact/inputtextarea";
 import SpiceRating from "../Products/SpiceRating.tsx";

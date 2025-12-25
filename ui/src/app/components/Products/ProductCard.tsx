@@ -1,4 +1,4 @@
-import {IProduct} from "./IProduct.ts";
+import {IProduct} from "./types/IProduct.ts";
 import {Card} from "primereact/card";
 import {Button} from "primereact/button";
 import {NavLink} from "react-router";

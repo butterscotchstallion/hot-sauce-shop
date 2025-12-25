@@ -1,11 +1,11 @@
 import {useEffect, useState} from "react";
-import {IProduct} from "../../components/Products/IProduct.ts";
+import {IProduct} from "../../components/Products/types/IProduct.ts";
 import AdminInventoryItemForm from "../../components/Admin/AdminInventoryItemForm.tsx";
 import {Params, useParams} from "react-router";
 import {Subscription} from "rxjs";
 import {getProductDetail} from "../../components/Products/ProductService.ts";
 import {ITag} from "../../components/Tag/ITag.ts";
-import {IProductDetail} from "../../components/Products/IProductDetail.ts";
+import {IProductDetail} from "../../components/Products/types/IProductDetail.ts";
 import {getTags} from "../../components/Tag/TagService.ts";
 
 export interface IAdminInventoryPageProps {

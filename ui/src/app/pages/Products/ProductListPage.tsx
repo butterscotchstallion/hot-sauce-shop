@@ -1,11 +1,11 @@
 import {ReactElement, RefObject, SetStateAction, Suspense, useEffect, useRef, useState} from "react";
 import {Card} from "primereact/card";
-import {IProduct} from "../../components/Products/IProduct.ts";
+import {IProduct} from "../../components/Products/types/IProduct.ts";
 import {Subscription} from "rxjs";
 import ProductList from "../../components/Products/ProductList.tsx";
 import Throbber from "../../components/Shared/Throbber.tsx";
 import {ITag} from "../../components/Tag/ITag.ts";
-import {IProductsResults} from "../../components/Products/IProductsResults.ts";
+import {IProductsResults} from "../../components/Products/types/IProductsResults.ts";
 import {Paginator} from "primereact/paginator";
 import {getProducts} from "../../components/Products/ProductService.ts";
 import {Toast} from "primereact/toast";

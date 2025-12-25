@@ -229,9 +229,9 @@ export function pinPost(post: IBoardPost, boardSlug: string): Subject<boolean> {
     return pinPost$;
 }
 
-export function saveBoardDetails(boardDetails: IBoardDetailsPayload): Subject<boolean | string> {
-    const details$ = new Subject<boolean>();
-    fetch(BOARD_DETAILS_URL, {
+export function saveBoardDetails(boardSlug: string, boardDetails: IBoardDetailsPayload): Subject<boolean | string> {
+    const details$ = new Subject<boolean | string>();
+    fetch(BOARD_DETAILS_URL.replace(':slug', boardSlug), {
         credentials: 'include',
         method: 'PUT',
         headers: {

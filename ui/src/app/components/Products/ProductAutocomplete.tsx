@@ -7,7 +7,7 @@ import {
 } from "primereact/autocomplete";
 import {getProductAutocompleteSuggestions} from "./ProductService.ts";
 import {debounceTime} from "rxjs";
-import {IAutocompleteSuggestion} from "./IAutocompleteSuggestion.ts";
+import {IAutocompleteSuggestion} from "./types/IAutocompleteSuggestion.ts";
 import {NavigateFunction, useNavigate} from "react-router";
 
 export default function ProductAutocomplete() {

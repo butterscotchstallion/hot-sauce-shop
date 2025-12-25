@@ -13,15 +13,18 @@ import {Menu} from "primereact/menu";
 import {Toast} from "primereact/toast";
 import {MenuItem} from "primereact/menuitem";
 import {Image} from 'primereact/image';
+import {IBoard} from "./types/IBoard.ts";
+import {BoardNameLink} from "./BoardNameLink.tsx";
 
 interface IBoardPostProps {
     boardPost: IBoardPost;
     voteMap: Map<number, number>;
     replyMap: Map<number, number>;
     isCurrentUserBoardMod: boolean;
+    board: IBoard;
 }
 
-export default function BoardPost({boardPost, voteMap, replyMap, isCurrentUserBoardMod}: IBoardPostProps) {
+export default function BoardPost({boardPost, voteMap, replyMap, isCurrentUserBoardMod, board}: IBoardPostProps) {
     const params: Readonly<Params<string>> = useParams();
     const boardSlug: string = params?.boardSlug || '';
     const [createdAtFormatted, setCreatedAtFormatted] = useState<string>(dayjs(boardPost.createdAt).format('MMMM D, YYYY'));
@@ -182,8 +185,8 @@ export default function BoardPost({boardPost, voteMap, replyMap, isCurrentUserBo
                             src={postImagePath.current}
                             zoomSrc={postImagePath.current}
                             alt="Post Image"
-                            width={post.thumbnailWidth}
-                            height={post.thumbnailHeight}
+                            width={post.thumbnailWidth?.toString()}
+                            height={post.thumbnailHeight?.toString()}
                             preview/>
                         <div className="ml-6 min-h-[2rem] w-3/4">
                             {post.postText}
@@ -218,9 +221,9 @@ export default function BoardPost({boardPost, voteMap, replyMap, isCurrentUserBo
                         </li>
                         <li className="ml-4 mr-4">&bull;</li>
                         <li>
-                            <NavLink to={`/boards/${post.boardSlug}`}>
-                                <i className="pi pi-list mr-1"></i> {post.boardName}
-                            </NavLink>
+                            <BoardNameLink isOfficial={post.boardIsOfficial}
+                                           displayName={post.boardName}
+                                           slug={post.boardSlug}/>
                         </li>
                         <li className="ml-4 mr-4">&bull;</li>
                         <li>

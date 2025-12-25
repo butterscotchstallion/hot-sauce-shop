@@ -5,10 +5,10 @@ import {ChangeEvent, FormEvent, RefObject, useRef, useState} from "react";
 import {Card} from "primereact/card";
 import SpiceRating from "./SpiceRating.tsx";
 import {Button} from "primereact/button";
-import {IProduct} from "./IProduct.ts";
+import {IProduct} from "./types/IProduct.ts";
 import {addReview} from "./ProductService.ts";
 import {Toast} from "primereact/toast";
-import {IAddProductReviewRequest} from "./IAddProductReviewRequest.ts";
+import {IAddProductReviewRequest} from "./types/IAddProductReviewRequest.ts";
 
 interface IProductReviewFormProps {
     product: IProduct;

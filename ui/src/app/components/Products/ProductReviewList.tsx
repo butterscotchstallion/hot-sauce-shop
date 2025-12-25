@@ -1,4 +1,4 @@
-import {IProduct} from "./IProduct.ts";
+import {IProduct} from "./types/IProduct.ts";
 import {ReactElement} from "react";
 import {IReview} from "../Reviews/IReview.ts";
 import ReviewCard from "../Reviews/ReviewCard.tsx";

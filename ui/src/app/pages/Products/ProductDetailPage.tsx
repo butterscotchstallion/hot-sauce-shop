@@ -2,13 +2,13 @@ import {ReactElement, Suspense, useEffect, useState} from "react";
 import Throbber from "../../components/Shared/Throbber.tsx";
 import {Params, useNavigate, useParams} from "react-router";
 import {getProductDetail, getProductReviews} from "../../components/Products/ProductService.ts";
-import {IProduct} from "../../components/Products/IProduct.ts";
+import {IProduct} from "../../components/Products/types/IProduct.ts";
 import {Subscription} from "rxjs";
 import ProductImage from "../../components/Products/ProductImage.tsx";
 import {Button} from "primereact/button";
 import SpiceRating from "../../components/Products/SpiceRating.tsx";
 import {Card} from "primereact/card";
-import {IProductDetail} from "../../components/Products/IProductDetail.ts";
+import {IProductDetail} from "../../components/Products/types/IProductDetail.ts";
 import {ITag} from "../../components/Tag/ITag.ts";
 import {Tag} from "primereact/tag";
 import {IUser} from "../../components/User/types/IUser.ts";
@@ -21,8 +21,8 @@ import {IUserRole} from "../../components/User/types/IUserRole.ts";
 import {userHasRole, UserRole} from "../../components/User/UserService.ts";
 import {Chart} from "primereact/chart";
 import {ChartData, ChartOptions} from "chart.js";
-import {IProductReviewResponse} from "../../components/Products/IProductReviewResponse.ts";
-import {IReviewRatingDistribution} from "../../components/Products/IReviewRatingDistribution.ts";
+import {IProductReviewResponse} from "../../components/Products/types/IProductReviewResponse.ts";
+import {IReviewRatingDistribution} from "../../components/Products/types/IReviewRatingDistribution.ts";
 
 export default function ProductDetailPage() {
     const user: IUser | null = useSelector((state: RootState) => state.user.user);

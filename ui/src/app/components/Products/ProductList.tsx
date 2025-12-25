@@ -1,4 +1,4 @@
-import {IProduct} from "./IProduct.ts";
+import {IProduct} from "./types/IProduct.ts";
 import {ReactElement, RefObject} from "react";
 import ProductCard from "./ProductCard.tsx";
 import {Skeleton} from "primereact/skeleton";

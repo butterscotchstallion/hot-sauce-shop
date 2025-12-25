@@ -1,12 +1,12 @@
 import {PRODUCT_AUTOCOMPLETE_URL, PRODUCTS_URL} from "../Shared/Api.ts";
 import {Subject} from "rxjs";
-import {IProductsResults} from "./IProductsResults.ts";
-import {IProduct} from "./IProduct.ts";
-import {IAutocompleteSuggestion} from "./IAutocompleteSuggestion.ts";
+import {IProductsResults} from "./types/IProductsResults.ts";
+import {IProduct} from "./types/IProduct.ts";
+import {IAutocompleteSuggestion} from "./types/IAutocompleteSuggestion.ts";
 import {IDisplayTag} from "../../pages/Products/ProductListPage.tsx";
-import {IProductDetail} from "./IProductDetail.ts";
-import {IAddProductReviewRequest} from "./IAddProductReviewRequest.ts";
-import {IProductReviewResponse} from "./IProductReviewResponse.ts";
+import {IProductDetail} from "./types/IProductDetail.ts";
+import {IAddProductReviewRequest} from "./types/IAddProductReviewRequest.ts";
+import {IProductReviewResponse} from "./types/IProductReviewResponse.ts";
 
 function getFilterTagsURLParameter(filters: IDisplayTag[]): string {
     if (filters.length > 0) {

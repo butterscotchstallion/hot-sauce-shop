@@ -94,6 +94,63 @@ func DeleteBoardAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string, 
 	}
 }
 
+func createBoardPost(
+	t *testing.T, e *httpexpect.Expect, newPost lib.AddPostRequest, sessionID string, boardSlug string,
+) lib.AddPostResponse {
+	var addPostResponse lib.AddPostResponse
+	e.POST(fmt.Sprintf("/api/v1/boards/%v/posts", boardSlug)).
+		WithCookie("sessionId", sessionID).
+		WithJSON(newPost).
+		Expect().
+		Status(http.StatusCreated).
+		JSON().
+		Decode(&addPostResponse)
+	if addPostResponse.Status != "OK" {
+		t.Fatal("Failed to add post")
+	}
+	if addPostResponse.Results.Post.Title != newPost.Title {
+		t.Fatal("New post title mismatch")
+	}
+	if addPostResponse.Results.Post.PostText != newPost.PostText {
+		t.Fatal("New post text mismatch")
+	}
+	return addPostResponse
+}
+
+type VerifyPostDetailRequest struct {
+	t              *testing.T
+	e              *httpexpect.Expect
+	sessionId      string
+	expectedStatus int
+	post           lib.BoardPost
+	boardResponse  lib.AddBoardResponse
+}
+
+func verifyPostDetail(verifyPostDetailRequest VerifyPostDetailRequest) {
+	var postDetailResponse lib.PostDetailResponse
+	verifyPostDetailRequest.
+		e.GET(
+		fmt.Sprintf(
+			"/api/v1/posts/%v/%v",
+			verifyPostDetailRequest.boardResponse.Results.Slug,
+			verifyPostDetailRequest.post.Slug)).
+		Expect().
+		Status(verifyPostDetailRequest.expectedStatus).
+		JSON().
+		Decode(&postDetailResponse)
+	if verifyPostDetailRequest.expectedStatus == http.StatusOK {
+		if postDetailResponse.Status != "OK" {
+			verifyPostDetailRequest.t.Fatal("Failed to get post detail")
+		}
+		if postDetailResponse.Results.Post.Title != verifyPostDetailRequest.post.Title {
+			verifyPostDetailRequest.t.Fatal("New post title mismatch")
+		}
+		if postDetailResponse.Results.Post.PostText != verifyPostDetailRequest.post.PostText {
+			verifyPostDetailRequest.t.Fatal("New post text mismatch")
+		}
+	}
+}
+
 func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string) string {
 	postUUID, postUUIDErr := uuid.NewRandom()
 	if postUUIDErr != nil {
@@ -110,41 +167,17 @@ func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID stri
 		PostText:     "Follow the white rabbit, Neo.",
 		PostFlairIds: postFlairIds,
 	}
-	var addPostResponse lib.AddPostResponse
-	e.POST(fmt.Sprintf("/api/v1/boards/%v/posts", boardResponse.Results.Slug)).
-		WithCookie("sessionId", sessionID).
-		WithJSON(newPost).
-		Expect().
-		Status(http.StatusCreated).
-		JSON().
-		Decode(&addPostResponse)
-	if addPostResponse.Status != "OK" {
-		t.Fatal("Failed to add post")
-	}
-	if addPostResponse.Results.Post.Title != newPost.Title {
-		t.Fatal("New post title mismatch")
-	}
-	if addPostResponse.Results.Post.PostText != newPost.PostText {
-		t.Fatal("New post text mismatch")
-	}
+	addPostResponse := createBoardPost(t, e, newPost, sessionID, boardResponse.Results.Slug)
 
 	// Verify with post detail
-	var postDetailResponse lib.PostDetailResponse
-	// /api/v1/posts/:boardSlug/:postSlug
-	e.GET(fmt.Sprintf("/api/v1/posts/%v/%v", boardResponse.Results.Slug, addPostResponse.Results.Post.Slug)).
-		Expect().
-		Status(http.StatusOK).
-		JSON().
-		Decode(&postDetailResponse)
-	if postDetailResponse.Status != "OK" {
-		t.Fatal("Failed to get post detail")
-	}
-	if postDetailResponse.Results.Post.Title != newPost.Title {
-		t.Fatal("New post title mismatch")
-	}
-	if postDetailResponse.Results.Post.PostText != newPost.PostText {
-		t.Fatal("New post text mismatch")
-	}
+	verifyPostDetail(VerifyPostDetailRequest{
+		t:              t,
+		e:              e,
+		sessionId:      sessionID,
+		expectedStatus: http.StatusOK,
+		post:           addPostResponse.Results.Post,
+		boardResponse:  boardResponse,
+	})
 
 	return addPostResponse.Results.Post.Slug
 }
@@ -489,4 +522,44 @@ func TestGetPostList(t *testing.T) {
 	if len(postListResponse.Results.Posts) == 0 {
 		t.Fatal("Post list is empty!")
 	}
+}
+
+/**
+ * 1. Add a new board
+ * 2. Add a new post
+ * 3. Verify the post is not visible to the unprivileged user
+ */
+func TestBoardRequiresPostApprovalWithPrivilegedUser(t *testing.T) {
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	unprivSessionID := signInAndGetSessionId(
+		t, e, config.TestUsers.UnprivilegedUsername, config.TestUsers.UnprivilegedPassword,
+	)
+	adminSessionID := signInAndGetSessionId(
+		t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword,
+	)
+
+	// Refactor the part with adding a post where we can specify the board
+	// so we can create the post using an unprivileged user
+	newBoardResponse := CreateBoardAndVerify(t, e, adminSessionID)
+	postUUID, postUUIDErr := uuid.NewRandom()
+	if postUUIDErr != nil {
+		t.Fatal("Failed to generate post UUID")
+	}
+	postName := postUUID.String()
+	newPost := lib.AddPostRequest{
+		Title:        postName,
+		ParentSlug:   "",
+		PostText:     "Follow the white rabbit, Neo.",
+		PostFlairIds: postFlairIds,
+	}
+	newPostResponse := createBoardPost(t, e, newPost, unprivSessionID, newBoardResponse.Results.Slug)
+
+	verifyPostDetail(VerifyPostDetailRequest{
+		t:              t,
+		e:              e,
+		sessionId:      unprivSessionID,
+		expectedStatus: http.StatusNotFound,
+		post:           newPostResponse.Results.Post,
+		boardResponse:  newBoardResponse,
+	})
 }

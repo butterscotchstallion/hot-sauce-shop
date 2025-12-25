@@ -4,4 +4,5 @@ export interface IBoardDetailsPayload {
     isPostApprovalRequired: boolean;
     isOfficial: boolean;
     description: string;
+    thumbnailFilename: string;
 }
