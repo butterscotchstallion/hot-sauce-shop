@@ -333,6 +333,18 @@ func Boards(
 		}
 		newPost.Slug = newPostSlug.String()
 
+		/**
+		 * 1. Posts are approved by default
+		 * 2. If the board is set to require approval, then check user permissions
+		 * 3. If the user is moderator/board admin/super admin, then post is approved
+		 * 4. If not, then the post is unapproved
+		 */
+		isPostApproved := false
+		boardRequiredPostApproval := lib.IsPostApprovalRequiredForBoard(board.Id)
+		if boardRequiredPostApproval {
+
+		}
+
 		// Add post
 		newPostId, addPostErr := lib.AddPost(dbPool, newPost, userId, board.Id)
 		if addPostErr != nil {
