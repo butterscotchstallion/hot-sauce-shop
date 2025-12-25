@@ -22,7 +22,7 @@
 # Running the application
 - Front end: `cd ui/src; npm run dev`
 - API run and watch: `air -c .air.toml`
-- Tests: `go test lib`
+- Tests: `go test hotsauceshop`
 
 # Screenshots
 

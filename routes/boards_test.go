@@ -549,7 +549,7 @@ func TestBoardRequiresPostApprovalWithPrivilegedUser(t *testing.T) {
 	newPost := lib.AddPostRequest{
 		Title:        postName,
 		ParentSlug:   "",
-		PostText:     "Follow the white rabbit, Neo.",
+		PostText:     "Testing post approval with privileged user.",
 		PostFlairIds: postFlairIds,
 	}
 	newPostResponse := createBoardPost(t, e, newPost, unprivSessionID, newBoardResponse.Results.Slug)
