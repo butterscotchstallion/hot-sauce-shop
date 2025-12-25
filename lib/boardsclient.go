@@ -441,6 +441,7 @@ func GetPostDetail(dbPool *pgxpool.Pool, postSlug string) (BoardPost, error) {
 		JOIN users u on u.id = bp.created_by_user_id
 		JOIN boards b ON b.id = bp.board_id
 		WHERE bp.slug = $1
+		AND bp.is_approved = true
 	`
 	row, err := dbPool.Query(context.Background(), query, postSlug)
 	if err != nil {
@@ -477,37 +478,6 @@ func GetTotalPostsByBoardSlug(dbPool *pgxpool.Pool, boardSlug string) (int, erro
 	return result.TotalPosts, err
 }
 
-func GetBoardModerators(dbPool *pgxpool.Pool, boardSlug string, userId int) ([]User, error) {
-	userFilterClause := ""
-	if userId > 0 {
-		userFilterClause = " AND urb.user_id = $2"
-	}
-	query := `SELECT u.*
-		FROM users u
-        JOIN user_roles_boards urb ON urb.user_id = u.id
-		JOIN user_roles ur ON ur.role_id = urb.role_id
-        JOIN roles r ON r.id = urb.role_id
-        JOIN boards b ON b.id = urb.board_id
-		WHERE b.slug = $1
-		AND r.slug = 'message-board-moderator'
-	` + userFilterClause
-	var rows pgx.Rows
-	var err error
-	if userId > 0 {
-		rows, err = dbPool.Query(context.Background(), query, boardSlug, userId)
-	} else {
-		rows, err = dbPool.Query(context.Background(), query, boardSlug)
-	}
-	if err != nil {
-		return []User{}, err
-	}
-	moderators, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[User])
-	if collectRowsErr != nil {
-		return nil, collectRowsErr
-	}
-	return moderators, err
-}
-
 func PinBoardPost(dbPool *pgxpool.Pool, postSlug string) error {
 	const query = `UPDATE board_posts SET is_pinned = true WHERE slug = $1`
 	_, err := dbPool.Exec(context.Background(), query, postSlug)
@@ -541,15 +511,18 @@ func getPostParentIdBySlug(dbPool *pgxpool.Pool, postSlug string) (int, error) {
 	return parentId, nil
 }
 
-func AddPost(dbPool *pgxpool.Pool, post AddPostRequest, userId int, boardId int) (int, error) {
+// AddPost - isApproved is not part of AddPostRequest because it would require the user to send this property.
+// We don't care if the user requests it. This value is derived by checking permissions and board
+// settings in the route.
+func AddPost(dbPool *pgxpool.Pool, post AddPostRequest, userId int, boardId int, isApproved bool) (int, error) {
 	parentPostId, parentPostErr := getPostParentIdBySlug(dbPool, post.ParentSlug)
 	if parentPostErr != nil {
 		return 0, parentPostErr
 	}
 	lastInsertId := 0
 	const query = `
-		INSERT INTO board_posts (title, created_by_user_id, board_id, parent_id, slug, post_text) 
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO board_posts (title, created_by_user_id, board_id, parent_id, slug, post_text, is_approved) 
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id
 	`
 	insertErr := dbPool.QueryRow(
@@ -561,6 +534,7 @@ func AddPost(dbPool *pgxpool.Pool, post AddPostRequest, userId int, boardId int)
 		parentPostId,
 		post.Slug,
 		post.PostText,
+		isApproved,
 	).Scan(&lastInsertId)
 	if insertErr != nil {
 		return 0, insertErr

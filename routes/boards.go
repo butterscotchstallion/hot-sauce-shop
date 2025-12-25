@@ -336,17 +336,33 @@ func Boards(
 		/**
 		 * 1. Posts are approved by default
 		 * 2. If the board is set to require approval, then check user permissions
-		 * 3. If the user is moderator/board admin/super admin, then post is approved
+		 * 3. If the user is moderator/board admin/super admin, then the post is approved
 		 * 4. If not, then the post is unapproved
 		 */
 		isPostApproved := false
-		boardRequiredPostApproval := lib.IsPostApprovalRequiredForBoard(board.Id)
-		if boardRequiredPostApproval {
-
+		boardRequiresPostApproval, boardRequiresPostApprovalErr := lib.IsPostApprovalRequiredForBoard(dbPool, board.Id)
+		if boardRequiresPostApprovalErr != nil {
+			logger.Error(
+				fmt.Sprintf(
+					"Error checking if board requires post approval: %v",
+					boardRequiresPostApprovalErr.Error()),
+			)
+		}
+		if boardRequiresPostApproval {
+			/**
+			 * If something goes wrong here, it's not critical. We will just leave the post
+			 * unapproved. We don't want to abandon the entire add post process.
+			 */
+			canBypass, canBypassError := CanBypassPostApproval(c, dbPool, board, logger)
+			if canBypassError != nil {
+				logger.Error(fmt.Sprintf("Error checking if user can bypass post approval: %v", canBypassError.Error()))
+			} else if canBypass {
+				isPostApproved = true
+			}
 		}
 
 		// Add post
-		newPostId, addPostErr := lib.AddPost(dbPool, newPost, userId, board.Id)
+		newPostId, addPostErr := lib.AddPost(dbPool, newPost, userId, board.Id, isPostApproved)
 		if addPostErr != nil {
 			logger.Error(fmt.Sprintf("Error adding post: %v", addPostErr.Error()))
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -820,7 +836,8 @@ func Boards(
 
 		logger.Info(fmt.Sprintf("UpdateBoard: found board id %v", board.Id))
 
-		accessPermitted := canAccessBoardDetails(c, board.Id, dbPool, logger)
+		// This error is logged within the function, and we don't need to check it in this context
+		accessPermitted, _ := canAccessBoardDetails(c, board.Id, dbPool, logger)
 		if !accessPermitted {
 			return
 		}

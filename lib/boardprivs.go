@@ -57,3 +57,39 @@ func AddBoardAdmin(dbPool *pgxpool.Pool, userId int, boardId int) error {
 	}
 	return nil
 }
+
+func IsUserBoardModerator(dbPool *pgxpool.Pool, boardSlug string, userId int) (bool, error) {
+	mods, err := GetBoardModerators(dbPool, boardSlug, userId)
+	return len(mods) > 0, err
+}
+
+func GetBoardModerators(dbPool *pgxpool.Pool, boardSlug string, userId int) ([]User, error) {
+	userFilterClause := ""
+	if userId > 0 {
+		userFilterClause = " AND urb.user_id = $2"
+	}
+	query := `SELECT u.*
+		FROM users u
+        JOIN user_roles_boards urb ON urb.user_id = u.id
+		JOIN user_roles ur ON ur.role_id = urb.role_id
+        JOIN roles r ON r.id = urb.role_id
+        JOIN boards b ON b.id = urb.board_id
+		WHERE b.slug = $1
+		AND r.slug = 'message-board-moderator'
+	` + userFilterClause
+	var rows pgx.Rows
+	var err error
+	if userId > 0 {
+		rows, err = dbPool.Query(context.Background(), query, boardSlug, userId)
+	} else {
+		rows, err = dbPool.Query(context.Background(), query, boardSlug)
+	}
+	if err != nil {
+		return []User{}, err
+	}
+	moderators, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[User])
+	if collectRowsErr != nil {
+		return nil, collectRowsErr
+	}
+	return moderators, err
+}

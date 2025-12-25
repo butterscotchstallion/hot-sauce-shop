@@ -47,7 +47,7 @@ func main() {
 	routes.Admin(r, dbPool, logger, store)
 	routes.Orders(r, dbPool, logger)
 	routes.Boards(r, dbPool, logger, store)
-	routes.BoardSettings(r, dbPool, logger)
+	// routes.BoardSettings(r, dbPool, logger)
 	routes.Votes(r, dbPool, logger)
 
 	defer func(conn *websocket.Conn) {
