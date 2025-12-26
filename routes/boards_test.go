@@ -26,10 +26,15 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	var configReadErr error
-	config, configReadErr = lib.ReadConfig("../config.toml")
+	fileConfig, configReadErr := lib.ReadConfig(lib.ConfigFilename)
 	if configReadErr != nil {
 		panic("Could not read config")
+	}
+	lib.SetRuntimeConfig(fileConfig)
+	config = lib.GetRuntimeConfig()
+	disableCacheErr := lib.DisableCaching()
+	if disableCacheErr != nil {
+		panic(fmt.Sprintf("Could not disable caching: %v", disableCacheErr))
 	}
 }
 

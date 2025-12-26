@@ -2,9 +2,12 @@ package lib
 
 import (
 	"os"
+	"time"
 
 	"github.com/BurntSushi/toml"
 )
+
+const ConfigFilename = "../config.toml"
 
 type ConfigDatabase struct {
 	Dsn string `toml:"dsn"`
@@ -23,10 +26,16 @@ type ConfigServer struct {
 	TimeZone            string `toml:"timeZone"`
 }
 
+type ConfigCache struct {
+	DefaultCacheTime time.Duration `toml:"default"`
+	PostList         time.Duration `toml:"postList"`
+}
+
 type HotSauceShopConfig struct {
 	Server    ConfigServer    `toml:"server"`
 	Database  ConfigDatabase  `toml:"database"`
 	TestUsers ConfigTestUsers `toml:"testUsers"`
+	Cache     ConfigCache     `toml:"cache"`
 }
 
 func ReadConfig(filename string) (HotSauceShopConfig, error) {

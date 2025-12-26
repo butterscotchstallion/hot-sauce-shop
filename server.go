@@ -22,12 +22,13 @@ func main() {
 	gin.SetMode(gin.DebugMode)
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 
-	config, configReadErr := lib.ReadConfig("config.toml")
+	config, configReadErr := lib.ReadConfig(lib.ConfigFilename)
 	if configReadErr != nil {
 		panic("Could not read config")
 	}
 	dbPool = lib.InitDB(config.Database.Dsn)
 	defer dbPool.Close()
+	lib.SetRuntimeConfig(config)
 
 	err := os.Setenv("TZ", config.Server.TimeZone)
 	if err != nil {
@@ -36,7 +37,7 @@ func main() {
 
 	r := gin.Default()
 
-	store := persistence.NewInMemoryStore(time.Minute * 15)
+	store := persistence.NewInMemoryStore(time.Minute * config.Cache.DefaultCacheTime)
 	var wsConn *websocket.Conn
 	routes.WS(r, wsConn, logger)
 	routes.Products(r, dbPool, logger, store)
