@@ -37,7 +37,6 @@ func Boards(
 				"status":  "ERROR",
 				"message": getBoardsErr.Error(),
 			})
-
 			return
 		}
 
@@ -349,20 +348,27 @@ func Boards(
 			)
 		}
 		if boardRequiresPostApproval {
+			logger.Info(fmt.Sprintf("Post approval required for board '%v'", board.DisplayName))
 			/**
 			 * If something goes wrong here, it's not critical. We will just leave the post
-			 * unapproved. We don't want to abandon the entire add post process.
+			 * unapproved. We don't want to abandon the entire post process.
 			 */
 			canBypass, canBypassError := CanBypassPostApproval(c, dbPool, board, logger)
 			if canBypassError != nil {
 				logger.Error(fmt.Sprintf("Error checking if user can bypass post approval: %v", canBypassError.Error()))
 			}
 			if canBypass {
+				logger.Info("User can bypass post approval")
 				isPostApproved = true
 			} else {
+				logger.Info("User cannot bypass post approval")
 				isPostApproved = false
 			}
+		} else {
+			logger.Info(fmt.Sprintf("Post approval not required for board '%v'", board.DisplayName))
 		}
+
+		logger.Info(fmt.Sprintf("Post approved: %v", isPostApproved))
 
 		// Add post
 		newPostId, addPostErr := lib.AddPost(dbPool, newPost, userId, board.Id, isPostApproved)
@@ -552,11 +558,6 @@ func Boards(
 		// This shouldn't be an error at this point, but we need the userId
 		userId, getUserIdErr := GetUserIdFromSessionOrError(c, dbPool, logger)
 		if getUserIdErr != nil {
-			logger.Error("AddBoard: error getting user id from session")
-			c.JSON(http.StatusForbidden, gin.H{
-				"status":  "ERROR",
-				"message": "Permission denied",
-			})
 			return
 		}
 
@@ -564,7 +565,7 @@ func Boards(
 
 		boardSlug := slug.Make(newBoard.DisplayName)
 		boardId, addBoardErr := lib.AddBoard(
-			dbPool, boardSlug, newBoard.DisplayName, newBoard.ThumbnailFilename, userId, newBoard.Description,
+			dbPool, boardSlug, newBoard, userId,
 		)
 		if addBoardErr != nil {
 			logger.Error(fmt.Sprintf("AddBoard: error adding board: %v", addBoardErr))

@@ -579,8 +579,7 @@ func AddPostImages(dbPool *pgxpool.Pool, postId int, imageInfo SavedPostImageInf
 }
 
 func AddBoard(
-	dbPool *pgxpool.Pool, slug string, displayName string,
-	thumbnailFilename string, createdByUserId int, description string,
+	dbPool *pgxpool.Pool, slug string, board AddBoardRequest, createdByUserId int,
 ) (int, error) {
 	const query = `
 		INSERT INTO boards (
@@ -589,9 +588,10 @@ func AddBoard(
 			created_at,
 		    thumbnail_filename,
 			created_by_user_id,
-		    description
+		    description,
+		    is_post_approval_required
 		)
-		VALUES ($1, $2, NOW(), $3, $4, $5)
+		VALUES ($1, $2, NOW(), $3, $4, $5, $6)
 		RETURNING id
 	`
 	var boardId int
@@ -599,18 +599,14 @@ func AddBoard(
 		context.Background(),
 		query,
 		slug,
-		displayName,
-		thumbnailFilename,
+		board.DisplayName,
+		board.ThumbnailFilename,
 		createdByUserId,
-		description,
+		board.Description,
+		board.IsPostApprovalRequired,
 	).Scan(&boardId)
 	if err != nil {
 		return 0, err
-	}
-
-	createSettingsErr := CreateDefaultBoardSettinsForBoardId(dbPool, boardId)
-	if createSettingsErr != nil {
-		return 0, createSettingsErr
 	}
 
 	return boardId, nil
@@ -619,11 +615,6 @@ func AddBoard(
 func DeleteBoard(dbPool *pgxpool.Pool, boardSlug string) error {
 	// TODO: maybe use cascading here.
 
-	// Delete board settings first
-	deleteBoardSettingsErr := DeleteBoardSettings(dbPool, boardSlug)
-	if deleteBoardSettingsErr != nil {
-		return deleteBoardSettingsErr
-	}
 	/**
 	 * Board users must be deleted before the board can be deleted
 	 * because of FK constraints.

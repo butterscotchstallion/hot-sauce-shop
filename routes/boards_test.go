@@ -42,7 +42,9 @@ func TestGetBoardPosts(t *testing.T) {
 		Value("boards").Array().Length().Gt(0)
 }
 
-func CreateBoardAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string, newBoardPayload lib.AddBoardRequest) lib.AddBoardResponse {
+func CreateBoardAndVerify(
+	t *testing.T, e *httpexpect.Expect, sessionID string, newBoardPayload lib.AddBoardRequest,
+) lib.AddBoardResponse {
 	var addBoardResponse lib.AddBoardResponse
 	e.POST("/api/v1/boards").
 		WithCookie("sessionId", sessionID).
@@ -543,7 +545,7 @@ func TestGetPostList(t *testing.T) {
  * 2. Add a new post
  * 3. Verify the post is not visible to the unprivileged user
  */
-func TestBoardRequiresPostApprovalWithPrivilegedUser(t *testing.T) {
+func TestBoardRequiresPostApprovalWithUnprivilegedUser(t *testing.T) {
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	unprivSessionID := signInAndGetSessionId(
 		t, e, config.TestUsers.UnprivilegedUsername, config.TestUsers.UnprivilegedPassword,
@@ -552,22 +554,21 @@ func TestBoardRequiresPostApprovalWithPrivilegedUser(t *testing.T) {
 		t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword,
 	)
 
-	// Refactor the part with adding a post where we can specify the board
-	// so we can create the post using an unprivileged user
 	newBoardPayload := lib.AddBoardRequest{
-		DisplayName:            GenerateUniqueName(),
-		Description:            "Testing testing 1-2-3",
-		IsVisible:              true,
-		IsPrivate:              false,
-		IsOfficial:             false,
-		IsPostApprovalRequired: false,
+		DisplayName: GenerateUniqueName(),
+		Description: "IsPostApprovalRequired board test",
+		IsVisible:   true,
+		IsPrivate:   false,
+		IsOfficial:  false,
+		// Specifying this setting to make the post require approval
+		IsPostApprovalRequired: true,
 	}
 	newBoardResponse := CreateBoardAndVerify(t, e, adminSessionID, newBoardPayload)
 	postName := GenerateUniqueName()
 	newPost := lib.AddPostRequest{
 		Title:        postName,
 		ParentSlug:   "",
-		PostText:     "Testing post approval with privileged user.",
+		PostText:     "Testing post approval with unprivileged user.",
 		PostFlairIds: postFlairIds,
 	}
 	newPostResponse := createBoardPost(t, e, newPost, unprivSessionID, newBoardResponse.Results.Slug)
@@ -581,7 +582,8 @@ func TestBoardRequiresPostApprovalWithPrivilegedUser(t *testing.T) {
 		boardResponse:  newBoardResponse,
 	})
 
-	deleteBoardPostAndVerify(t, e, adminSessionID, postName)
+	// deleteBoardPostAndVerify(t, e, adminSessionID, postName)
+	DeleteBoardAndVerify(t, e, adminSessionID, newBoardResponse.Results.Slug)
 }
 
 /**
@@ -608,6 +610,8 @@ func TestBoardPostListApprovedFilterWithUnprivilegedUser(t *testing.T) {
 	}
 	newBoardResponse := CreateBoardAndVerify(t, e, adminSessionID, newBoardPayload)
 	newPostSlug := createBoardPostAndVerify(t, e, unprivSessionID)
+
+	// check list here as admin
 
 	DeleteBoardAndVerify(t, e, adminSessionID, newBoardResponse.Results.Slug)
 	deleteBoardPostAndVerify(t, e, unprivSessionID, newPostSlug)
