@@ -525,19 +525,13 @@ func TestUpdateBoardDetailsWithUnprivilegedUser(t *testing.T) {
 }
 
 func TestGetPostList(t *testing.T) {
-	var postListResponse lib.PostListResponse
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
-	e.GET("/api/v1/posts").
-		Expect().
-		Status(http.StatusOK).
-		JSON().
-		Decode(&postListResponse)
-	if postListResponse.Status != "OK" {
-		t.Fatal("Failed to get post list")
-	}
-	if len(postListResponse.Results.Posts) == 0 {
-		t.Fatal("Post list is empty!")
-	}
+	getPostListAndVerify(GetPostListAndVerifyParams{
+		E:              e,
+		T:              t,
+		SessionId:      "",
+		ShowUnapproved: false,
+	})
 }
 
 /**
@@ -600,7 +594,7 @@ func TestBoardPostListApprovedFilterWithUnprivilegedUser(t *testing.T) {
 
 	newBoardPayload := lib.AddBoardRequest{
 		DisplayName:            GenerateUniqueName(),
-		Description:            "Testing testing 1-2-3",
+		Description:            "Testing post list approved filter with unprivileged user.",
 		IsVisible:              true,
 		IsPrivate:              false,
 		IsOfficial:             false,
@@ -609,7 +603,18 @@ func TestBoardPostListApprovedFilterWithUnprivilegedUser(t *testing.T) {
 	newBoardResponse := CreateBoardAndVerify(t, e, adminSessionID, newBoardPayload)
 	newPostSlug := createBoardPostAndVerify(t, e, unprivSessionID)
 
-	// check list here as admin
+	postListResponse := getPostListAndVerify(GetPostListAndVerifyParams{
+		E:              e,
+		T:              t,
+		SessionId:      unprivSessionID,
+		ShowUnapproved: true,
+	})
+
+	for _, post := range postListResponse.Results.Posts {
+		if post.Slug == newPostSlug {
+			t.Fatal("Post was found in the post list")
+		}
+	}
 
 	DeleteBoardAndVerify(t, e, adminSessionID, newBoardResponse.Results.Slug)
 	deleteBoardPostAndVerify(t, e, unprivSessionID, newPostSlug)
