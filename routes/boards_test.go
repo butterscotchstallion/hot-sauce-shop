@@ -581,8 +581,6 @@ func TestBoardRequiresPostApprovalWithUnprivilegedUser(t *testing.T) {
 		post:           newPostResponse.Results.Post,
 		boardResponse:  newBoardResponse,
 	})
-
-	// deleteBoardPostAndVerify(t, e, adminSessionID, postName)
 	DeleteBoardAndVerify(t, e, adminSessionID, newBoardResponse.Results.Slug)
 }
 
