@@ -149,17 +149,25 @@ func verifyPostDetail(verifyPostDetailRequest VerifyPostDetailRequest) {
 	}
 }
 
-func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string) string {
+type CreateBoardAndPostAndVerifyRequest struct {
+	T               *testing.T
+	E               *httpexpect.Expect
+	UnprivSessionId string
+	AdminSessionId  string
+	ExpectedStatus  int
+}
+
+func createBoardAndPostAndVerify(request CreateBoardAndPostAndVerifyRequest) string {
 	postUUID, postUUIDErr := uuid.NewRandom()
 	if postUUIDErr != nil {
-		t.Fatal("Failed to generate post UUID")
+		request.T.Fatal("Failed to generate post UUID")
 	}
 	postName := postUUID.String()
 	newBoardPayload := lib.AddBoardRequest{
 		DisplayName: postName,
 		Description: "Testing testing 1-2-3",
 	}
-	boardResponse := CreateBoardAndVerify(t, e, sessionID, newBoardPayload)
+	boardResponse := CreateBoardAndVerify(request.T, request.E, request.AdminSessionId, newBoardPayload)
 
 	// TODO: figure out how the heck to do images
 	newPost := lib.AddPostRequest{
@@ -168,13 +176,13 @@ func createBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID stri
 		PostText:     "Follow the white rabbit, Neo.",
 		PostFlairIds: postFlairIds,
 	}
-	addPostResponse := createBoardPost(t, e, newPost, sessionID, boardResponse.Results.Slug)
+	addPostResponse := createBoardPost(request.T, request.E, newPost, request.UnprivSessionId, boardResponse.Results.Slug)
 
 	// Verify with post detail
 	verifyPostDetail(VerifyPostDetailRequest{
-		t:              t,
-		e:              e,
-		sessionId:      sessionID,
+		t:              request.T,
+		e:              request.E,
+		sessionId:      request.UnprivSessionId,
 		expectedStatus: http.StatusOK,
 		post:           addPostResponse.Results.Post,
 		boardResponse:  boardResponse,
@@ -229,7 +237,13 @@ func TestCreateBoardPost(t *testing.T) {
 	 */
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
-	postSlug := createBoardPostAndVerify(t, e, sessionID)
+	postSlug := createBoardAndPostAndVerify(CreateBoardAndPostAndVerifyRequest{
+		T:               t,
+		E:               e,
+		UnprivSessionId: sessionID,
+		AdminSessionId:  sessionID,
+		ExpectedStatus:  http.StatusCreated,
+	})
 	if postSlug == "" {
 		t.Fatal("Failed to create board post: slug is blank")
 	}
@@ -286,7 +300,13 @@ func TestGetPostFlairsForPost(t *testing.T) {
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
 	// Hard-coded to add post flair id #1
-	postName := createBoardPostAndVerify(t, e, sessionID)
+	postName := createBoardAndPostAndVerify(CreateBoardAndPostAndVerifyRequest{
+		T:               t,
+		E:               e,
+		UnprivSessionId: sessionID,
+		AdminSessionId:  sessionID,
+		ExpectedStatus:  http.StatusCreated,
+	})
 
 	var postDetail lib.PostDetailResponse
 	e.GET(fmt.Sprintf("/api/v1/posts/sauces/%v", postName)).
@@ -607,7 +627,13 @@ func TestBoardPostListApprovedFilterWithUnprivilegedUser(t *testing.T) {
 		IsPostApprovalRequired: true,
 	}
 	newBoardResponse := CreateBoardAndVerify(t, e, adminSessionID, newBoardPayload)
-	newPostSlug := createBoardPostAndVerify(t, e, unprivSessionID)
+	newPostSlug := createBoardAndPostAndVerify(CreateBoardAndPostAndVerifyRequest{
+		T:               t,
+		E:               e,
+		UnprivSessionId: unprivSessionID,
+		AdminSessionId:  adminSessionID,
+		ExpectedStatus:  http.StatusCreated,
+	})
 
 	postListResponse := getPostListAndVerify(GetPostListAndVerifyParams{
 		E:              e,
