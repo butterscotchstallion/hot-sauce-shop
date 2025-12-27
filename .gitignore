@@ -30,3 +30,4 @@ ui/src/public/images/posts/*
 testdata/purple_thumbnail.jpg
 *.gz
 config.toml
+.idea/queries/
