@@ -199,8 +199,33 @@ func Boards(
 			return
 		}
 
+		showUnapprovedParam := c.DefaultQuery("showUnapproved", "false") == "true"
 		boardSlug := c.DefaultQuery("boardSlug", "")
 		postSlug := c.DefaultQuery("postSlug", "")
+		showUnapproved := false
+
+		if showUnapprovedParam {
+			if boardSlug != "" {
+				board, boardErr := lib.GetBoardBySlug(dbPool, boardSlug)
+				if boardErr != nil {
+					logger.Error(fmt.Sprintf("Error fetching board: %v", boardErr.Error()))
+				}
+				// Don't bother checking unless this board requires post approval
+				if board.IsPostApprovalRequired {
+					canBypass, canBypassErr := CanBypassPostApproval(c, dbPool, board, logger)
+					if canBypassErr != nil {
+						logger.Error(fmt.Sprintf("Error checking if user can bypass post approval: %v", canBypassErr.Error()))
+					}
+					if canBypass {
+						showUnapproved = true
+						logger.Info(fmt.Sprintf("Bypassing post approval for board %v", boardSlug))
+					}
+				}
+			}
+			// TODO: maybe figure out how to handle this for the unfiltered posts page. We could just check if the user
+			// is a super board admin but avoid doing it twice since CanBypassPostApproval already does that, but requires
+			// a board
+		}
 
 		logger.Info(
 			fmt.Sprintf(
@@ -211,7 +236,15 @@ func Boards(
 			),
 		)
 
-		posts, getPostsErr = lib.GetPosts(dbPool, boardSlug, postSlug, parentId, logger, paginationData)
+		posts, getPostsErr = lib.GetPosts(
+			dbPool,
+			boardSlug,
+			postSlug,
+			parentId,
+			logger,
+			paginationData,
+			showUnapproved,
+		)
 
 		if getPostsErr != nil {
 			logger.Error(fmt.Sprintf("Error fetching posts: %v", getPostsErr.Error()))

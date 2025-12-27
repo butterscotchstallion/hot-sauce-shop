@@ -336,7 +336,7 @@ func GetTotalPostReplyCountByBoardSlug(dbPool *pgxpool.Pool, boardSlug string) (
 // Gets posts, optionally filtered by boardSlug/postSlug
 func GetPosts(
 	dbPool *pgxpool.Pool, boardSlug string, postSlug string, parentId int,
-	logger *slog.Logger, paginationData PaginationData,
+	logger *slog.Logger, paginationData PaginationData, showUnapproved bool,
 ) ([]BoardPost, error,
 ) {
 	whereClause := ""
@@ -351,6 +351,9 @@ func GetPosts(
 		whereClause += " AND bp.parent_id = $1"
 	} else {
 		whereClause += " AND bp.parent_id = 0"
+	}
+	if !showUnapproved {
+		whereClause += " AND bp.is_approved = true"
 	}
 	query := getPostsQuery(whereClause, paginationData)
 	var rows pgx.Rows

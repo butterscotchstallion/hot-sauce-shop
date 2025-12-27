@@ -22,13 +22,13 @@ func main() {
 	gin.SetMode(gin.DebugMode)
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 
-	config, configReadErr := lib.ReadConfig(lib.ConfigFilename)
+	config, configReadErr := lib.ReadConfig("config.toml")
 	if configReadErr != nil {
 		panic("Could not read config")
 	}
 	dbPool = lib.InitDB(config.Database.Dsn)
 	defer dbPool.Close()
-	lib.SetRuntimeConfig(config)
+	// lib.SetRuntimeConfig(config)
 
 	err := os.Setenv("TZ", config.Server.TimeZone)
 	if err != nil {

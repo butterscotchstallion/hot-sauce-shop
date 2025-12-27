@@ -21,10 +21,6 @@ func canAccessBoardDetails(c *gin.Context, boardId int, dbPool *pgxpool.Pool, lo
 	isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsMessageBoardAdmin(dbPool, boardId, userId)
 	if isMessageBoardAdminErr != nil {
 		logger.Error(fmt.Sprintf("Error checking if user is board admin: %v", isMessageBoardAdminErr))
-		// c.JSON(http.StatusInternalServerError, gin.H{
-		// 	"status":  "ERROR",
-		// 	"message": isMessageBoardAdminErr.Error(),
-		// })
 		return false, &lib.InternalServerError{
 			Message: isMessageBoardAdminErr.Error(),
 		}
@@ -41,10 +37,6 @@ func canAccessBoardDetails(c *gin.Context, boardId int, dbPool *pgxpool.Pool, lo
 			if !isSuperMessageBoardAdmin {
 				logger.Error("Error updating board settings: user is not super message board admin")
 			}
-			// c.JSON(http.StatusForbidden, gin.H{
-			// 	"status":  "ERROR",
-			// 	"message": "Error updating board settings: permission denied",
-			// })
 			return false, &lib.StatusForbiddenError{
 				Message: "Error updating board settings: permission denied",
 			}

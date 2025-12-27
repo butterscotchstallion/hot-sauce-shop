@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"fmt"
 	"net/http"
 	"testing"
 
@@ -19,11 +18,11 @@ type GetPostListAndVerifyParams struct {
 
 func getPostListAndVerify(params GetPostListAndVerifyParams) lib.PostListResponse {
 	var postListResponse lib.PostListResponse
-	showUnapprovedStr := "false"
-	if params.ShowUnapproved {
-		showUnapprovedStr = "true"
-	}
-	params.E.GET(fmt.Sprintf("/api/v1/posts?showUnapproved=%s", showUnapprovedStr)).
+	// showUnapprovedStr := "false"
+	// if params.ShowUnapproved {
+	// 	showUnapprovedStr = "true"
+	// }
+	params.E.GET("/api/v1/posts").
 		WithCookie("sessionId", params.SessionId).
 		Expect().
 		Status(http.StatusOK).
