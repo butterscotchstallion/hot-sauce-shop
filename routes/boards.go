@@ -205,13 +205,15 @@ func Boards(
 		showUnapproved := false
 
 		if showUnapprovedParam {
-			if boardSlug != "" {
+			if len(boardSlug) > 0 {
 				board, boardErr := lib.GetBoardBySlug(dbPool, boardSlug)
 				if boardErr != nil {
 					logger.Error(fmt.Sprintf("Error fetching board: %v", boardErr.Error()))
 				}
 				// Don't bother checking unless this board requires post approval
 				if board.IsPostApprovalRequired {
+					logger.Info(fmt.Sprintf("Post approval required for board '%v'", board.DisplayName))
+
 					canBypass, canBypassErr := CanBypassPostApproval(c, dbPool, board, logger)
 					if canBypassErr != nil {
 						logger.Error(fmt.Sprintf("Error checking if user can bypass post approval: %v", canBypassErr.Error()))
@@ -427,7 +429,7 @@ func Boards(
 			}
 		}
 
-		logger.Info(fmt.Sprintf("Post flair added: %v", newPost.PostFlairIds))
+		// logger.Info(fmt.Sprintf("Post flair added: %v", newPost.PostFlairIds))
 
 		isImagePost := false
 

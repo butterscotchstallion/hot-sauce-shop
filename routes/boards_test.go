@@ -155,19 +155,21 @@ type CreateBoardAndPostAndVerifyRequest struct {
 	UnprivSessionId string
 	AdminSessionId  string
 	ExpectedStatus  int
+	BoardPayload    lib.AddBoardRequest
 }
 
-func createBoardAndPostAndVerify(request CreateBoardAndPostAndVerifyRequest) string {
+type CreateBoardAndPostAndVerifyResponse struct {
+	AddBoardResponse lib.AddBoardResponse
+	AddPostResponse  lib.AddPostResponse
+}
+
+func createBoardAndPostAndVerify(request CreateBoardAndPostAndVerifyRequest) CreateBoardAndPostAndVerifyResponse {
 	postUUID, postUUIDErr := uuid.NewRandom()
 	if postUUIDErr != nil {
 		request.T.Fatal("Failed to generate post UUID")
 	}
 	postName := postUUID.String()
-	newBoardPayload := lib.AddBoardRequest{
-		DisplayName: postName,
-		Description: "Testing testing 1-2-3",
-	}
-	boardResponse := CreateBoardAndVerify(request.T, request.E, request.AdminSessionId, newBoardPayload)
+	boardResponse := CreateBoardAndVerify(request.T, request.E, request.AdminSessionId, request.BoardPayload)
 
 	// TODO: figure out how the heck to do images
 	newPost := lib.AddPostRequest{
@@ -188,7 +190,10 @@ func createBoardAndPostAndVerify(request CreateBoardAndPostAndVerifyRequest) str
 		boardResponse:  boardResponse,
 	})
 
-	return addPostResponse.Results.Post.Slug
+	return CreateBoardAndPostAndVerifyResponse{
+		AddBoardResponse: boardResponse,
+		AddPostResponse:  addPostResponse,
+	}
 }
 
 func deleteBoardPostAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string, postSlug string) {
@@ -237,17 +242,26 @@ func TestCreateBoardPost(t *testing.T) {
 	 */
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
-	postSlug := createBoardAndPostAndVerify(CreateBoardAndPostAndVerifyRequest{
+	response := createBoardAndPostAndVerify(CreateBoardAndPostAndVerifyRequest{
 		T:               t,
 		E:               e,
 		UnprivSessionId: sessionID,
 		AdminSessionId:  sessionID,
 		ExpectedStatus:  http.StatusCreated,
+		BoardPayload: lib.AddBoardRequest{
+			DisplayName:            GenerateUniqueName(),
+			ThumbnailFilename:      "mr-brainly.jpg",
+			Description:            "",
+			IsPostApprovalRequired: false,
+			IsPrivate:              false,
+			IsOfficial:             false,
+			IsVisible:              false,
+		},
 	})
-	if postSlug == "" {
+	if response.AddPostResponse.Results.Post.Slug == "" {
 		t.Fatal("Failed to create board post: slug is blank")
 	}
-	deleteBoardPostAndVerify(t, e, sessionID, postSlug)
+	deleteBoardPostAndVerify(t, e, sessionID, response.AddPostResponse.Results.Post.Slug)
 }
 
 func TestCreateBoardPostWithoutSession(t *testing.T) {
@@ -300,16 +314,25 @@ func TestGetPostFlairsForPost(t *testing.T) {
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
 	// Hard-coded to add post flair id #1
-	postName := createBoardAndPostAndVerify(CreateBoardAndPostAndVerifyRequest{
+	response := createBoardAndPostAndVerify(CreateBoardAndPostAndVerifyRequest{
 		T:               t,
 		E:               e,
 		UnprivSessionId: sessionID,
 		AdminSessionId:  sessionID,
 		ExpectedStatus:  http.StatusCreated,
+		BoardPayload: lib.AddBoardRequest{
+			DisplayName:            GenerateUniqueName(),
+			ThumbnailFilename:      "mr-brainly.jpg",
+			Description:            "",
+			IsPostApprovalRequired: false,
+			IsPrivate:              false,
+			IsOfficial:             false,
+			IsVisible:              false,
+		},
 	})
 
 	var postDetail lib.PostDetailResponse
-	e.GET(fmt.Sprintf("/api/v1/posts/sauces/%v", postName)).
+	e.GET(fmt.Sprintf("/api/v1/posts/sauces/%v", response.AddPostResponse.Results.Post.Slug)).
 		Expect().
 		Status(http.StatusOK).
 		JSON().
@@ -334,7 +357,7 @@ func TestGetPostFlairsForPost(t *testing.T) {
 		t.Fatal("Post flair id #1 not found!")
 	}
 
-	deleteBoardPostAndVerify(t, e, sessionID, postName)
+	deleteBoardPostAndVerify(t, e, sessionID, response.AddBoardResponse.Results.Slug)
 }
 
 func TestGetPostsFlairsMap(t *testing.T) {
@@ -563,7 +586,7 @@ func TestGetPostList(t *testing.T) {
 /**
  * 1. Add a new board
  * 2. Add a new post
- * 3. Verify the post is not visible to the unprivileged user
+ * 3. Verify the post is not visible to the unprivileged user when viewing the post detail
  */
 func TestBoardRequiresPostApprovalWithUnprivilegedUser(t *testing.T) {
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
@@ -607,9 +630,9 @@ func TestBoardRequiresPostApprovalWithUnprivilegedUser(t *testing.T) {
 /**
  * 1. Add a new board with isPostApprovalRequired set to true
  * 2. Add a new post with an unprivileged user
- * 3. Get the post list and verify that it is empty
+ * 3. Get the post list and verify that it is empty for unprivileged and privileged users
  */
-func TestBoardPostListApprovedFilterWithUnprivilegedUser(t *testing.T) {
+func TestBoardPostListApprovedFilterWithPermissionTest(t *testing.T) {
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	unprivSessionID := signInAndGetSessionId(
 		t, e, config.TestUsers.UnprivilegedUsername, config.TestUsers.UnprivilegedPassword,
@@ -618,36 +641,56 @@ func TestBoardPostListApprovedFilterWithUnprivilegedUser(t *testing.T) {
 		t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword,
 	)
 
-	newBoardPayload := lib.AddBoardRequest{
-		DisplayName:            GenerateUniqueName(),
-		Description:            "Testing post list approved filter with unprivileged user.",
-		IsVisible:              true,
-		IsPrivate:              false,
-		IsOfficial:             false,
-		IsPostApprovalRequired: true,
-	}
-	newBoardResponse := CreateBoardAndVerify(t, e, adminSessionID, newBoardPayload)
-	newPostSlug := createBoardAndPostAndVerify(CreateBoardAndPostAndVerifyRequest{
+	response := createBoardAndPostAndVerify(CreateBoardAndPostAndVerifyRequest{
 		T:               t,
 		E:               e,
 		UnprivSessionId: unprivSessionID,
 		AdminSessionId:  adminSessionID,
 		ExpectedStatus:  http.StatusCreated,
+		BoardPayload: lib.AddBoardRequest{
+			DisplayName:            GenerateUniqueName(),
+			Description:            "Testing post list approved filter with unprivileged user.",
+			IsVisible:              true,
+			IsPrivate:              false,
+			IsOfficial:             false,
+			IsPostApprovalRequired: true,
+		},
 	})
 
-	postListResponse := getPostListAndVerify(GetPostListAndVerifyParams{
+	var isInList bool
+	var postListResponse lib.PostListResponse
+
+	// Check that the post is not visible to the unprivileged user
+	postListResponse = getPostListAndVerify(GetPostListAndVerifyParams{
 		E:              e,
 		T:              t,
 		SessionId:      unprivSessionID,
 		ShowUnapproved: true,
+		BoardName:      response.AddBoardResponse.Results.Slug,
 	})
+	newBoardSlug := response.AddBoardResponse.Results.Slug
+	newPostSlug := response.AddPostResponse.Results.Post.Slug
 
-	for _, post := range postListResponse.Results.Posts {
-		if post.Slug == newPostSlug {
-			t.Fatal("Post was found in the post list")
-		}
+	isInList = isPostSlugInList(response.AddPostResponse.Results.Post.Slug, postListResponse.Results.Posts)
+	if isInList {
+		t.Fatal("Post was found in the post list, but should not as an unprivileged user")
 	}
 
-	DeleteBoardAndVerify(t, e, adminSessionID, newBoardResponse.Results.Slug)
+	// Check that the post is visible to the admin user
+	postListResponse = getPostListAndVerify(GetPostListAndVerifyParams{
+		E:              e,
+		T:              t,
+		SessionId:      adminSessionID,
+		ShowUnapproved: true,
+		BoardName:      response.AddBoardResponse.Results.Slug,
+	})
+
+	isInList = isPostSlugInList(newPostSlug, postListResponse.Results.Posts)
+	if !isInList {
+		t.Fatal("Post was NOT found in the post list as an admin user")
+	}
+
+	// Clean up
+	DeleteBoardAndVerify(t, e, adminSessionID, newBoardSlug)
 	deleteBoardPostAndVerify(t, e, unprivSessionID, newPostSlug)
 }

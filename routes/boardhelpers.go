@@ -14,15 +14,18 @@ type GetPostListAndVerifyParams struct {
 	T              *testing.T
 	SessionId      string
 	ShowUnapproved bool
+	BoardName      string
 }
 
 func getPostListAndVerify(params GetPostListAndVerifyParams) lib.PostListResponse {
 	var postListResponse lib.PostListResponse
-	// showUnapprovedStr := "false"
-	// if params.ShowUnapproved {
-	// 	showUnapprovedStr = "true"
-	// }
+	showUnapprovedStr := 0
+	if params.ShowUnapproved {
+		showUnapprovedStr = 1
+	}
 	params.E.GET("/api/v1/posts").
+		WithQuery("showUnapproved", showUnapprovedStr).
+		WithQuery("boardSlug", params.BoardName).
 		WithCookie("sessionId", params.SessionId).
 		Expect().
 		Status(http.StatusOK).
@@ -35,4 +38,13 @@ func getPostListAndVerify(params GetPostListAndVerifyParams) lib.PostListRespons
 		params.T.Fatal("Post list is empty!")
 	}
 	return postListResponse
+}
+
+func isPostSlugInList(postSlug string, posts []lib.BoardPost) bool {
+	for _, post := range posts {
+		if post.Slug == postSlug {
+			return true
+		}
+	}
+	return false
 }
