@@ -178,7 +178,13 @@ func createBoardAndPostAndVerify(request CreateBoardAndPostAndVerifyRequest) Cre
 		PostText:     "Follow the white rabbit, Neo.",
 		PostFlairIds: postFlairIds,
 	}
-	addPostResponse := createBoardPost(request.T, request.E, newPost, request.UnprivSessionId, boardResponse.Results.Slug)
+	addPostResponse := createBoardPost(
+		request.T,
+		request.E,
+		newPost,
+		request.UnprivSessionId,
+		boardResponse.Results.Slug,
+	)
 
 	// Verify with post detail
 	verifyPostDetail(VerifyPostDetailRequest{
@@ -641,22 +647,31 @@ func TestBoardPostListApprovedFilterWithPermissionTest(t *testing.T) {
 		t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword,
 	)
 
-	response := createBoardAndPostAndVerify(CreateBoardAndPostAndVerifyRequest{
-		T:               t,
-		E:               e,
-		UnprivSessionId: unprivSessionID,
-		AdminSessionId:  adminSessionID,
-		ExpectedStatus:  http.StatusCreated,
-		BoardPayload: lib.AddBoardRequest{
-			DisplayName:            GenerateUniqueName(),
-			Description:            "Testing post list approved filter with unprivileged user.",
-			IsVisible:              true,
-			IsPrivate:              false,
-			IsOfficial:             false,
-			IsPostApprovalRequired: true,
-		},
+	// Need to create board as admin, but create post and verify post as unprivileged user
+	// response := createBoardAndPostAndVerify(CreateBoardAndPostAndVerifyRequest{
+	// 	T:               t,
+	// 	E:               e,
+	// 	UnprivSessionId: unprivSessionID,
+	// 	AdminSessionId:  adminSessionID,
+	// 	ExpectedStatus:  http.StatusCreated,
+	// 	BoardPayload: lib.AddBoardRequest{
+	// 		DisplayName:            GenerateUniqueName(),
+	// 		Description:            "Testing post list approved filter with unprivileged user.",
+	// 		IsVisible:              true,
+	// 		IsPrivate:              false,
+	// 		IsOfficial:             false,
+	// 		IsPostApprovalRequired: true,
+	// 	},
+	// })
+	boardResponse := CreateBoardAndVerify(t, e, adminSessionID, lib.AddBoardRequest{
+		DisplayName: GenerateUniqueName(),
+		Description: "Testing post list approved filter with unprivileged user.",
+		IsVisible:   true,
+		IsPrivate:   false,
+		IsOfficial:  false,
 	})
 
+	// Verify the post list
 	var isInList bool
 	var postListResponse lib.PostListResponse
 
