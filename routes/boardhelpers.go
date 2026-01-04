@@ -10,11 +10,12 @@ import (
 )
 
 type GetPostListAndVerifyParams struct {
-	E              *httpexpect.Expect
-	T              *testing.T
-	SessionId      string
-	ShowUnapproved bool
-	BoardName      string
+	E                        *httpexpect.Expect
+	T                        *testing.T
+	SessionId                string
+	ShowUnapproved           bool
+	BoardName                string
+	VerifyPostListIsNotEmpty bool
 }
 
 func getPostListAndVerify(params GetPostListAndVerifyParams) lib.PostListResponse {
@@ -34,8 +35,10 @@ func getPostListAndVerify(params GetPostListAndVerifyParams) lib.PostListRespons
 	if postListResponse.Status != "OK" {
 		params.T.Fatal("Failed to get post list")
 	}
-	if len(postListResponse.Results.Posts) == 0 {
-		params.T.Fatal("Post list is empty!")
+	if params.VerifyPostListIsNotEmpty {
+		if len(postListResponse.Results.Posts) == 0 {
+			params.T.Fatal("Post list is empty!")
+		}
 	}
 	return postListResponse
 }

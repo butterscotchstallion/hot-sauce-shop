@@ -356,6 +356,7 @@ func GetPosts(
 		whereClause += " AND bp.is_approved = true"
 	}
 	query := getPostsQuery(whereClause, paginationData)
+	logger.Info(fmt.Sprintf("GetPosts query: %s", query))
 	var rows pgx.Rows
 	var err error
 	if len(boardSlug) > 0 && len(postSlug) == 0 {
@@ -373,7 +374,6 @@ func GetPosts(
 	posts, collectRowsErr := pgx.CollectRows(rows, pgx.RowToStructByName[BoardPost])
 	if collectRowsErr != nil {
 		logger.Info(fmt.Sprintf("GetPosts CollectRows Error: %v", collectRowsErr))
-
 		return nil, collectRowsErr
 	}
 

@@ -649,12 +649,14 @@ func TestBoardPostListApprovedFilterWithPermissionTest(t *testing.T) {
 
 	// Need to create board as admin, but create post and verify post as unprivileged user
 	boardResponse := CreateBoardAndVerify(t, e, adminSessionID, lib.AddBoardRequest{
-		DisplayName: GenerateUniqueName(),
-		Description: "Testing post list approved filter with unprivileged user.",
-		IsVisible:   true,
-		IsPrivate:   false,
-		IsOfficial:  false,
+		DisplayName:            GenerateUniqueName(),
+		Description:            "Testing post list approved filter with unprivileged user.",
+		IsVisible:              true,
+		IsPrivate:              false,
+		IsOfficial:             false,
+		IsPostApprovalRequired: true,
 	})
+
 	addPostResponse := createBoardPost(t, e, lib.AddPostRequest{
 		Title:        GenerateUniqueName(),
 		ParentSlug:   "",
@@ -663,6 +665,8 @@ func TestBoardPostListApprovedFilterWithPermissionTest(t *testing.T) {
 		Slug:         GenerateUniqueName(),
 		PostFlairIds: nil,
 	}, unprivSessionID, boardResponse.Results.Slug)
+
+	// to simplify things, unapproved posts will only be visible through the board moderation queue
 	verifyPostDetail(VerifyPostDetailRequest{
 		t:              t,
 		e:              e,
@@ -678,11 +682,12 @@ func TestBoardPostListApprovedFilterWithPermissionTest(t *testing.T) {
 
 	// Check that the post is not visible to the unprivileged user
 	postListResponse = getPostListAndVerify(GetPostListAndVerifyParams{
-		E:              e,
-		T:              t,
-		SessionId:      unprivSessionID,
-		ShowUnapproved: true,
-		BoardName:      boardResponse.Results.Slug,
+		E:                        e,
+		T:                        t,
+		SessionId:                unprivSessionID,
+		ShowUnapproved:           true,
+		BoardName:                boardResponse.Results.Slug,
+		VerifyPostListIsNotEmpty: false,
 	})
 	newBoardSlug := boardResponse.Results.Slug
 	newPostSlug := addPostResponse.Results.Post.Slug
@@ -694,11 +699,12 @@ func TestBoardPostListApprovedFilterWithPermissionTest(t *testing.T) {
 
 	// Check that the post is visible to the admin user
 	postListResponse = getPostListAndVerify(GetPostListAndVerifyParams{
-		E:              e,
-		T:              t,
-		SessionId:      adminSessionID,
-		ShowUnapproved: true,
-		BoardName:      boardResponse.Results.Slug,
+		E:                        e,
+		T:                        t,
+		SessionId:                adminSessionID,
+		ShowUnapproved:           true,
+		BoardName:                boardResponse.Results.Slug,
+		VerifyPostListIsNotEmpty: true,
 	})
 
 	isInList = isPostSlugInList(newPostSlug, postListResponse.Results.Posts)

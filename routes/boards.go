@@ -183,7 +183,7 @@ func Boards(
 	})
 
 	// All posts
-	r.GET("/api/v1/posts", cache.CachePage(store, time.Minute*1, func(c *gin.Context) {
+	r.GET("/api/v1/posts", func(c *gin.Context) {
 		paginationData := getValidPaginationData(c)
 		var posts []lib.BoardPost
 		var getPostsErr error
@@ -199,12 +199,13 @@ func Boards(
 			return
 		}
 
-		showUnapprovedParam := c.DefaultQuery("showUnapproved", "false") == "true"
+		showUnapprovedParam := c.DefaultQuery("showUnapproved", "0")
 		boardSlug := c.DefaultQuery("boardSlug", "")
 		postSlug := c.DefaultQuery("postSlug", "")
 		showUnapproved := false
 
-		if showUnapprovedParam {
+		if showUnapprovedParam == "1" {
+			logger.Info("showUnapproved param is true")
 			if len(boardSlug) > 0 {
 				board, boardErr := lib.GetBoardBySlug(dbPool, boardSlug)
 				if boardErr != nil {
@@ -222,6 +223,8 @@ func Boards(
 						showUnapproved = true
 						logger.Info(fmt.Sprintf("Bypassing post approval for board %v", boardSlug))
 					}
+				} else {
+					logger.Info(fmt.Sprintf("Post approval not required for board '%v'", board.DisplayName))
 				}
 			}
 			// TODO: maybe figure out how to handle this for the unfiltered posts page. We could just check if the user
@@ -231,10 +234,11 @@ func Boards(
 
 		logger.Info(
 			fmt.Sprintf(
-				"GetPosts: fetching posts with parentId: %v, boardSlug: %v, postSlug: %v",
+				"GetPosts: fetching posts with parentId: %v, boardSlug: %v, postSlug: '%v', showUnapproved: %v",
 				parentId,
 				boardSlug,
 				postSlug,
+				showUnapproved,
 			),
 		)
 
@@ -269,7 +273,7 @@ func Boards(
 				TotalPosts: totalPosts,
 			},
 		})
-	}))
+	})
 
 	// Pin post
 	r.POST("/api/v1/boards/pin/:boardSlug/:postSlug", func(c *gin.Context) {
@@ -556,6 +560,8 @@ func Boards(
 			"status":  "OK",
 			"message": "Post added",
 			"results": gin.H{
+				// This is the bound empty post variable from the request and won't have most of the
+				// fields populated
 				"post":      newPost,
 				"newPostId": newPostId,
 			},
