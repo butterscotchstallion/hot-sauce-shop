@@ -648,27 +648,28 @@ func TestBoardPostListApprovedFilterWithPermissionTest(t *testing.T) {
 	)
 
 	// Need to create board as admin, but create post and verify post as unprivileged user
-	// response := createBoardAndPostAndVerify(CreateBoardAndPostAndVerifyRequest{
-	// 	T:               t,
-	// 	E:               e,
-	// 	UnprivSessionId: unprivSessionID,
-	// 	AdminSessionId:  adminSessionID,
-	// 	ExpectedStatus:  http.StatusCreated,
-	// 	BoardPayload: lib.AddBoardRequest{
-	// 		DisplayName:            GenerateUniqueName(),
-	// 		Description:            "Testing post list approved filter with unprivileged user.",
-	// 		IsVisible:              true,
-	// 		IsPrivate:              false,
-	// 		IsOfficial:             false,
-	// 		IsPostApprovalRequired: true,
-	// 	},
-	// })
 	boardResponse := CreateBoardAndVerify(t, e, adminSessionID, lib.AddBoardRequest{
 		DisplayName: GenerateUniqueName(),
 		Description: "Testing post list approved filter with unprivileged user.",
 		IsVisible:   true,
 		IsPrivate:   false,
 		IsOfficial:  false,
+	})
+	addPostResponse := createBoardPost(t, e, lib.AddPostRequest{
+		Title:        GenerateUniqueName(),
+		ParentSlug:   "",
+		PostText:     "Meow meow meow meow meow",
+		PostImages:   nil,
+		Slug:         GenerateUniqueName(),
+		PostFlairIds: nil,
+	}, unprivSessionID, boardResponse.Results.Slug)
+	verifyPostDetail(VerifyPostDetailRequest{
+		t:              t,
+		e:              e,
+		sessionId:      unprivSessionID,
+		expectedStatus: http.StatusNotFound,
+		post:           addPostResponse.Results.Post,
+		boardResponse:  boardResponse,
 	})
 
 	// Verify the post list
@@ -681,12 +682,12 @@ func TestBoardPostListApprovedFilterWithPermissionTest(t *testing.T) {
 		T:              t,
 		SessionId:      unprivSessionID,
 		ShowUnapproved: true,
-		BoardName:      response.AddBoardResponse.Results.Slug,
+		BoardName:      boardResponse.Results.Slug,
 	})
-	newBoardSlug := response.AddBoardResponse.Results.Slug
-	newPostSlug := response.AddPostResponse.Results.Post.Slug
+	newBoardSlug := boardResponse.Results.Slug
+	newPostSlug := addPostResponse.Results.Post.Slug
 
-	isInList = isPostSlugInList(response.AddPostResponse.Results.Post.Slug, postListResponse.Results.Posts)
+	isInList = isPostSlugInList(addPostResponse.Results.Post.Slug, postListResponse.Results.Posts)
 	if isInList {
 		t.Fatal("Post was found in the post list, but should not as an unprivileged user")
 	}
@@ -697,7 +698,7 @@ func TestBoardPostListApprovedFilterWithPermissionTest(t *testing.T) {
 		T:              t,
 		SessionId:      adminSessionID,
 		ShowUnapproved: true,
-		BoardName:      response.AddBoardResponse.Results.Slug,
+		BoardName:      boardResponse.Results.Slug,
 	})
 
 	isInList = isPostSlugInList(newPostSlug, postListResponse.Results.Posts)
