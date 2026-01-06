@@ -73,8 +73,9 @@ type AddBoardRequest struct {
 }
 
 type AddPostResponseResults struct {
-	Post      BoardPost `json:"post"`
-	NewPostId int       `json:"newPostId"`
+	Post        BoardPost `json:"post"`
+	NewPostId   int       `json:"newPostId"`
+	NewPostSlug string    `json:"newPostSlug"`
 }
 type AddPostResponse struct {
 	Status  string                 `json:"status"`
@@ -349,9 +350,9 @@ func GetPosts(
 	}
 	if parentId > 0 {
 		whereClause += " AND bp.parent_id = $1"
-	} else {
+	} /*else {
 		whereClause += " AND bp.parent_id = 0"
-	}
+	}*/
 	if !showUnapproved {
 		whereClause += " AND bp.is_approved = true"
 	}

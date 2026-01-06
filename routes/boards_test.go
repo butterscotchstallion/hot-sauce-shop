@@ -631,6 +631,7 @@ func TestBoardRequiresPostApprovalWithUnprivilegedUser(t *testing.T) {
 		boardResponse:  newBoardResponse,
 	})
 	DeleteBoardAndVerify(t, e, adminSessionID, newBoardResponse.Results.Slug)
+	deleteBoardPostAndVerify(t, e, adminSessionID, newPostResponse.Results.Post.Slug)
 }
 
 /**
@@ -691,7 +692,7 @@ func TestBoardPostListApprovedFilterWithPermissionTest(t *testing.T) {
 		VerifyPostListIsNotEmpty: false,
 	})
 	newBoardSlug := boardResponse.Results.Slug
-	newPostSlug := addPostResponse.Results.Post.Slug
+	newPostSlug := addPostResponse.Results.NewPostSlug
 
 	isInList = isPostSlugInList(addPostResponse.Results.Post.Slug, postListResponse.Results.Posts)
 	if isInList {

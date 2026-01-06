@@ -562,8 +562,9 @@ func Boards(
 			"results": gin.H{
 				// This is the bound empty post variable from the request and won't have most of the
 				// fields populated
-				"post":      newPost,
-				"newPostId": newPostId,
+				"post":        newPost,
+				"newPostId":   newPostId,
+				"newPostSlug": newPostSlug,
 			},
 		})
 	})
@@ -638,10 +639,6 @@ func Boards(
 		}
 		if !isMessageBoardAdmin {
 			logger.Error("Error deleting board: user is not message board admin")
-			c.JSON(http.StatusForbidden, gin.H{
-				"status":  "ERROR",
-				"message": "Error deleting board: permission denied",
-			})
 			return
 		}
 
