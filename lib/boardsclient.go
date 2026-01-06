@@ -356,18 +356,24 @@ func GetPosts(
 		whereClause += " AND bp.is_approved = true"
 	}
 	query := getPostsQuery(whereClause, paginationData)
-	logger.Info(fmt.Sprintf("GetPosts query: %s", query))
+	var params []string
 	var rows pgx.Rows
 	var err error
 	if len(boardSlug) > 0 && len(postSlug) == 0 {
 		rows, err = dbPool.Query(context.Background(), query, boardSlug)
+		params = append(params, boardSlug)
 	} else if len(postSlug) > 0 {
 		rows, err = dbPool.Query(context.Background(), query, boardSlug, postSlug)
+		params = append(params, boardSlug, postSlug)
 	} else if parentId > 0 {
 		rows, err = dbPool.Query(context.Background(), query, parentId)
+		params = append(params, string(rune(parentId)))
 	} else {
 		rows, err = dbPool.Query(context.Background(), query)
 	}
+	logger.Info(
+		fmt.Sprintf("GetPosts query: %v", debugQuery(query, params)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -376,7 +382,6 @@ func GetPosts(
 		logger.Info(fmt.Sprintf("GetPosts CollectRows Error: %v", collectRowsErr))
 		return nil, collectRowsErr
 	}
-
 	return posts, nil
 }
 

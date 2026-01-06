@@ -666,7 +666,8 @@ func TestBoardPostListApprovedFilterWithPermissionTest(t *testing.T) {
 		PostFlairIds: nil,
 	}, unprivSessionID, boardResponse.Results.Slug)
 
-	// to simplify things, unapproved posts will only be visible through the board moderation queue
+	// To simplify things, unapproved posts will only be visible through the board moderation queue.
+	// Expecting that the unapproved post is NOT available in the post detail.
 	verifyPostDetail(VerifyPostDetailRequest{
 		t:              t,
 		e:              e,
