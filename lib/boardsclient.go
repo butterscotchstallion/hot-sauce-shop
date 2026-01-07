@@ -350,9 +350,15 @@ func GetPosts(
 	}
 	if parentId > 0 {
 		whereClause += " AND bp.parent_id = $1"
-	} /*else {
-		whereClause += " AND bp.parent_id = 0"
-	}*/
+	}
+	/*
+		// Results in 0 rows when viewing a board post...but we actually
+		// want this because we only want top level posts in this scenario...
+		// Results show incorrect parent_id due to joins
+		else {
+			whereClause += " AND bp.parent_id = 0"
+		}
+	*/
 	if !showUnapproved {
 		whereClause += " AND bp.is_approved = true"
 	}

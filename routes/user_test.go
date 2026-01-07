@@ -120,3 +120,42 @@ func TestGetUserAdminBoards(t *testing.T) {
 		t.Fatal("Board admin not found in board admins list")
 	}
 }
+
+func TestGetUserProfile(t *testing.T) {
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
+	var userProfileResponse lib.UserProfileResponse
+	// TODO: add functions for creating a user here
+	e.GET("/api/v1/user/profile/sauceboss").
+		WithCookie("sessionId", sessionID).
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&userProfileResponse)
+	if userProfileResponse.Status != "OK" {
+		t.Fatal("Failed to get user profile")
+	}
+	if userProfileResponse.Results.User == (lib.User{}) {
+		t.Fatal("User profile is nil")
+	}
+	if len(userProfileResponse.Results.Roles) == 0 {
+		t.Fatal("User roles are empty")
+	}
+	if userProfileResponse.Results.UserPostCount == 0 {
+		t.Fatal("User post count is 0")
+	}
+	if userProfileResponse.Results.UserPostVoteSum == 0 {
+		t.Fatal("User post vote sum is 0")
+	}
+	if len(userProfileResponse.Results.UserModeratedBoards) == 0 {
+		t.Fatal("User moderated boards is empty")
+	}
+	// ensure user moderated boards doesn't contain duplicates
+	userModeratedBoards := make(map[string]bool)
+	for _, board := range userProfileResponse.Results.UserModeratedBoards {
+		userModeratedBoards[board.Slug] = true
+	}
+	if len(userModeratedBoards) != len(userProfileResponse.Results.UserModeratedBoards) {
+		t.Fatal("User moderated boards contains duplicates")
+	}
+}

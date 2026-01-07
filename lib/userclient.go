@@ -275,7 +275,7 @@ func AddBoardUser(dbPool *pgxpool.Pool, userId int, boardId int) error {
 // GetUserModeratedBoards
 // Returns boards the user is a moderator on
 func GetUserModeratedBoards(dbPool *pgxpool.Pool, userId int) ([]Board, error) {
-	query := fmt.Sprintf(`SELECT %s
+	query := fmt.Sprintf(`SELECT DISTINCT %s
 		b.created_by_user_id,
 		u.username AS created_by_username,
 		u.slug AS created_by_user_slug
