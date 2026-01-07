@@ -1,4 +1,4 @@
-import {NavLink, Params, useParams} from "react-router";
+import {Params, useParams} from "react-router";
 import {ReactElement, useEffect, useRef, useState} from "react";
 import {Subject} from "rxjs";
 import {getUserProfileBySlug} from "../../components/User/UserService.ts";
@@ -9,6 +9,7 @@ import {Button} from "primereact/button";
 import {UserRoleList} from "../../components/User/UserRoleList.tsx";
 import {setPageTitle} from "../../components/Shared/PageTitle.ts";
 import {IUserRole} from "../../components/User/types/IUserRole.ts";
+import {BoardNameLink} from "../../components/Boards/BoardNameLink.tsx";
 
 export default function UserProfilePage() {
     const params: Readonly<Params<string>> = useParams();
@@ -95,8 +96,9 @@ export default function UserProfilePage() {
                                                     <ul>
                                                         {details.userModeratedBoards.map((board) => (
                                                             <li key={board.id}>
-                                                                <NavLink
-                                                                    to={`/boards/${board.slug}`}>{board.displayName}</NavLink>
+                                                                <BoardNameLink isOfficial={board.isOfficial}
+                                                                               displayName={board.displayName}
+                                                                               slug={board.slug}/>
                                                             </li>
                                                         ))}
                                                     </ul>
