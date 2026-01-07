@@ -733,9 +733,12 @@ func TestGetPostsFilteredByUserJoinedBoards(t *testing.T) {
 	unprivSessionID := signInAndGetSessionId(
 		t, e, config.TestUsers.UnprivilegedUsername, config.TestUsers.UnprivilegedPassword,
 	)
+	adminSessionId := signInAndGetSessionId(
+		t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword,
+	)
 
 	// Create a new board and post
-	boardResponse := CreateBoardAndVerify(t, e, unprivSessionID, lib.AddBoardRequest{
+	boardResponse := CreateBoardAndVerify(t, e, adminSessionId, lib.AddBoardRequest{
 		DisplayName:            GenerateUniqueName(),
 		Description:            "Testing get posts filtered by user joined boards",
 		IsVisible:              true,
@@ -743,7 +746,7 @@ func TestGetPostsFilteredByUserJoinedBoards(t *testing.T) {
 		IsOfficial:             false,
 		IsPostApprovalRequired: false,
 	})
-	createBoardPost(t, e, lib.AddPostRequest{
+	postResponse := createBoardPost(t, e, lib.AddPostRequest{
 		Title:        GenerateUniqueName(),
 		ParentSlug:   "",
 		PostText:     "hello",
@@ -756,11 +759,27 @@ func TestGetPostsFilteredByUserJoinedBoards(t *testing.T) {
 	joinBoardWithCurrentUser(boardResponse.Results.BoardId, e, t, unprivSessionID)
 
 	// Verify the post list
-	getPostListAndVerify(GetPostListAndVerifyParams{
+	postListResponse := getPostListAndVerify(GetPostListAndVerifyParams{
 		E:                        e,
 		T:                        t,
 		SessionId:                unprivSessionID,
 		ShowUnapproved:           false,
 		FilterByUserJoinedBoards: true,
+		BoardName:                boardResponse.Results.Slug,
 	})
+
+	foundPost := false
+	for _, post := range postListResponse.Results.Posts {
+		if post.Slug == postResponse.Results.Post.Slug {
+			foundPost = true
+			break
+		}
+	}
+
+	if !foundPost {
+		t.Fatal("Post was not found in the post list")
+	}
+
+	deleteBoardPostAndVerify(t, e, adminSessionId, postResponse.Results.Post.Slug)
+	DeleteBoardAndVerify(t, e, adminSessionId, boardResponse.Results.Slug)
 }

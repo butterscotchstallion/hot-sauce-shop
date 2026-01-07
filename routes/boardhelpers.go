@@ -23,11 +23,16 @@ type GetPostListAndVerifyParams struct {
 func getPostListAndVerify(params GetPostListAndVerifyParams) lib.PostListResponse {
 	var postListResponse lib.PostListResponse
 	showUnapprovedStr := 0
+	filterByUserJoinedBoardsStr := 0
+	if params.FilterByUserJoinedBoards {
+		filterByUserJoinedBoardsStr = 1
+	}
 	if params.ShowUnapproved {
 		showUnapprovedStr = 1
 	}
 	params.E.GET("/api/v1/posts").
 		WithQuery("showUnapproved", showUnapprovedStr).
+		WithQuery("filterByUserJoinedBoards", filterByUserJoinedBoardsStr).
 		WithQuery("boardSlug", params.BoardName).
 		WithCookie("sessionId", params.SessionId).
 		Expect().

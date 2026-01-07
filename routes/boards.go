@@ -199,6 +199,7 @@ func Boards(
 			return
 		}
 
+		filterByUserJoinedBoards := c.DefaultQuery("filterByUserJoinedBoards", "0")
 		showUnapprovedParam := c.DefaultQuery("showUnapproved", "0")
 		boardSlug := c.DefaultQuery("boardSlug", "")
 		postSlug := c.DefaultQuery("postSlug", "")
@@ -259,6 +260,26 @@ func Boards(
 				"message": getPostsErr.Error(),
 			})
 			return
+		}
+
+		if filterByUserJoinedBoards == "1" {
+			userId, userIdErr := lib.GetUserIdFromSession(c, dbPool, logger)
+			if userIdErr != nil {
+				logger.Error(fmt.Sprintf("Error fetching user id from session: %v", userIdErr.Error()))
+			}
+			userJoinedBoards, userJoinedBoardsErr := lib.GetJoinedBoardsByUserId(dbPool, userId)
+			if userJoinedBoardsErr != nil {
+				logger.Error(fmt.Sprintf("Error fetching joined boards: %v", userJoinedBoardsErr.Error()))
+			}
+			var filteredPosts []lib.BoardPost
+			for _, post := range posts {
+				for _, joinedBoard := range userJoinedBoards {
+					if post.BoardId == joinedBoard.Id {
+						filteredPosts = append(filteredPosts, post)
+					}
+				}
+			}
+			posts = filteredPosts
 		}
 
 		totalPosts, totalPostsErr := lib.GetTotalPosts(dbPool)
