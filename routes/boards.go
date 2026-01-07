@@ -579,10 +579,6 @@ func Boards(
 		}
 		if !isMessageBoardAdmin {
 			logger.Error("Error adding board: user is not message board admin")
-			c.JSON(http.StatusForbidden, gin.H{
-				"status":  "ERROR",
-				"message": "Error adding board: permission denied",
-			})
 			return
 		}
 

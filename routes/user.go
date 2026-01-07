@@ -204,17 +204,9 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		})
 	})
 
-	// Join boardSlug
+	// Join board
 	r.POST("/api/v1/user/boards/:boardId", func(c *gin.Context) {
 		boardIdSlug := c.Param("boardId")
-		if len(boardIdSlug) == 0 {
-			c.JSON(http.StatusNotFound, lib.GenericResponse{
-				Status:  "ERROR",
-				Message: "Not found",
-			})
-			return
-		}
-
 		boardId, err := strconv.Atoi(boardIdSlug)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Error parsing boardIdSlug: %v", err.Error()))
@@ -243,7 +235,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 
 		c.JSON(http.StatusOK, lib.GenericResponse{
 			Status:  "OK",
-			Message: "",
+			Message: "Board added",
 		})
 	})
 }

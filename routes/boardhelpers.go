@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -16,6 +17,7 @@ type GetPostListAndVerifyParams struct {
 	ShowUnapproved           bool
 	BoardName                string
 	VerifyPostListIsNotEmpty bool
+	FilterByUserJoinedBoards bool
 }
 
 func getPostListAndVerify(params GetPostListAndVerifyParams) lib.PostListResponse {
@@ -50,4 +52,17 @@ func isPostSlugInList(postSlug string, posts []lib.BoardPost) bool {
 		}
 	}
 	return false
+}
+
+func joinBoardWithCurrentUser(boardId int, e *httpexpect.Expect, t *testing.T, sessionId string) {
+	var userJoinedBoardsResponse lib.GenericResponse
+	e.POST(fmt.Sprintf("/api/v1/user/boards/%v", boardId)).
+		WithCookie("sessionId", sessionId).
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&userJoinedBoardsResponse)
+	if userJoinedBoardsResponse.Status != "OK" {
+		t.Fatal("Failed to join board")
+	}
 }

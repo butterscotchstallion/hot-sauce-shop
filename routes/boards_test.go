@@ -582,10 +582,11 @@ func TestUpdateBoardDetailsWithUnprivilegedUser(t *testing.T) {
 func TestGetPostList(t *testing.T) {
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	getPostListAndVerify(GetPostListAndVerifyParams{
-		E:              e,
-		T:              t,
-		SessionId:      "",
-		ShowUnapproved: false,
+		E:                        e,
+		T:                        t,
+		SessionId:                "",
+		ShowUnapproved:           false,
+		FilterByUserJoinedBoards: false,
 	})
 }
 
@@ -690,6 +691,7 @@ func TestBoardPostListApprovedFilterWithPermissionTest(t *testing.T) {
 		ShowUnapproved:           true,
 		BoardName:                boardResponse.Results.Slug,
 		VerifyPostListIsNotEmpty: false,
+		FilterByUserJoinedBoards: false,
 	})
 	newBoardSlug := boardResponse.Results.Slug
 	newPostSlug := addPostResponse.Results.NewPostSlug
@@ -707,6 +709,7 @@ func TestBoardPostListApprovedFilterWithPermissionTest(t *testing.T) {
 		ShowUnapproved:           true,
 		BoardName:                boardResponse.Results.Slug,
 		VerifyPostListIsNotEmpty: true,
+		FilterByUserJoinedBoards: false,
 	})
 
 	isInList = isPostSlugInList(newPostSlug, postListResponse.Results.Posts)
@@ -717,4 +720,47 @@ func TestBoardPostListApprovedFilterWithPermissionTest(t *testing.T) {
 	// Clean up
 	DeleteBoardAndVerify(t, e, adminSessionID, newBoardSlug)
 	deleteBoardPostAndVerify(t, e, unprivSessionID, newPostSlug)
+}
+
+/**
+ * 1. Create a board
+ * 2. Join the board
+ * 3. Create a post on the board
+ * 3. Verify that the post list contains the newly created post while filtering on joined boards
+ */
+func TestGetPostsFilteredByUserJoinedBoards(t *testing.T) {
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	unprivSessionID := signInAndGetSessionId(
+		t, e, config.TestUsers.UnprivilegedUsername, config.TestUsers.UnprivilegedPassword,
+	)
+
+	// Create a new board and post
+	boardResponse := CreateBoardAndVerify(t, e, unprivSessionID, lib.AddBoardRequest{
+		DisplayName:            GenerateUniqueName(),
+		Description:            "Testing get posts filtered by user joined boards",
+		IsVisible:              true,
+		IsPrivate:              false,
+		IsOfficial:             false,
+		IsPostApprovalRequired: false,
+	})
+	createBoardPost(t, e, lib.AddPostRequest{
+		Title:        GenerateUniqueName(),
+		ParentSlug:   "",
+		PostText:     "hello",
+		PostImages:   nil,
+		Slug:         "",
+		PostFlairIds: nil,
+	}, unprivSessionID, boardResponse.Results.Slug)
+
+	// Join the new board
+	joinBoardWithCurrentUser(boardResponse.Results.BoardId, e, t, unprivSessionID)
+
+	// Verify the post list
+	getPostListAndVerify(GetPostListAndVerifyParams{
+		E:                        e,
+		T:                        t,
+		SessionId:                unprivSessionID,
+		ShowUnapproved:           false,
+		FilterByUserJoinedBoards: true,
+	})
 }
