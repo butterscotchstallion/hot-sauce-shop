@@ -3,6 +3,7 @@ export interface IBoardDetailsPayload {
     isPrivate: boolean;
     isPostApprovalRequired: boolean;
     isOfficial: boolean;
+    minKarmaRequiredToPost: number;
     description: string;
     thumbnailFilename: string;
 }

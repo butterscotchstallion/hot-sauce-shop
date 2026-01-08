@@ -12,9 +12,11 @@ import (
 
 	"github.com/gavv/httpexpect/v2"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var config lib.HotSauceShopConfig
+var dbPool *pgxpool.Pool
 
 // Used to add post flair to board post
 var postFlairIds = []int{1, 2, 3}
@@ -31,6 +33,7 @@ func setup() {
 	if configReadErr != nil {
 		panic("Could not read config")
 	}
+	dbPool = lib.InitDB(config.Database.Dsn)
 	// lib.SetRuntimeConfig(fileConfig)
 	// config = lib.GetRuntimeConfig()
 	// disableCacheErr := lib.DisableCaching()
@@ -231,6 +234,7 @@ func TestCreateBoard(t *testing.T) {
 		IsPrivate:              false,
 		IsOfficial:             false,
 		IsPostApprovalRequired: false,
+		MinKarmaRequiredToPost: 0,
 	}
 	addBoardResponse := CreateBoardAndVerify(t, e, sessionID, newBoardPayload)
 
@@ -262,6 +266,7 @@ func TestCreateBoardPost(t *testing.T) {
 			IsPrivate:              false,
 			IsOfficial:             false,
 			IsVisible:              false,
+			MinKarmaRequiredToPost: 0,
 		},
 	})
 	if response.AddPostResponse.Results.Post.Slug == "" {
@@ -334,6 +339,7 @@ func TestGetPostFlairsForPost(t *testing.T) {
 			IsPrivate:              false,
 			IsOfficial:             false,
 			IsVisible:              false,
+			MinKarmaRequiredToPost: 0,
 		},
 	})
 
@@ -509,6 +515,7 @@ func TestUpdateBoardDetails(t *testing.T) {
 		IsPrivate:              false,
 		IsOfficial:             false,
 		IsPostApprovalRequired: false,
+		MinKarmaRequiredToPost: 0,
 	}
 	newBoardResponse := CreateBoardAndVerify(t, e, sessionID, newBoardPayload)
 	if newBoardResponse.Status != "OK" {
@@ -553,6 +560,7 @@ func TestUpdateBoardDetailsWithUnprivilegedUser(t *testing.T) {
 		IsPrivate:              false,
 		IsOfficial:             false,
 		IsPostApprovalRequired: false,
+		MinKarmaRequiredToPost: 0,
 	}
 	newBoardResponse := CreateBoardAndVerify(t, e, adminSessionID, newBoardPayload)
 	if newBoardResponse.Status != "OK" {
@@ -612,6 +620,7 @@ func TestBoardRequiresPostApprovalWithUnprivilegedUser(t *testing.T) {
 		IsOfficial:  false,
 		// Specifying this setting to make the post require approval
 		IsPostApprovalRequired: true,
+		MinKarmaRequiredToPost: 0,
 	}
 	newBoardResponse := CreateBoardAndVerify(t, e, adminSessionID, newBoardPayload)
 	postName := GenerateUniqueName()
@@ -657,6 +666,7 @@ func TestBoardPostListApprovedFilterWithPermissionTest(t *testing.T) {
 		IsPrivate:              false,
 		IsOfficial:             false,
 		IsPostApprovalRequired: true,
+		MinKarmaRequiredToPost: 0,
 	})
 
 	addPostResponse := createBoardPost(t, e, lib.AddPostRequest{
@@ -745,6 +755,7 @@ func TestGetPostsFilteredByUserJoinedBoards(t *testing.T) {
 		IsPrivate:              false,
 		IsOfficial:             false,
 		IsPostApprovalRequired: false,
+		MinKarmaRequiredToPost: 0,
 	})
 	postResponse := createBoardPost(t, e, lib.AddPostRequest{
 		Title:        GenerateUniqueName(),
@@ -782,4 +793,38 @@ func TestGetPostsFilteredByUserJoinedBoards(t *testing.T) {
 
 	deleteBoardPostAndVerify(t, e, adminSessionId, postResponse.Results.Post.Slug)
 	DeleteBoardAndVerify(t, e, adminSessionId, boardResponse.Results.Slug)
+}
+
+/**
+ * 1. Create a new board
+ * 2. Set min required karma to post to 50
+ * 3. Set user karma to 0
+ * 4. Attempt to post - expected response status code 403
+ * 5. Set user karma to 60
+ * 6. Attempt to post - expected response status code 201
+ */
+func TestMinKarmaRequiredToPost(t *testing.T) {
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	unprivSessionID := signInAndGetSessionId(
+		t, e, config.TestUsers.UnprivilegedUsername, config.TestUsers.UnprivilegedPassword,
+	)
+	adminSessionId := signInAndGetSessionId(
+		t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword,
+	)
+
+	// Create a new board and post
+	boardResponse := CreateBoardAndVerify(t, e, adminSessionId, lib.AddBoardRequest{
+		DisplayName:            GenerateUniqueName(),
+		Description:            "Testing get posts filtered by user joined boards",
+		IsVisible:              true,
+		IsPrivate:              false,
+		IsOfficial:             false,
+		IsPostApprovalRequired: false,
+		MinKarmaRequiredToPost: 50,
+	})
+
+	/**
+	 * Normally the API is used, but there isn't a use for endpoints updating
+	 * user karma currently.
+	 */
 }

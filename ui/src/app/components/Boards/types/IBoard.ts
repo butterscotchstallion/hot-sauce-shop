@@ -13,4 +13,5 @@ export interface IBoard {
     isPrivate: boolean;
     isPostApprovalRequired: boolean;
     isOfficial: boolean;
+    minKarmaRequiredToPost: number;
 }

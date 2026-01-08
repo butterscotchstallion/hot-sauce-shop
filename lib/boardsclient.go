@@ -28,6 +28,7 @@ type Board struct {
 	IsPrivate              bool       `json:"isPrivate"`
 	IsOfficial             bool       `json:"isOfficial"`
 	IsPostApprovalRequired bool       `json:"isPostApprovalRequired"`
+	MinKarmaRequiredToPost int        `json:"minKarmaRequiredToPost"`
 }
 
 type BoardPost struct {
@@ -48,9 +49,9 @@ type BoardPost struct {
 	VoteSum           int        `json:"voteSum"`
 	IsPinned          bool       `json:"isPinned"`
 	IsApproved        bool       `json:"isApproved"`
-	ThumbnailFilename string     `db:"thumbnail_filename"   json:"thumbnailFilename"`
-	ThumbnailWidth    *float32   `db:"thumbnail_width"      json:"thumbnailWidth"`
-	ThumbnailHeight   *float32   `db:"thumbnail_height"     json:"thumbnailHeight"`
+	ThumbnailFilename string     `db:"thumbnail_filename"      json:"thumbnailFilename"`
+	ThumbnailWidth    *float32   `db:"thumbnail_width"         json:"thumbnailWidth"`
+	ThumbnailHeight   *float32   `db:"thumbnail_height"        json:"thumbnailHeight"`
 }
 
 type AddPostRequest struct {
@@ -70,6 +71,7 @@ type AddBoardRequest struct {
 	IsPrivate              bool   `json:"isPrivate"`
 	IsOfficial             bool   `json:"isOfficial"`
 	IsVisible              bool   `json:"isVisible"`
+	MinKarmaRequiredToPost int    `json:"minKarmaRequiredToPost"`
 }
 
 type AddPostResponseResults struct {
@@ -192,6 +194,7 @@ type UpdateBoardRequest struct {
 	IsPrivate              bool   `json:"isPrivate"              validate:"required,boolean"`
 	IsOfficial             bool   `json:"isOfficial"             validate:"required,boolean"`
 	IsPostApprovalRequired bool   `json:"isPostApprovalRequired" validate:"required,boolean"`
+	MinKarmaRequiredToPost int    `json:"minKarmaRequiredToPost" validate:"required,min=0,max=50000"`
 	Description            string `json:"description"            validate:"required,min=10,max=1000000"`
 	ThumbnailFilename      string `json:"thumbnailFilename"      validate:"required"`
 }
@@ -847,8 +850,9 @@ func UpdateBoard(
 		    is_private = $3,
 		    is_official = $4,
 		    is_post_approval_required = $5,
+		    min_karma_required_to_post = $6,
 		    updated_at = NOW()
-		WHERE id = $6
+		WHERE id = $7
 	`
 	logger.Info(fmt.Sprintf("UpdateBoard: query: %v", query))
 	result, err := dbPool.Exec(
@@ -859,6 +863,7 @@ func UpdateBoard(
 		updateBoardRequest.IsPrivate,
 		updateBoardRequest.IsOfficial,
 		updateBoardRequest.IsPostApprovalRequired,
+		updateBoardRequest.MinKarmaRequiredToPost,
 		boardId)
 	if err != nil {
 		return false, err
@@ -882,6 +887,7 @@ func getBoardColumns() string {
 		b.is_private,
 		b.is_official,
 		b.is_post_approval_required,
+		b.min_karma_required_to_post,
 	`
 }
 

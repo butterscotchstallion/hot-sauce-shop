@@ -12,6 +12,7 @@ import {DumpsterFireError} from "../../components/Shared/DumpsterFireError.tsx";
 import {Subscription} from "rxjs";
 import {Toast} from "primereact/toast";
 import {IBoardDetailsPayload} from "../../components/Boards/types/IBoardDetailsPayload.ts";
+import {InputNumber, InputNumberChangeEvent} from "primereact/inputnumber";
 
 export function BoardSettingsPage() {
     const toast: RefObject<Toast | null> = useRef<Toast>(null);
@@ -32,6 +33,7 @@ export function BoardSettingsPage() {
                     isOfficial: boardDetails.board.isOfficial,
                     description: boardDetails.board.description,
                     thumbnailFilename: boardDetails.board.thumbnailFilename,
+                    minKarmaRequiredToPost: boardDetails.board.minKarmaRequiredToPost,
                 });
             },
             error: (err) => {
@@ -44,7 +46,7 @@ export function BoardSettingsPage() {
         }
     }, []);
 
-    function updateBoardDetails(settingName: string, value: string | boolean) {
+    function updateBoardDetails(settingName: string, value: string | boolean | number) {
         if (boardUpdatePayload) {
             setBoardUpdatePayload({...boardUpdatePayload, ...{[settingName]: value}});
         }
@@ -169,6 +171,40 @@ export function BoardSettingsPage() {
                                             <p className="text-gray-400">
                                                 When the board is private, all members must be approved prior to
                                                 joining. Posts will only be visible to members.
+                                            </p>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div className="mb-4 flex gap-4">
+                                    <div>
+                                        {/*<Checkbox inputId="isPrivateCheckbox"*/}
+                                        {/*          onChange={e => updateBoardDetails('isPrivate', !!e.checked)}*/}
+                                        {/*          checked={!!boardUpdatePayload?.isPrivate}></Checkbox>*/}
+                                        <InputNumber
+                                            onChange={(e: InputNumberChangeEvent) => {
+                                                updateBoardDetails(
+                                                    'minKarmaRequiredToPost',
+                                                    parseInt(String((e.value || 0)), 10)
+                                                )
+                                            }}
+                                            inputId="minKarmaRequiredToPost"
+                                            value={boardUpdatePayload?.minKarmaRequiredToPost}
+                                            min={0}
+                                            max={1000000}
+                                            maxLength={7}
+                                            showButtons
+                                        />
+                                    </div>
+                                    <div className="w-2/3">
+                                        <label
+                                            className="block mb-2 cursor-pointer"
+                                            htmlFor="minKarmaRequiredToPost">
+                                            <i className="pi pi-users pr-1"/> <strong>Minimum Karma Required To
+                                            Post</strong>
+                                            <p className="text-gray-400">
+                                                Users will not be able to post to this board if their karma is below the
+                                                value specified here.
                                             </p>
                                         </label>
                                     </div>
