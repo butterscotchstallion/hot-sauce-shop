@@ -12,9 +12,11 @@ import (
 
 	"github.com/gavv/httpexpect/v2"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var config lib.HotSauceShopConfig
+var dbPool *pgxpool.Pool
 
 // Used to add post flair to board post
 var postFlairIds = []int{1, 2, 3}
@@ -31,6 +33,7 @@ func setup() {
 	if configReadErr != nil {
 		panic("Could not read config")
 	}
+	dbPool = lib.InitDB(config.Database.Dsn)
 }
 
 func TestGetBoardPosts(t *testing.T) {
@@ -99,13 +102,13 @@ func createBoardPost(
 		JSON().
 		Decode(&addPostResponse)
 	expectedStatus := "OK"
-	if expectedStatusCode != http.StatusOK {
+	if expectedStatusCode != http.StatusCreated {
 		expectedStatus = "ERROR"
 	}
 	if addPostResponse.Status != expectedStatus {
-		t.Fatal("Failed to add post")
+		t.Fatalf("Failed to add post: expected status mismatch: %s", addPostResponse.Status)
 	}
-	if expectedStatusCode == http.StatusOK {
+	if expectedStatusCode == http.StatusCreated {
 		if addPostResponse.Results.Post.Title != newPost.Title {
 			t.Fatal("New post title mismatch")
 		}
@@ -811,6 +814,21 @@ func TestMinKarmaRequiredToPost(t *testing.T) {
 		t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword,
 	)
 
+	// 0. Clear posts/votes so the user karma is 0
+	const UnprivUserId = 3
+	deletePostFlairsErr := lib.DeletePostFlairsByUserId(dbPool, UnprivUserId)
+	if deletePostFlairsErr != nil {
+		t.Fatalf("Error deleting user post flairs: %v", deletePostFlairsErr)
+	}
+	deleteVotesErr := lib.DeleteVotesByUserId(dbPool, UnprivUserId)
+	if deleteVotesErr != nil {
+		t.Fatalf("Error deleting user votes: %v", deleteVotesErr)
+	}
+	deletePostsErr := lib.DeletePostsByUserId(dbPool, UnprivUserId)
+	if deletePostsErr != nil {
+		t.Fatalf("Error deleting user posts: %v", deletePostsErr)
+	}
+
 	// 1 + 2. Create a new board and post
 	boardAndPostResponse := createBoardAndPostAndVerify(CreateBoardAndPostAndVerifyRequest{
 		T:               t,
@@ -850,7 +868,7 @@ func TestMinKarmaRequiredToPost(t *testing.T) {
 	})
 
 	// 4. Attempt to post - expected response status code 403
-	createBoardPost(t, e, lib.AddPostRequest{
+	addPostResponse := createBoardPost(t, e, lib.AddPostRequest{
 		Title:        GenerateUniqueName(),
 		ParentSlug:   "",
 		PostText:     "403 response",
@@ -858,13 +876,17 @@ func TestMinKarmaRequiredToPost(t *testing.T) {
 		Slug:         "",
 		PostFlairIds: nil,
 	}, unprivSessionID, boardAndPostResponse.AddBoardResponse.Results.Slug, http.StatusForbidden)
+	if addPostResponse.ErrorCode != lib.ErrorCodeInsufficientKarma {
+		t.Fatalf("Expected error code to be %s", lib.ErrorCodeInsufficientKarma)
+	}
 
 	// 5. upvote post
 	var voteResponse lib.VoteResponse
 	voteRequestPayload := lib.AddUpdateVoteRequest{
 		VoteValue: 1,
 	}
-	e.POST(fmt.Sprintf("/api/v1/votes/%d", boardAndPostResponse.AddPostResponse.Results.Post.Id)).
+	e.POST(fmt.Sprintf("/api/v1/votes/%d", boardAndPostResponse.AddPostResponse.Results.NewPostId)).
+		WithCookie("sessionId", unprivSessionID).
 		WithJSON(voteRequestPayload).
 		Expect().
 		Status(http.StatusOK).
@@ -883,4 +905,7 @@ func TestMinKarmaRequiredToPost(t *testing.T) {
 		Slug:         "",
 		PostFlairIds: nil,
 	}, unprivSessionID, boardAndPostResponse.AddBoardResponse.Results.Slug, http.StatusCreated)
+
+	deleteBoardPostAndVerify(t, e, unprivSessionID, boardAndPostResponse.AddPostResponse.Results.Post.Slug)
+	DeleteBoardAndVerify(t, e, adminSessionId, boardAndPostResponse.AddBoardResponse.Results.Slug)
 }

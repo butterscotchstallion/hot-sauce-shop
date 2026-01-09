@@ -17,3 +17,5 @@ func (e *InternalServerError) Error() string {
 func (e *StatusForbiddenError) Error() string {
 	return e.Message
 }
+
+const ErrorCodeInsufficientKarma = "ERR_INSUFFICIENT_KARMA"

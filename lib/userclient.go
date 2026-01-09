@@ -52,6 +52,12 @@ type GenericResponse struct {
 	Message string `json:"message"`
 }
 
+type GenericResponseWithErrorCode struct {
+	Status    string `json:"status"`
+	Message   string `json:"message"`
+	ErrorCode string `json:"errorCode"`
+}
+
 type UserBoardsResponseResults struct {
 	Boards []Board `json:"boards"`
 }

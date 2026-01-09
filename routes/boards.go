@@ -394,11 +394,15 @@ func Boards(
 
 			if karma < board.MinKarmaRequiredToPost {
 				logger.Error(fmt.Sprintf("Error adding post: user %v does not have enough karma to post", userId))
-				c.JSON(http.StatusForbidden, lib.GenericResponse{
-					Status:  "ERROR",
-					Message: "Permission denied: insufficient karma",
+				c.JSON(http.StatusForbidden, lib.GenericResponseWithErrorCode{
+					Status:    "ERROR",
+					Message:   "Permission denied: insufficient karma",
+					ErrorCode: lib.ErrorCodeInsufficientKarma,
 				})
 				return
+			}
+			if karma >= board.MinKarmaRequiredToPost {
+				logger.Info(fmt.Sprintf("User %v has enough karma to post: %v", userId, karma))
 			}
 		}
 

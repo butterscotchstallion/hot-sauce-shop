@@ -80,9 +80,10 @@ type AddPostResponseResults struct {
 	NewPostSlug string    `json:"newPostSlug"`
 }
 type AddPostResponse struct {
-	Status  string                 `json:"status"`
-	Message string                 `json:"message"`
-	Results AddPostResponseResults `json:"results"`
+	Status    string                 `json:"status"`
+	Message   string                 `json:"message"`
+	ErrorCode string                 `json:"errorCode"`
+	Results   AddPostResponseResults `json:"results"`
 }
 
 type BoardPostDeleteResponse struct {
@@ -899,4 +900,25 @@ func IsPostApprovalRequiredForBoard(dbPool *pgxpool.Pool, boardId int) (bool, er
 		return false, err
 	}
 	return isPostApprovalRequired, nil
+}
+
+func DeletePostsByUserId(dbPool *pgxpool.Pool, userId int) error {
+	const query = `DELETE FROM board_posts WHERE board_posts.created_by_user_id = $1`
+	_, err := dbPool.Exec(context.Background(), query, userId)
+	return err
+}
+
+func DeletePostFlairsByUserId(dbPool *pgxpool.Pool, userId int) error {
+	const query = `
+		DELETE FROM public.posts_flairs
+		WHERE id = ANY(
+			SELECT pf.id
+			FROM posts_flairs pf
+			LEFT JOIN board_posts bp ON bp.id = pf.board_post_id
+			JOIN users u ON u.id = bp.created_by_user_id
+			WHERE bp.created_by_user_id = $1
+		)
+	`
+	_, err := dbPool.Exec(context.Background(), query, userId)
+	return err
 }

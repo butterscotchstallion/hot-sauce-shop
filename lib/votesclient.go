@@ -90,3 +90,9 @@ func GetVoteSumMapByPostId(dbPool *pgxpool.Pool, postId int) (map[int]int, error
 	}
 	return voteSumMap, nil
 }
+
+func DeleteVotesByUserId(dbPool *pgxpool.Pool, userId int) error {
+	const query = `DELETE FROM votes WHERE user_id = $1`
+	_, err := dbPool.Exec(context.Background(), query, userId)
+	return err
+}
