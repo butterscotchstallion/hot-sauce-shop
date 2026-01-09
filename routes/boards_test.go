@@ -98,14 +98,20 @@ func createBoardPost(
 		Status(expectedStatusCode).
 		JSON().
 		Decode(&addPostResponse)
-	if addPostResponse.Status != "OK" {
+	expectedStatus := "OK"
+	if expectedStatusCode != http.StatusOK {
+		expectedStatus = "ERROR"
+	}
+	if addPostResponse.Status != expectedStatus {
 		t.Fatal("Failed to add post")
 	}
-	if addPostResponse.Results.Post.Title != newPost.Title {
-		t.Fatal("New post title mismatch")
-	}
-	if addPostResponse.Results.Post.PostText != newPost.PostText {
-		t.Fatal("New post text mismatch")
+	if expectedStatusCode == http.StatusOK {
+		if addPostResponse.Results.Post.Title != newPost.Title {
+			t.Fatal("New post title mismatch")
+		}
+		if addPostResponse.Results.Post.PostText != newPost.PostText {
+			t.Fatal("New post text mismatch")
+		}
 	}
 	return addPostResponse
 }

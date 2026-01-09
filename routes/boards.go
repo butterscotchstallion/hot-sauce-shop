@@ -380,6 +380,28 @@ func Boards(
 			return
 		}
 
+		// Check if the board requires minimum karma to post
+		if board.MinKarmaRequiredToPost > 0 {
+			karma, karmaErr := lib.GetUserPostVoteSum(dbPool, userId)
+			if karmaErr != nil {
+				logger.Error(fmt.Sprintf("Error fetching user karma: %v", karmaErr.Error()))
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"status":  "ERROR",
+					"message": karmaErr.Error(),
+				})
+				return
+			}
+
+			if karma < board.MinKarmaRequiredToPost {
+				logger.Error(fmt.Sprintf("Error adding post: user %v does not have enough karma to post", userId))
+				c.JSON(http.StatusForbidden, lib.GenericResponse{
+					Status:  "ERROR",
+					Message: "Permission denied: insufficient karma",
+				})
+				return
+			}
+		}
+
 		// Create a slug for the post
 		newPostSlug, err := uuid.NewRandom()
 		if err != nil {
