@@ -11,6 +11,8 @@ boardAdminUsername = "test-user"
 boardAdminPassword = "test-user-password"
 unprivilegedUsername = "unprivileged-user"
 unprivilegedPassword = "unprivileged-user-password"
+votingUserUsername = "voting-user"
+votingUserPassword = "voting-user-password"
 
 [caching]
 defaultCacheTime = 15
