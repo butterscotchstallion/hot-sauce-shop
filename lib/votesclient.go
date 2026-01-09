@@ -12,6 +12,15 @@ type AddUpdateVoteRequest struct {
 	VoteValue int `json:"voteValue" binding:"required,oneof=1 -1"`
 }
 
+type VoteResponseResults struct {
+	VoteId  int    `json:"voteId"`
+	Message string `json:"message"`
+}
+type VoteResponse struct {
+	Status  string              `json:"status"`
+	Results VoteResponseResults `json:"results"`
+}
+
 func AddUpdateVote(dbPool *pgxpool.Pool, userId int, postId int, voteValue int) (int, error) {
 	if voteValue != -1 && voteValue != 1 {
 		return 0, errors.New("invalid vote value")

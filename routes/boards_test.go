@@ -12,11 +12,9 @@ import (
 
 	"github.com/gavv/httpexpect/v2"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var config lib.HotSauceShopConfig
-var dbPool *pgxpool.Pool
 
 // Used to add post flair to board post
 var postFlairIds = []int{1, 2, 3}
@@ -33,13 +31,6 @@ func setup() {
 	if configReadErr != nil {
 		panic("Could not read config")
 	}
-	dbPool = lib.InitDB(config.Database.Dsn)
-	// lib.SetRuntimeConfig(fileConfig)
-	// config = lib.GetRuntimeConfig()
-	// disableCacheErr := lib.DisableCaching()
-	// if disableCacheErr != nil {
-	// 	panic(fmt.Sprintf("Could not disable caching: %v", disableCacheErr))
-	// }
 }
 
 func TestGetBoardPosts(t *testing.T) {
@@ -97,13 +88,14 @@ func DeleteBoardAndVerify(t *testing.T, e *httpexpect.Expect, sessionID string, 
 
 func createBoardPost(
 	t *testing.T, e *httpexpect.Expect, newPost lib.AddPostRequest, sessionID string, boardSlug string,
+	expectedStatusCode int,
 ) lib.AddPostResponse {
 	var addPostResponse lib.AddPostResponse
 	e.POST(fmt.Sprintf("/api/v1/boards/%v/posts", boardSlug)).
 		WithCookie("sessionId", sessionID).
 		WithJSON(newPost).
 		Expect().
-		Status(http.StatusCreated).
+		Status(expectedStatusCode).
 		JSON().
 		Decode(&addPostResponse)
 	if addPostResponse.Status != "OK" {
@@ -187,6 +179,7 @@ func createBoardAndPostAndVerify(request CreateBoardAndPostAndVerifyRequest) Cre
 		newPost,
 		request.UnprivSessionId,
 		boardResponse.Results.Slug,
+		http.StatusCreated,
 	)
 
 	// Verify with post detail
@@ -630,7 +623,7 @@ func TestBoardRequiresPostApprovalWithUnprivilegedUser(t *testing.T) {
 		PostText:     "Testing post approval with unprivileged user.",
 		PostFlairIds: postFlairIds,
 	}
-	newPostResponse := createBoardPost(t, e, newPost, unprivSessionID, newBoardResponse.Results.Slug)
+	newPostResponse := createBoardPost(t, e, newPost, unprivSessionID, newBoardResponse.Results.Slug, http.StatusCreated)
 
 	verifyPostDetail(VerifyPostDetailRequest{
 		t:              t,
@@ -676,7 +669,7 @@ func TestBoardPostListApprovedFilterWithPermissionTest(t *testing.T) {
 		PostImages:   nil,
 		Slug:         GenerateUniqueName(),
 		PostFlairIds: nil,
-	}, unprivSessionID, boardResponse.Results.Slug)
+	}, unprivSessionID, boardResponse.Results.Slug, http.StatusCreated)
 
 	// To simplify things, unapproved posts will only be visible through the board moderation queue.
 	// Expecting that the unapproved post is NOT available in the post detail.
@@ -764,7 +757,7 @@ func TestGetPostsFilteredByUserJoinedBoards(t *testing.T) {
 		PostImages:   nil,
 		Slug:         "",
 		PostFlairIds: nil,
-	}, unprivSessionID, boardResponse.Results.Slug)
+	}, unprivSessionID, boardResponse.Results.Slug, http.StatusCreated)
 
 	// Join the new board
 	joinBoardWithCurrentUser(boardResponse.Results.BoardId, e, t, unprivSessionID)
@@ -797,10 +790,10 @@ func TestGetPostsFilteredByUserJoinedBoards(t *testing.T) {
 
 /**
  * 1. Create a new board
- * 2. Set min required karma to post to 50
- * 3. Set user karma to 0
+ * 2. Add a new post for upvoting
+ * 3. Set board minKarmaRequired to 1
  * 4. Attempt to post - expected response status code 403
- * 5. Set user karma to 60
+ * 5. Up vote post from step 2
  * 6. Attempt to post - expected response status code 201
  */
 func TestMinKarmaRequiredToPost(t *testing.T) {
@@ -812,19 +805,76 @@ func TestMinKarmaRequiredToPost(t *testing.T) {
 		t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword,
 	)
 
-	// Create a new board and post
-	boardResponse := CreateBoardAndVerify(t, e, adminSessionId, lib.AddBoardRequest{
-		DisplayName:            GenerateUniqueName(),
-		Description:            "Testing get posts filtered by user joined boards",
-		IsVisible:              true,
-		IsPrivate:              false,
-		IsOfficial:             false,
-		IsPostApprovalRequired: false,
-		MinKarmaRequiredToPost: 50,
+	// 1 + 2. Create a new board and post
+	boardAndPostResponse := createBoardAndPostAndVerify(CreateBoardAndPostAndVerifyRequest{
+		T:               t,
+		E:               e,
+		UnprivSessionId: unprivSessionID,
+		AdminSessionId:  adminSessionId,
+		ExpectedStatus:  http.StatusOK,
+		BoardPayload: lib.AddBoardRequest{
+			DisplayName:            GenerateUniqueName(),
+			ThumbnailFilename:      "",
+			Description:            "meow",
+			IsPostApprovalRequired: false,
+			IsPrivate:              false,
+			IsOfficial:             false,
+			IsVisible:              false,
+			MinKarmaRequiredToPost: 0,
+		},
 	})
 
-	/**
-	 * Normally the API is used, but there isn't a use for endpoints updating
-	 * user karma currently.
-	 */
+	// 3. Update board minKarmaRequired to 1
+	updateBoardAndVerify(UpdateBoardAndVerifyRequest{
+		t:                      t,
+		e:                      e,
+		sessionID:              adminSessionId,
+		newBoardResponse:       boardAndPostResponse.AddBoardResponse,
+		expectedResponseStatus: "OK",
+		expectedStatus:         http.StatusOK,
+		payload: lib.UpdateBoardRequest{
+			IsVisible:              true,
+			IsPrivate:              false,
+			IsOfficial:             false,
+			IsPostApprovalRequired: false,
+			Description:            "meow",
+			ThumbnailFilename:      "",
+			MinKarmaRequiredToPost: 1,
+		},
+	})
+
+	// 4. Attempt to post - expected response status code 403
+	createBoardPost(t, e, lib.AddPostRequest{
+		Title:        GenerateUniqueName(),
+		ParentSlug:   "",
+		PostText:     "403 response",
+		PostImages:   nil,
+		Slug:         "",
+		PostFlairIds: nil,
+	}, unprivSessionID, boardAndPostResponse.AddBoardResponse.Results.Slug, http.StatusForbidden)
+
+	// 5. upvote post
+	var voteResponse lib.VoteResponse
+	voteRequestPayload := lib.AddUpdateVoteRequest{
+		VoteValue: 1,
+	}
+	e.POST(fmt.Sprintf("/api/v1/votes/%d", boardAndPostResponse.AddPostResponse.Results.Post.Id)).
+		WithJSON(voteRequestPayload).
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&voteResponse)
+	if voteResponse.Status != "OK" {
+		t.Fatal("Failed to upvote post")
+	}
+
+	// 6. Attempt to post - expected response status code 201
+	createBoardPost(t, e, lib.AddPostRequest{
+		Title:        GenerateUniqueName(),
+		ParentSlug:   "",
+		PostText:     "201 response",
+		PostImages:   nil,
+		Slug:         "",
+		PostFlairIds: nil,
+	}, unprivSessionID, boardAndPostResponse.AddBoardResponse.Results.Slug, http.StatusCreated)
 }
