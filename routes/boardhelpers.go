@@ -71,3 +71,13 @@ func joinBoardWithCurrentUser(boardId int, e *httpexpect.Expect, t *testing.T, s
 		t.Fatal("Failed to join board")
 	}
 }
+
+// AddUserKarma
+/**
+ * 1. Create a new board
+ * 2. Create a new post on the board
+ * 3. Add votes to the post equal to karmaAmount
+ */
+func AddUserKarma(karmaAmount int, userId int, e *httpexpect.Expect, t *testing.T) {
+
+}
