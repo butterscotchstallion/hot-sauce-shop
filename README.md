@@ -1,4 +1,4 @@
-# Caliente Corner
+# Caliente Corner 🌶️
 - E-commerce site that sells a variety of delicious hot sauces
 # Features
 - Product list/view with ratings, reviews, and search
@@ -12,6 +12,7 @@
 - Custom error page
 - Caching for faster response times
 - Real-time updates using [Gorilla Websockets](https://github.com/gorilla/websocket)
+- TOML configuration file for controlling application behavior
 - And more!
 
 # Tech Stack
