@@ -820,10 +820,11 @@ func TestMinKarmaRequiredToPost(t *testing.T) {
 	if deletePostFlairsErr != nil {
 		t.Fatalf("Error deleting user post flairs: %v", deletePostFlairsErr)
 	}
-	deleteVotesErr := lib.DeleteVotesByUserId(dbPool, UnprivUserId)
+	votesDeleted, deleteVotesErr := lib.DeleteVotesByPostId(dbPool, UnprivUserId)
 	if deleteVotesErr != nil {
 		t.Fatalf("Error deleting user votes: %v", deleteVotesErr)
 	}
+	log.Printf("Deleted %d votes", votesDeleted)
 	deletePostsErr := lib.DeletePostsByUserId(dbPool, UnprivUserId)
 	if deletePostsErr != nil {
 		t.Fatalf("Error deleting user posts: %v", deletePostsErr)
@@ -905,6 +906,14 @@ func TestMinKarmaRequiredToPost(t *testing.T) {
 		Slug:         "",
 		PostFlairIds: nil,
 	}, unprivSessionID, boardAndPostResponse.AddBoardResponse.Results.Slug, http.StatusCreated)
+
+	// Delete votes before cleaning up - FK constraint will prevent deletion
+	var deletedVotes int64
+	deletedVotes, deleteVotesErr = lib.DeleteVotesByPostId(dbPool, UnprivUserId)
+	if deleteVotesErr != nil {
+		t.Fatalf("Error deleting user votes: %v", deleteVotesErr)
+	}
+	log.Printf("Deleted %d votes", deletedVotes)
 
 	deleteBoardPostAndVerify(t, e, unprivSessionID, boardAndPostResponse.AddPostResponse.Results.Post.Slug)
 	DeleteBoardAndVerify(t, e, adminSessionId, boardAndPostResponse.AddBoardResponse.Results.Slug)
