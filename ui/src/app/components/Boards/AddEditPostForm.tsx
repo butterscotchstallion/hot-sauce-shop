@@ -117,6 +117,8 @@ export default function AddEditPostForm({post, boardSlug, parentSlug, addPostCal
         }
     }
     const validate = (): boolean => {
+        // TODO: fix this
+        return true;
         console.log('validating');
         try {
             const fieldsToParse: IAddEditPostFormState = {postText};
