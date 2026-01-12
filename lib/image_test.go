@@ -43,6 +43,11 @@ func createThumbnail(t *testing.T, originalFilename string) {
 	if imageWidthHeight.Width != ThumbnailMaxWidth {
 		t.Fatal("destination thumbnail width should be ", ThumbnailMaxWidth)
 	}
+
+	deleteErr := os.Remove(destinationFilename)
+	if deleteErr != nil {
+		t.Fatal(deleteErr)
+	}
 }
 
 func TestCreateThumbnailJpg(t *testing.T) {
