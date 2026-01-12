@@ -2,6 +2,7 @@ package lib
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"testing"
 
@@ -11,9 +12,10 @@ import (
 const ImagePath = "../testdata"
 
 func createThumbnail(t *testing.T, originalFilename string) {
+	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 	destinationFilename := GetThumbnailFilename(originalFilename)
 
-	// If thumbnail exists already, remove it
+	// If the thumbnail exists already, remove it
 	_, existsErr := os.Stat(destinationFilename)
 	if existsErr == nil {
 		removeErr := os.Remove(destinationFilename)
@@ -27,7 +29,7 @@ func createThumbnail(t *testing.T, originalFilename string) {
 		t.Fatal(mimeTypeErr)
 	}
 
-	thumbnailErr := CreateThumbnail(originalFilename, destinationFilename, mimeType.String())
+	thumbnailErr := CreateThumbnail(originalFilename, destinationFilename, mimeType.String(), logger)
 	if thumbnailErr != nil {
 		t.Fatal(thumbnailErr)
 	}
@@ -37,7 +39,7 @@ func createThumbnail(t *testing.T, originalFilename string) {
 		t.Fatal("failed to create destination thumbnail")
 	}
 
-	imageWidthHeight, _ := GetImageWidthAndHeight(destinationFilename)
+	imageWidthHeight, _ := GetImageWidthAndHeight(destinationFilename, logger)
 	if imageWidthHeight.Width != ThumbnailMaxWidth {
 		t.Fatal("destination thumbnail width should be ", ThumbnailMaxWidth)
 	}

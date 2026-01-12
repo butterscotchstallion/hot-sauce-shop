@@ -6,6 +6,7 @@ import (
 	"image/gif"
 	"image/jpeg"
 	"image/png"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -35,16 +36,17 @@ type ImageWidthHeight struct {
 	Width  int
 }
 
-func GetImageWidthAndHeight(imagePath string) (ImageWidthHeight, error) {
+func GetImageWidthAndHeight(imagePath string, logger *slog.Logger) (ImageWidthHeight, error) {
 	reader, openErr := os.Open(imagePath)
-	// TODO: handle deferred close here
 	if openErr != nil {
 		return ImageWidthHeight{}, openErr
 	}
-	closeErr := reader.Close()
-	if closeErr != nil {
-		return ImageWidthHeight{}, closeErr
-	}
+	defer func() {
+		if closeErr := reader.Close(); closeErr != nil {
+			// Log the close error if needed, but don't override the main error
+			logger.Error(fmt.Sprintf("Error closing image file: %v", closeErr.Error()))
+		}
+	}()
 	m, _, err := image.Decode(reader)
 	if err != nil {
 		return ImageWidthHeight{}, openErr
@@ -67,25 +69,26 @@ func GetThumbnailFilename(originalFilename string) string {
 	)
 }
 
-func CreateThumbnail(originalFullPath string, destFullPath string, mimeType string) error {
+func CreateThumbnail(originalFullPath string, destFullPath string, mimeType string, logger *slog.Logger) error {
 	input, openErr := os.Open(originalFullPath)
 	if openErr != nil {
 		return fmt.Errorf("error opening %v: %v", originalFullPath, openErr.Error())
 	}
-	// TODO: handle deferred close here
-	err := input.Close()
-	if err != nil {
-		return err
-	}
+	defer func() {
+		if closeErr := input.Close(); closeErr != nil {
+			logger.Error(fmt.Sprintf("Error closing image file: %v", closeErr.Error()))
+		}
+	}()
 
 	output, createErr := os.Create(destFullPath)
 	if createErr != nil {
 		return fmt.Errorf("error creating %v: %v", destFullPath, createErr.Error())
 	}
-	err = output.Close()
-	if err != nil {
-		return err
-	}
+	defer func() {
+		if closeErr := output.Close(); closeErr != nil {
+			logger.Error(fmt.Sprintf("Error closing thumbnail file: %v", closeErr.Error()))
+		}
+	}()
 
 	originalImage, _, decodeErr := image.Decode(input)
 	if decodeErr != nil {
