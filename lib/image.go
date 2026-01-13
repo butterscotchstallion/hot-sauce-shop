@@ -105,6 +105,8 @@ func CreateThumbnail(originalFullPath string, destFullPath string, mimeType stri
 		encodeErr = jpeg.Encode(output, newImage, nil)
 	case "image/gif":
 		encodeErr = gif.Encode(output, newImage, nil)
+	default:
+		encodeErr = fmt.Errorf("unknown image mime type: %v", mimeType)
 	}
 
 	if encodeErr != nil {

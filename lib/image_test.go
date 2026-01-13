@@ -11,13 +11,13 @@ import (
 
 const ImagePath = "../testdata"
 
-func createThumbnail(t *testing.T, originalFilename string) {
+func createThumbnailAndVerify(t *testing.T, originalFilename string) {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 	destinationFilename := GetThumbnailFilename(originalFilename)
 
 	// If the thumbnail exists already, remove it
-	_, existsErr := os.Stat(destinationFilename)
-	if existsErr == nil {
+	_, destinationExistsErr := os.Stat(destinationFilename)
+	if destinationExistsErr == nil {
 		removeErr := os.Remove(destinationFilename)
 		if removeErr != nil {
 			t.Fatal(removeErr)
@@ -29,13 +29,15 @@ func createThumbnail(t *testing.T, originalFilename string) {
 		t.Fatal(mimeTypeErr)
 	}
 
+	// Create the thumbnail and check if there was an error
 	thumbnailErr := CreateThumbnail(originalFilename, destinationFilename, mimeType.String(), logger)
 	if thumbnailErr != nil {
 		t.Fatal(thumbnailErr)
 	}
 
-	_, err := os.Stat(destinationFilename)
-	if err != nil {
+	// Check that the thumbnail exists now
+	_, createDestinationThumbnailErr := os.Stat(destinationFilename)
+	if createDestinationThumbnailErr != nil {
 		t.Fatal("failed to create destination thumbnail")
 	}
 
@@ -44,6 +46,7 @@ func createThumbnail(t *testing.T, originalFilename string) {
 		t.Fatal("destination thumbnail width should be ", ThumbnailMaxWidth)
 	}
 
+	// Clean up
 	deleteErr := os.Remove(destinationFilename)
 	if deleteErr != nil {
 		t.Fatal(deleteErr)
@@ -51,16 +54,25 @@ func createThumbnail(t *testing.T, originalFilename string) {
 }
 
 func TestCreateThumbnailJpg(t *testing.T) {
-	originalFilename := fmt.Sprintf("%s/purple.jpg", ImagePath)
-	createThumbnail(t, originalFilename)
+	testImages := []string{"purple.jpg", "cuttlefish.jpg", "diatom.jpg"}
+	for _, image := range testImages {
+		originalFilename := fmt.Sprintf("%s/%s", ImagePath, image)
+		createThumbnailAndVerify(t, originalFilename)
+	}
 }
 
 func TestCreateThumbnailPng(t *testing.T) {
-	originalFilename := fmt.Sprintf("%s/red.png", ImagePath)
-	createThumbnail(t, originalFilename)
+	testImages := []string{"red.png", "pikachu.png", "shadow-alakazam.png"}
+	for _, image := range testImages {
+		originalFilename := fmt.Sprintf("%s/%s", ImagePath, image)
+		createThumbnailAndVerify(t, originalFilename)
+	}
 }
 
 func TestCreateThumbnailGif(t *testing.T) {
-	originalFilename := fmt.Sprintf("%s/samurai-doge.gif", ImagePath)
-	createThumbnail(t, originalFilename)
+	testImages := []string{"samurai-doge.gif", "blastoise-pokemon.gif", "snorlax.gif"}
+	for _, image := range testImages {
+		originalFilename := fmt.Sprintf("%s/%s", ImagePath, image)
+		createThumbnailAndVerify(t, originalFilename)
+	}
 }
