@@ -19,7 +19,7 @@ import {IBoardDetailsPayload} from "./types/IBoardDetailsPayload.ts";
 
 export function getBoards(): Subject<IBoard[]> {
     const boards$ = new Subject<IBoard[]>();
-    fetch(`${BOARDS_URL}`, {
+    fetch(`${BOARDS_URL}?omitEmpty=1`, {
         credentials: 'include'
     }).then((res: Response) => {
         if (res.ok) {
