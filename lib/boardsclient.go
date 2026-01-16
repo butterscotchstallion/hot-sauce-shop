@@ -31,6 +31,14 @@ type Board struct {
 	MinKarmaRequiredToPost int        `json:"minKarmaRequiredToPost"`
 }
 
+type BoardListResponseResults struct {
+	Boards []Board `json:"boards"`
+}
+type BoardListResponse struct {
+	Status  string                   `json:"status"`
+	Results BoardListResponseResults `json:"results"`
+}
+
 type BoardPost struct {
 	Id                int        `json:"id"`
 	Title             string     `json:"title"`
@@ -210,7 +218,15 @@ type PostListResponse struct {
 	Results PostListResponseResults `json:"results"`
 }
 
-func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
+func GetBoards(dbPool *pgxpool.Pool, omitEmpty bool) ([]Board, error) {
+	bpJoin := ""
+	havingClause := ""
+	if omitEmpty {
+		bpJoin = "JOIN board_posts bp ON b.id = bp.board_id"
+		havingClause = `GROUP BY b.id, u.username, u.slug
+			HAVING COUNT(bp.*) > 0
+		`
+	}
 	// TODO: filter visible boards, or show everything if privileged
 	query := fmt.Sprintf(`
 		SELECT %s
@@ -219,8 +235,10 @@ func GetBoards(dbPool *pgxpool.Pool) ([]Board, error) {
 		u.slug AS created_by_user_slug
 		FROM boards b
 		JOIN users u on u.id = b.created_by_user_id
+		%s
+		%s
 		ORDER BY b.display_name
-	`, getBoardColumns())
+	`, getBoardColumns(), bpJoin, havingClause)
 	rows, err := dbPool.Query(context.Background(), query)
 	if err != nil {
 		return nil, err

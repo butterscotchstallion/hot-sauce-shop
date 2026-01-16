@@ -8,12 +8,10 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
-	"time"
 
 	"hotsauceshop/lib"
 
 	"github.com/gabriel-vasile/mimetype"
-	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -29,8 +27,9 @@ func Boards(
 	store *persistence.InMemoryStore,
 ) {
 	// Board list
-	r.GET("/api/v1/boards", cache.CachePage(store, time.Minute*1, func(c *gin.Context) {
-		boards, getBoardsErr := lib.GetBoards(dbPool)
+	r.GET("/api/v1/boards", func(c *gin.Context) {
+		omitEmpty := c.DefaultQuery("omitEmpty", "0") == "1"
+		boards, getBoardsErr := lib.GetBoards(dbPool, omitEmpty)
 		if getBoardsErr != nil {
 			logger.Error(fmt.Sprintf("Error fetching boards: %v", getBoardsErr.Error()))
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -39,14 +38,13 @@ func Boards(
 			})
 			return
 		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"status": "OK",
-			"results": gin.H{
-				"boards": boards,
+		c.JSON(http.StatusOK, lib.BoardListResponse{
+			Status: "OK",
+			Results: lib.BoardListResponseResults{
+				Boards: boards,
 			},
 		})
-	}))
+	})
 
 	// Board detail
 	r.GET("/api/v1/boards/:slug", func(c *gin.Context) {
@@ -509,7 +507,7 @@ func Boards(
 			}
 			logger.Info(fmt.Sprintf("%v has mime type %v", fullImagePath, mimeType.String()))
 
-			imageWidthHeight, imageWidthHeightErr := lib.GetImageWidthAndHeight(fullImagePath)
+			imageWidthHeight, imageWidthHeightErr := lib.GetImageWidthAndHeight(fullImagePath, logger)
 			if imageWidthHeightErr != nil {
 				logger.Error(fmt.Sprintf("Error getting image width: %v", imageWidthHeightErr.Error()))
 				continue
@@ -535,12 +533,13 @@ func Boards(
 				imageInfo.FullImagePath,
 				imageInfo.ThumbnailFullPath,
 				imageInfo.MimeType,
+				logger,
 			)
 			if createThumbnailErr != nil {
 				logger.Error(fmt.Sprintf("Error creating thumbnail: %v", createThumbnailErr.Error()))
 			}
 
-			thumbWidthHeight, thumbWidthHeightErr := lib.GetImageWidthAndHeight(imageInfo.ThumbnailFullPath)
+			thumbWidthHeight, thumbWidthHeightErr := lib.GetImageWidthAndHeight(imageInfo.ThumbnailFullPath, logger)
 			if thumbWidthHeightErr != nil {
 				logger.Error(fmt.Sprintf("Error getting thumbnail width: %v", thumbWidthHeightErr.Error()))
 				continue

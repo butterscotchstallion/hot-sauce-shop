@@ -918,3 +918,75 @@ func TestMinKarmaRequiredToPost(t *testing.T) {
 	deleteBoardPostAndVerify(t, e, unprivSessionID, boardAndPostResponse.AddPostResponse.Results.Post.Slug)
 	DeleteBoardAndVerify(t, e, adminSessionId, boardAndPostResponse.AddBoardResponse.Results.Slug)
 }
+
+/**
+ * - Test that board list endpoint returns a list of boards
+ * based on the new filter: omitEmpty
+ * ------------------------------------------------------------------
+ * - Scenario 1: default filter setting is omitEmpty=0, and we should
+ * create a board with a post to verify that the board is
+ * included in the list
+ * -------------------------------------------------------------------
+ * - Scenario 2: test omitEmpty=1 by deleting the post and checking
+ * that the board is not included in the list
+ */
+func TestBoardListHasPostsFilter(t *testing.T) {
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	unprivSessionId := signInAndGetSessionId(
+		t, e, config.TestUsers.UnprivilegedUsername, config.TestUsers.UnprivilegedPassword,
+	)
+	adminSessionID := signInAndGetSessionId(
+		t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword,
+	)
+
+	// Scenario 1: test default omitEmpty=0 setting
+
+	// Create a board
+	boardResponse := CreateBoardAndVerify(t, e, adminSessionID, lib.AddBoardRequest{
+		DisplayName:            GenerateUniqueName(),
+		Description:            "Testing board list has posts filter",
+		IsVisible:              true,
+		IsPrivate:              false,
+		IsOfficial:             false,
+		IsPostApprovalRequired: false,
+		MinKarmaRequiredToPost: 0,
+	})
+	// Add a post to that board
+	postResponse := createBoardPost(t, e, lib.AddPostRequest{
+		Title:        GenerateUniqueName(),
+		ParentSlug:   "",
+		PostText:     "We don't talk about Bruno no no no",
+		PostImages:   nil,
+		Slug:         "",
+		PostFlairIds: nil,
+	}, unprivSessionId, boardResponse.Results.Slug, http.StatusCreated)
+
+	// Verify the board list returns board
+	boardListResponse := getBoardList(GetBoardListRequest{
+		T:               t,
+		E:               e,
+		OmitEmptyBoards: false,
+	})
+	foundBoard := isBoardInList(boardResponse.Results.Slug, boardListResponse.Results.Boards)
+	if !foundBoard {
+		t.Fatal("Board was not found in the board list")
+	}
+
+	// Scenario 2: test omitEmpty=1 setting
+	deleteBoardPostAndVerify(t, e, unprivSessionId, postResponse.Results.Post.Slug)
+
+	// Get the board list with omitEmpty set to true
+	boardListResponse = getBoardList(GetBoardListRequest{
+		T:               t,
+		E:               e,
+		OmitEmptyBoards: true,
+	})
+	foundBoard = isBoardInList(boardResponse.Results.Slug, boardListResponse.Results.Boards)
+	// Board is now empty - it should not be in the list
+	if foundBoard {
+		t.Fatal("Board was found in the board list")
+	}
+
+	// Clean up
+	DeleteBoardAndVerify(t, e, adminSessionID, boardResponse.Results.Slug)
+}

@@ -20,6 +20,14 @@ type GetPostListAndVerifyParams struct {
 	FilterByUserJoinedBoards bool
 }
 
+func boolToNumericStr(param bool) string {
+	result := "0"
+	if param {
+		result = "1"
+	}
+	return result
+}
+
 func getPostListAndVerify(params GetPostListAndVerifyParams) lib.PostListResponse {
 	var postListResponse lib.PostListResponse
 	showUnapprovedStr := 0
@@ -50,6 +58,26 @@ func getPostListAndVerify(params GetPostListAndVerifyParams) lib.PostListRespons
 	return postListResponse
 }
 
+type GetBoardListRequest struct {
+	T               *testing.T
+	E               *httpexpect.Expect
+	OmitEmptyBoards bool
+}
+
+func getBoardList(request GetBoardListRequest) lib.BoardListResponse {
+	var boardsResponse lib.BoardListResponse
+	request.E.GET("/api/v1/boards").
+		WithQuery("omitEmpty", boolToNumericStr(request.OmitEmptyBoards)).
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&boardsResponse)
+	if boardsResponse.Status != "OK" {
+		request.T.Fatal("Failed to get board list")
+	}
+	return boardsResponse
+}
+
 func isPostSlugInList(postSlug string, posts []lib.BoardPost) bool {
 	for _, post := range posts {
 		if post.Slug == postSlug {
@@ -70,4 +98,13 @@ func joinBoardWithCurrentUser(boardId int, e *httpexpect.Expect, t *testing.T, s
 	if userJoinedBoardsResponse.Status != "OK" {
 		t.Fatal("Failed to join board")
 	}
+}
+
+func isBoardInList(slug string, boards []lib.Board) bool {
+	for _, board := range boards {
+		if board.Slug == slug {
+			return true
+		}
+	}
+	return false
 }
