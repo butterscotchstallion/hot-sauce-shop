@@ -219,15 +219,14 @@ type PostListResponse struct {
 }
 
 func GetBoards(dbPool *pgxpool.Pool, omitEmpty bool) ([]Board, error) {
-	bpJoin := ""
 	havingClause := ""
 	if omitEmpty {
-		bpJoin = "JOIN board_posts bp ON b.id = bp.board_id"
 		havingClause = `GROUP BY b.id, u.username, u.slug
 			HAVING COUNT(bp.*) > 0
 		`
 	}
 	// TODO: filter visible boards, or show everything if privileged
+	// NOTE: inner join used here - boards without posts will not be included in results
 	query := fmt.Sprintf(`
 		SELECT %s
 		b.created_by_user_id,
@@ -235,10 +234,10 @@ func GetBoards(dbPool *pgxpool.Pool, omitEmpty bool) ([]Board, error) {
 		u.slug AS created_by_user_slug
 		FROM boards b
 		JOIN users u on u.id = b.created_by_user_id
-		%s
+		JOIN board_posts bp ON b.id = bp.board_id
 		%s
 		ORDER BY b.display_name
-	`, getBoardColumns(), bpJoin, havingClause)
+	`, getBoardColumns(), havingClause)
 	rows, err := dbPool.Query(context.Background(), query)
 	if err != nil {
 		return nil, err
@@ -248,7 +247,6 @@ func GetBoards(dbPool *pgxpool.Pool, omitEmpty bool) ([]Board, error) {
 	if collectRowsErr != nil {
 		return nil, collectRowsErr
 	}
-
 	return boards, nil
 }
 

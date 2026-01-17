@@ -1,7 +1,7 @@
 import {Checkbox} from "primereact/checkbox";
 import * as React from "react";
-import {RefObject, useEffect, useRef, useState} from "react";
-import {getBoardByBoardSlug, saveBoardDetails} from "../../components/Boards/BoardsService.ts";
+import {RefObject, useEffect, useMemo, useRef, useState} from "react";
+import {getBoardByBoardSlug, isSettingsAreaAvailable, saveBoardDetails} from "../../components/Boards/BoardsService.ts";
 import {NavigateFunction, Params, useNavigate, useParams} from "react-router";
 import {InputTextarea} from "primereact/inputtextarea";
 import {IBoardDetails} from "../../components/Boards/types/IBoardDetails.ts";
@@ -13,8 +13,16 @@ import {Subscription} from "rxjs";
 import {Toast} from "primereact/toast";
 import {IBoardDetailsPayload} from "../../components/Boards/types/IBoardDetailsPayload.ts";
 import {InputNumber, InputNumberChangeEvent} from "primereact/inputnumber";
+import {confirmPopup, ConfirmPopup} from "primereact/confirmpopup";
+import {IUser} from "../../components/User/types/IUser.ts";
+import {useSelector} from "react-redux";
+import {RootState} from "../../store.ts";
+import {isSuperMessageBoardAdmin} from "../../components/User/UserService.ts";
+import {IUserRole} from "../../components/User/types/IUserRole.ts";
 
 export function BoardSettingsPage() {
+    const user: IUser | null = useSelector((state: RootState) => state.user.user);
+    const roles: IUserRole[] = useSelector((state: RootState) => state.user.roles);
     const toast: RefObject<Toast | null> = useRef<Toast>(null);
     const params: Readonly<Params<string>> = useParams();
     const boardSlug: string = params?.boardSlug || '';
@@ -22,10 +30,26 @@ export function BoardSettingsPage() {
     const navigate: NavigateFunction = useNavigate();
     const saveSettings$ = React.useRef<Subscription>(null);
     const [boardUpdatePayload, setBoardUpdatePayload] = useState<IBoardDetailsPayload>();
+    const [isBoardOwner, setIsBoardOwner] = useState<boolean>(false);
+    const canDeleteBoard = useMemo(() => {
+        return isBoardOwner || isSuperMessageBoardAdmin(roles);
+    }, []);
 
     useEffect(() => {
+        isSettingsAreaAvailable(boardSlug, roles).subscribe({
+            next: (available: boolean) => {
+                if (!available) {
+                    setSomethingWentWrong(true);
+                }
+            },
+            error: (err: string) => {
+                console.error(err);
+                setSomethingWentWrong(true);
+            }
+        });
         getBoardByBoardSlug(boardSlug).subscribe({
             next: (boardDetails: IBoardDetails) => {
+                setIsBoardOwner(user?.id === boardDetails.board.createdAtByUserId);
                 setBoardUpdatePayload({
                     isPrivate: boardDetails.board.isPrivate,
                     isVisible: boardDetails.board.isVisible,
@@ -81,6 +105,30 @@ export function BoardSettingsPage() {
             })
         }
     }
+
+    const confirmDeleteBoard = (event) => {
+        const accept = () => {
+            if (toast.current) {
+                toast.current.show({
+                    severity: 'info',
+                    summary: 'Confirm Board Deletion',
+                    detail: 'You are about to delete this board. This action cannot be undone.',
+                    life: 3000
+                });
+            }
+        }
+        const reject = () => {
+        }
+        confirmPopup({
+            target: event.currentTarget,
+            message: 'Are you sure you want to delete this board?',
+            icon: 'pi pi-info-circle',
+            defaultFocus: 'reject',
+            acceptClassName: 'p-button-danger',
+            accept,
+            reject
+        });
+    };
 
     return (
         <>
@@ -178,9 +226,6 @@ export function BoardSettingsPage() {
 
                                 <div className="mb-4 flex gap-4">
                                     <div>
-                                        {/*<Checkbox inputId="isPrivateCheckbox"*/}
-                                        {/*          onChange={e => updateBoardDetails('isPrivate', !!e.checked)}*/}
-                                        {/*          checked={!!boardUpdatePayload?.isPrivate}></Checkbox>*/}
                                         <InputNumber
                                             onChange={(e: InputNumberChangeEvent) => {
                                                 updateBoardDetails(
@@ -214,52 +259,66 @@ export function BoardSettingsPage() {
 
                         {/* Board details */}
                         <div className="w-1/2">
-                            <Card>
-                                <section className="flex justify-between">
-                                    <div className="w-[128px] h-[128px] mt-4">
-                                        <img src="/images/hot-pepper.png"
-                                             width={128}
-                                             height={128}
-                                             alt="Board Thumbnail"/>
-                                    </div>
-                                    <div className="w-3/4">
-                                        <div className="pt-4 mb-4">
-                                            <label
-                                                className="block mb-2 cursor-pointer"
-                                                htmlFor="boardThumbnailFilename">
-                                                <i className="pi pi-image pr-1"/> <strong>Board Thumbnail</strong>
-                                            </label>
-                                            <FileUpload
-                                                mode="basic"
-                                                name="boardThumbnailFilename"
-                                                url={``}
-                                                accept="image/*"
-                                                maxFileSize={1000000}
-                                                onUpload={onUpload}
-                                            />
+                            <section className="mb-4">
+                                <Card>
+                                    <section className="flex justify-between">
+                                        <div className="w-[128px] h-[128px] mt-4">
+                                            <img src="/images/hot-pepper.png"
+                                                 width={128}
+                                                 height={128}
+                                                 alt="Board Thumbnail"/>
                                         </div>
-                                        <div className="">
-                                            <label
-                                                className="block mb-2 cursor-pointer"
-                                                htmlFor="boardDescriptionTextbox">
-                                                <i className="pi pi-file pr-1"/> <strong>Board Description</strong>
-                                            </label>
-                                            <InputTextarea value={boardUpdatePayload?.description}
-                                                           onChange={
-                                                               (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                                                                   updateBoardDetails('description', e.target.value)
+                                        <div className="w-3/4">
+                                            <div className="pt-4 mb-4">
+                                                <label
+                                                    className="block mb-2 cursor-pointer"
+                                                    htmlFor="boardThumbnailFilename">
+                                                    <i className="pi pi-image pr-1"/> <strong>Board Thumbnail</strong>
+                                                </label>
+                                                <FileUpload
+                                                    mode="basic"
+                                                    name="boardThumbnailFilename"
+                                                    url={``}
+                                                    accept="image/*"
+                                                    maxFileSize={1000000}
+                                                    onUpload={onUpload}
+                                                />
+                                            </div>
+                                            <div className="">
+                                                <label
+                                                    className="block mb-2 cursor-pointer"
+                                                    htmlFor="boardDescriptionTextbox">
+                                                    <i className="pi pi-file pr-1"/> <strong>Board Description</strong>
+                                                </label>
+                                                <InputTextarea value={boardUpdatePayload?.description}
+                                                               onChange={
+                                                                   (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                                                                       updateBoardDetails('description', e.target.value)
+                                                                   }
                                                                }
-                                                           }
-                                                           rows={5} cols={30}/>
+                                                               rows={5} cols={30}/>
+                                            </div>
                                         </div>
-                                    </div>
-                                </section>
-                            </Card>
+                                    </section>
+                                </Card>
+                            </section>
+                            <section>
+                                <h1 className="text-2xl font-bold mb-4">Danger Zone</h1>
+                                <Card className="border-solid border-red-500 border-1">
+                                    <Button
+                                        disabled={!canDeleteBoard}
+                                        onClick={confirmDeleteBoard}
+                                        severity="danger"
+                                        label="Delete Board"
+                                        icon="pi pi-trash"/>
+                                    <ConfirmPopup/>
+                                </Card>
+                            </section>
                         </div>
                     </section>
-                    <Toast ref={toast}/>
                 </>
             )}
+            <Toast ref={toast}/>
         </>
     )
 }

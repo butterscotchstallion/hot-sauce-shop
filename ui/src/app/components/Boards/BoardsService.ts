@@ -13,9 +13,10 @@ import {
 import {IBoardPost} from "./types/IBoardPost.ts";
 import {INewBoardPost} from "./types/INewBoardPost.ts";
 import {IBoardDetails} from "./types/IBoardDetails.ts";
-import {getUserAdminBoards} from "../User/UserService.ts";
+import {getUserAdminBoards, isSuperMessageBoardAdmin} from "../User/UserService.ts";
 import {IBoardPostsResponse} from "./types/IBoardPostsResponse.ts";
 import {IBoardDetailsPayload} from "./types/IBoardDetailsPayload.ts";
+import {IUserRole} from "../User/types/IUserRole.ts";
 
 export function getBoards(): Subject<IBoard[]> {
     const boards$ = new Subject<IBoard[]>();
@@ -258,22 +259,27 @@ export function saveBoardDetails(boardSlug: string, boardDetails: IBoardDetailsP
     return details$;
 }
 
-export function isSettingsAreaAvailable(boardSlug: string): Subject<boolean> {
+export function isSettingsAreaAvailable(boardSlug: string, roles: IUserRole[]): Subject<boolean> {
     const settingsAvailable$ = new Subject<boolean>();
-    getUserAdminBoards().subscribe({
-        next: (boards: IBoard[]) => {
-            let isSettingsAreaAvailable = false;
-            for (let j = 0; j < boards.length; j++) {
-                if (boards[j].slug === boardSlug) {
-                    isSettingsAreaAvailable = true;
-                    break;
+    const isSuperBoardAdmin = isSuperMessageBoardAdmin(roles);
+    if (isSuperBoardAdmin) {
+        settingsAvailable$.next(true);
+    } else {
+        getUserAdminBoards().subscribe({
+            next: (boards: IBoard[]) => {
+                let isSettingsAreaAvailable = false;
+                for (let j = 0; j < boards.length; j++) {
+                    if (boards[j].slug === boardSlug) {
+                        isSettingsAreaAvailable = true;
+                        break;
+                    }
                 }
+                settingsAvailable$.next(isSettingsAreaAvailable);
+            },
+            error: (err) => {
+                settingsAvailable$.error(err);
             }
-            settingsAvailable$.next(isSettingsAreaAvailable);
-        },
-        error: (err) => {
-            settingsAvailable$.error(err);
-        }
-    });
+        });
+    }
     return settingsAvailable$;
 }
