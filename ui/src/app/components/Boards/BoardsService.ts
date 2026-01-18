@@ -263,6 +263,7 @@ export function isSettingsAreaAvailable(boardSlug: string, roles: IUserRole[]): 
     const settingsAvailable$ = new Subject<boolean>();
     const isSuperBoardAdmin = isSuperMessageBoardAdmin(roles);
     if (isSuperBoardAdmin) {
+        console.log("Super admin");
         settingsAvailable$.next(true);
     } else {
         getUserAdminBoards().subscribe({
@@ -274,6 +275,7 @@ export function isSettingsAreaAvailable(boardSlug: string, roles: IUserRole[]): 
                         break;
                     }
                 }
+                console.log("user is board admin: ", isSettingsAreaAvailable);
                 settingsAvailable$.next(isSettingsAreaAvailable);
             },
             error: (err) => {

@@ -84,7 +84,8 @@ func GetUserPostVoteSum(dbPool *pgxpool.Pool, userId int) (int, error) {
 	const query = `
 		SELECT COALESCE(SUM(v.value), 0) AS voteSum
 		FROM votes v
-		WHERE v.user_id = $1
+		LEFT JOIN board_posts bp on bp.id = v.post_id
+		WHERE bp.created_by_user_id = $1
 	`
 	type UserPostVoteSum struct {
 		VoteSum int

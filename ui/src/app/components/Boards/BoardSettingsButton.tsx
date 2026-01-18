@@ -19,11 +19,18 @@ export function BoardSettingsButton() {
     }
 
     useEffect(() => {
+        console.log("Board settings button loaded!");
         isSettingsAreaAvailable(boardSlug, roles).subscribe({
-            next: (available: boolean) => setSettingsAreaAvailable(available),
-            error: () => setSettingsAreaAvailable(false)
+            next: (available: boolean) => {
+                console.log(`Board settings available: ${available}`);
+                setSettingsAreaAvailable(available)
+            },
+            error: (err: string) => {
+                console.error(err);
+                setSettingsAreaAvailable(false)
+            }
         })
-    }, [])
+    }, [boardSlug, roles])
 
     return (
         <>
