@@ -1,36 +1,18 @@
-import {useEffect, useState} from "react";
-import {NavigateFunction, Params, useNavigate, useParams} from "react-router";
-import {isSettingsAreaAvailable} from "./BoardsService.ts";
-import {IUserRole} from "../User/types/IUserRole.ts";
-import {useSelector} from "react-redux";
-import {RootState} from "../../store.ts";
+import {NavigateFunction, useNavigate} from "react-router";
 
-export function BoardSettingsButton() {
-    const params: Readonly<Params<string>> = useParams();
-    const boardSlug: string = params?.boardSlug || '';
+interface IBoardSettingsButtonProps {
+    settingsAreaAvailable: boolean;
+    boardSlug: string;
+}
+
+export function BoardSettingsButton({settingsAreaAvailable, boardSlug}: IBoardSettingsButtonProps) {
     const navigate: NavigateFunction = useNavigate();
-    const [settingsAreaAvailable, setSettingsAreaAvailable] = useState<boolean>(false);
-    const roles: IUserRole[] = useSelector((state: RootState) => state.user.roles);
 
     const goToSettingsArea = () => {
         if (settingsAreaAvailable) {
             navigate(`/boards/${boardSlug}/settings`);
         }
     }
-
-    useEffect(() => {
-        console.log("Board settings button loaded!");
-        isSettingsAreaAvailable(boardSlug, roles).subscribe({
-            next: (available: boolean) => {
-                console.log(`Board settings available: ${available}`);
-                setSettingsAreaAvailable(available)
-            },
-            error: (err: string) => {
-                console.error(err);
-                setSettingsAreaAvailable(false)
-            }
-        })
-    }, [boardSlug, roles])
 
     return (
         <>

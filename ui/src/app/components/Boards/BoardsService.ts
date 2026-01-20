@@ -1,5 +1,5 @@
 import {IBoard} from "./types/IBoard.ts";
-import {Subject} from "rxjs";
+import {BehaviorSubject, Subject} from "rxjs";
 import {
     BOARD_DETAILS_URL,
     BOARD_PIN_POST_URL,
@@ -259,11 +259,11 @@ export function saveBoardDetails(boardSlug: string, boardDetails: IBoardDetailsP
     return details$;
 }
 
-export function isSettingsAreaAvailable(boardSlug: string, roles: IUserRole[]): Subject<boolean> {
-    const settingsAvailable$ = new Subject<boolean>();
-    const isSuperBoardAdmin = isSuperMessageBoardAdmin(roles);
+export function isSettingsAreaAvailable(boardSlug: string, roles: IUserRole[]): BehaviorSubject<boolean> {
+    const settingsAvailable$ = new BehaviorSubject<boolean>(false);
+    const isSuperBoardAdmin: boolean = isSuperMessageBoardAdmin(roles);
     if (isSuperBoardAdmin) {
-        console.log("Super admin");
+        console.log("Current user is Super admin");
         settingsAvailable$.next(true);
     } else {
         getUserAdminBoards().subscribe({
