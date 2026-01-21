@@ -29,6 +29,8 @@ type Board struct {
 	IsOfficial             bool       `json:"isOfficial"`
 	IsPostApprovalRequired bool       `json:"isPostApprovalRequired"`
 	MinKarmaRequiredToPost int        `json:"minKarmaRequiredToPost"`
+	DeletedByUserId        *int       `json:"deletedByUserId"`
+	DeletedAt              *time.Time `json:"deletedAt"`
 }
 
 type BoardListResponseResults struct {
@@ -235,6 +237,7 @@ func GetBoards(dbPool *pgxpool.Pool, omitEmpty bool) ([]Board, error) {
 		FROM boards b
 		JOIN users u on u.id = b.created_by_user_id
 		JOIN board_posts bp ON b.id = bp.board_id
+		WHERE deleted_at IS NULL AND deleted_by_user_id IS NULL
 		%s
 		ORDER BY b.display_name
 	`, getBoardColumns(), havingClause)
@@ -905,6 +908,8 @@ func getBoardColumns() string {
 		b.is_official,
 		b.is_post_approval_required,
 		b.min_karma_required_to_post,
+		b.deleted_by_user_id,
+		b.deleted_at,
 	`
 }
 
