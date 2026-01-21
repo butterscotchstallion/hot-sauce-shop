@@ -671,7 +671,7 @@ func Boards(
 		})
 	})
 
-	// Delete Board
+	// deactivate board
 	r.DELETE("/api/v1/boards/:boardSlug", func(c *gin.Context) {
 		// Check role (this also checks if the user is signed in)
 		// NOTE: this already sends a JSON response upon failure
@@ -680,7 +680,7 @@ func Boards(
 			return
 		}
 		if !isMessageBoardAdmin {
-			logger.Error("Error deleting board: user is not message board admin")
+			logger.Error("Error deactivating board: user is not message board admin")
 			return
 		}
 
@@ -692,17 +692,17 @@ func Boards(
 		boardSlug := c.Param("boardSlug")
 		boardDeletedErr := lib.DeactivateBoard(dbPool, boardSlug, userId)
 		if boardDeletedErr != nil {
-			logger.Error(fmt.Sprintf("Error deleting board: %v", boardDeletedErr))
+			logger.Error(fmt.Sprintf("Error deactivating board: %v", boardDeletedErr))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",
-				"message": "Error deleting board",
+				"message": "Error deactivating board",
 			})
 			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "OK",
-			"message": "Board deleted",
+			"message": "Board deactivated",
 		})
 	})
 

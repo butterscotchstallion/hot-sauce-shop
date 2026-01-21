@@ -184,8 +184,12 @@ export function BoardSettingsPage() {
                         </div>
                     </div>
 
-                    {board?.deactivatedByUserId && board?.deactivatedAt !== null && (
-                        <Message severity="warn" text="This board is deactivated. It will not be visible to users."/>
+                    {board?.deactivatedByUserId && board?.deactivatedAt && (
+                        <section className="mb-2">
+                            <Message className="w-full"
+                                     severity="warn"
+                                     text="This board is deactivated. It is not be visible to users."/>
+                        </section>
                     )}
 
                     <section className="flex justify-between gap-4">
