@@ -650,7 +650,7 @@ func AddBoard(
 	return boardId, nil
 }
 
-func DeleteBoard(dbPool *pgxpool.Pool, boardSlug string, deactivatedByUserId int) error {
+func DeactivateBoard(dbPool *pgxpool.Pool, boardSlug string, deactivatedByUserId int) error {
 	const query = `UPDATE boards
 		SET deactivated_by_user_id = $1, deactivated_at = NOW()
 		WHERE slug = $2
