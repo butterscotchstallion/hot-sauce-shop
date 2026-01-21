@@ -19,6 +19,7 @@ import {useSelector} from "react-redux";
 import {RootState} from "../../store.ts";
 import {isSuperMessageBoardAdmin} from "../../components/User/UserService.ts";
 import {IUserRole} from "../../components/User/types/IUserRole.ts";
+import {IBoard} from "../../components/Boards/types/IBoard.ts";
 
 export function BoardSettingsPage() {
     const user: IUser | null = useSelector((state: RootState) => state.user.user);
@@ -31,9 +32,10 @@ export function BoardSettingsPage() {
     const saveSettings$ = React.useRef<Subscription>(null);
     const [boardUpdatePayload, setBoardUpdatePayload] = useState<IBoardDetailsPayload>();
     const [isBoardOwner, setIsBoardOwner] = useState<boolean>(false);
-    const canDeleteBoard = useMemo(() => {
+    const canDeactivateBoard = useMemo(() => {
         return isBoardOwner || isSuperMessageBoardAdmin(roles);
     }, []);
+    const [board, setBoard] = useState<IBoard>();
 
     useEffect(() => {
         isSettingsAreaAvailable(boardSlug, roles).subscribe({
@@ -49,6 +51,7 @@ export function BoardSettingsPage() {
         });
         getBoardByBoardSlug(boardSlug).subscribe({
             next: (boardDetails: IBoardDetails) => {
+                setBoard(boardDetails.board);
                 setIsBoardOwner(user?.id === boardDetails.board.createdAtByUserId);
                 setBoardUpdatePayload({
                     isPrivate: boardDetails.board.isPrivate,
@@ -106,13 +109,13 @@ export function BoardSettingsPage() {
         }
     }
 
-    const confirmDeleteBoard = (event) => {
+    const confirmDeactivateBoard = (event) => {
         const accept = () => {
             if (toast.current) {
                 toast.current.show({
-                    severity: 'info',
-                    summary: 'Confirm Board Deletion',
-                    detail: 'You are about to delete this board. This action cannot be undone.',
+                    severity: 'success',
+                    summary: 'Board deactivated',
+                    detail: board?.displayName + ' has been deactivated successfully.',
                     life: 3000
                 });
             }
@@ -121,7 +124,7 @@ export function BoardSettingsPage() {
         }
         confirmPopup({
             target: event.currentTarget,
-            message: 'Are you sure you want to delete this board?',
+            message: 'Are you sure you want to deactivate this board?',
             icon: 'pi pi-info-circle',
             defaultFocus: 'reject',
             acceptClassName: 'p-button-danger',
@@ -306,10 +309,10 @@ export function BoardSettingsPage() {
                                 <h1 className="text-2xl font-bold mb-4">Danger Zone</h1>
                                 <Card className="border-solid border-red-500 border-1">
                                     <Button
-                                        disabled={!canDeleteBoard}
-                                        onClick={confirmDeleteBoard}
+                                        disabled={!canDeactivateBoard}
+                                        onClick={confirmDeactivateBoard}
                                         severity="danger"
-                                        label="Delete Board"
+                                        label="Deactivate Board"
                                         icon="pi pi-trash"/>
                                     <ConfirmPopup/>
                                 </Card>
