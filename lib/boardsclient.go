@@ -29,8 +29,8 @@ type Board struct {
 	IsOfficial             bool       `json:"isOfficial"`
 	IsPostApprovalRequired bool       `json:"isPostApprovalRequired"`
 	MinKarmaRequiredToPost int        `json:"minKarmaRequiredToPost"`
-	DeletedByUserId        *int       `json:"deletedByUserId"`
-	DeletedAt              *time.Time `json:"deletedAt"`
+	DeactivatedByUserId    *int       `json:"deactivatedByUserId"`
+	DeactivatedAt          *time.Time `json:"deactivatedAt"`
 }
 
 type BoardListResponseResults struct {
@@ -878,8 +878,8 @@ func getBoardColumns() string {
 		b.is_official,
 		b.is_post_approval_required,
 		b.min_karma_required_to_post,
-		b.deleted_by_user_id,
-		b.deleted_at,
+		b.deactivated_by_user_id,
+		b.deactivated_at,
 	`
 }
 
