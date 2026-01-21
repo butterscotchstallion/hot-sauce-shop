@@ -14,4 +14,6 @@ export interface IBoard {
     isPostApprovalRequired: boolean;
     isOfficial: boolean;
     minKarmaRequiredToPost: number;
+    deactivatedAt: Date;
+    deactivatedByUserId: number;
 }

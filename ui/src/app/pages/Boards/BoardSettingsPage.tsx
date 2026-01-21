@@ -1,7 +1,12 @@
 import {Checkbox} from "primereact/checkbox";
 import * as React from "react";
 import {RefObject, useEffect, useMemo, useRef, useState} from "react";
-import {getBoardByBoardSlug, isSettingsAreaAvailable, saveBoardDetails} from "../../components/Boards/BoardsService.ts";
+import {
+    deactivateBoard,
+    getBoardByBoardSlug,
+    isSettingsAreaAvailable,
+    saveBoardDetails
+} from "../../components/Boards/BoardsService.ts";
 import {NavigateFunction, Params, useNavigate, useParams} from "react-router";
 import {InputTextarea} from "primereact/inputtextarea";
 import {IBoardDetails} from "../../components/Boards/types/IBoardDetails.ts";
@@ -9,7 +14,7 @@ import {Button} from "primereact/button";
 import {Card} from "primereact/card";
 import {FileUpload} from "primereact/fileupload";
 import {DumpsterFireError} from "../../components/Shared/DumpsterFireError.tsx";
-import {Subscription} from "rxjs";
+import {Subject, Subscription} from "rxjs";
 import {Toast} from "primereact/toast";
 import {IBoardDetailsPayload} from "../../components/Boards/types/IBoardDetailsPayload.ts";
 import {InputNumber, InputNumberChangeEvent} from "primereact/inputnumber";
@@ -20,6 +25,8 @@ import {RootState} from "../../store.ts";
 import {isSuperMessageBoardAdmin} from "../../components/User/UserService.ts";
 import {IUserRole} from "../../components/User/types/IUserRole.ts";
 import {IBoard} from "../../components/Boards/types/IBoard.ts";
+import {Message} from "primereact/message";
+import {BoardNameLink} from "../../components/Boards/BoardNameLink.tsx";
 
 export function BoardSettingsPage() {
     const user: IUser | null = useSelector((state: RootState) => state.user.user);
@@ -34,8 +41,9 @@ export function BoardSettingsPage() {
     const [isBoardOwner, setIsBoardOwner] = useState<boolean>(false);
     const canDeactivateBoard = useMemo(() => {
         return isBoardOwner || isSuperMessageBoardAdmin(roles);
-    }, []);
+    }, [isBoardOwner, roles]);
     const [board, setBoard] = useState<IBoard>();
+    const deactivateBoardSubjectRef = useRef<Subject<boolean | string>>(null);
 
     useEffect(() => {
         isSettingsAreaAvailable(boardSlug, roles).subscribe({
@@ -70,6 +78,7 @@ export function BoardSettingsPage() {
         });
         return () => {
             saveSettings$.current?.unsubscribe();
+            deactivateBoardSubjectRef?.current?.unsubscribe();
         }
     }, []);
 
@@ -111,14 +120,30 @@ export function BoardSettingsPage() {
 
     const confirmDeactivateBoard = (event) => {
         const accept = () => {
-            if (toast.current) {
-                toast.current.show({
-                    severity: 'success',
-                    summary: 'Board deactivated',
-                    detail: board?.displayName + ' has been deactivated successfully.',
-                    life: 3000
-                });
-            }
+            deactivateBoardSubjectRef.current = deactivateBoard(boardSlug);
+            deactivateBoardSubjectRef.current.subscribe({
+                next: (deactivated: boolean) => {
+                    if (toast.current) {
+                        toast.current.show({
+                            severity: 'success',
+                            summary: 'Board deactivated',
+                            detail: board?.displayName + ' has been deactivated successfully.',
+                            life: 3000
+                        });
+                    }
+                },
+                error: (err: string) => {
+                    console.error("Error deactivating board:", err);
+                    if (toast.current) {
+                        toast.current.show({
+                            severity: 'error',
+                            summary: 'Error',
+                            detail: 'Error deactivating board: ' + err,
+                            life: 3000,
+                        })
+                    }
+                }
+            });
         }
         const reject = () => {
         }
@@ -140,12 +165,28 @@ export function BoardSettingsPage() {
             ) : (
                 <>
                     <div className="flex justify-between mb-4 gap-4">
-                        <h1 className="text-3xl font-bold">Board Settings</h1>
-                        <div className="w-3/4 gap-4 flex justify-end">
+                        <div className="w-1/2">
+                            <h1 className="text-3xl font-bold">Board Settings</h1>
+                            {board && (
+                                <small className="italics">Viewing settings for
+                                    <span className="ml-2">
+                                        <BoardNameLink
+                                            isOfficial={board.isOfficial}
+                                            displayName={board.displayName}
+                                            slug={board.slug}/>
+                                    </span>
+                                </small>
+                            )}
+                        </div>
+                        <div className="w-1/2 gap-4 flex justify-end">
                             <Button label="View Board" icon="pi pi-eye" onClick={() => goToBoardPage()}/>
                             <Button label="Save Settings" icon="pi pi-check" onClick={onSaveButtonClicked}/>
                         </div>
                     </div>
+
+                    {board?.deactivatedByUserId && board?.deactivatedAt !== null && (
+                        <Message severity="warn" text="This board is deactivated. It will not be visible to users."/>
+                    )}
 
                     <section className="flex justify-between gap-4">
                         <div className="w-1/2">

@@ -285,3 +285,31 @@ export function isSettingsAreaAvailable(boardSlug: string, roles: IUserRole[]): 
     }
     return settingsAvailable$;
 }
+
+export function deactivateBoard(boardSlug: string): Subject<boolean | string> {
+    const details$ = new Subject<boolean | string>();
+    fetch(BOARD_DETAILS_URL.replace(':slug', boardSlug), {
+        credentials: 'include',
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then((res: Response) => {
+        if (res.ok) {
+            res.json().then((result) => {
+                if (result.status === "OK") {
+                    details$.next(true);
+                } else {
+                    details$.error(result.message || "Unknown error");
+                }
+            });
+        } else {
+            res.json().then(resp => {
+                details$.error(resp?.message || "Unknown error");
+            });
+        }
+    }).catch((err) => {
+        details$.error(err);
+    });
+    return details$;
+}
