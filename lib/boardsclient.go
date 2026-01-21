@@ -650,46 +650,16 @@ func AddBoard(
 	return boardId, nil
 }
 
-func DeleteBoard(dbPool *pgxpool.Pool, boardSlug string) error {
-	// TODO: maybe use cascading here.
-
-	/**
-	 * Board users must be deleted before the board can be deleted
-	 * because of FK constraints.
-	 */
-	deleteBoardUsersErr := DeleteBoardUsers(dbPool, boardSlug)
-	if deleteBoardUsersErr != nil {
-		return deleteBoardUsersErr
-	}
-
-	// Delete board posts?
-
-	// Finally, delete the board
-	const query = `DELETE FROM boards WHERE slug = $1`
+func DeleteBoard(dbPool *pgxpool.Pool, boardSlug string, deleted_by_user_id int) error {
+	const query = `UPDATE boards
+		SET deleted_by_user_id = $1, deleted_at = NOW()
+		WHERE slug = $2
+	`
 	_, err := dbPool.Exec(
 		context.Background(),
 		query,
+		deleted_by_user_id,
 		boardSlug,
-	)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func DeleteBoardUsers(dbPool *pgxpool.Pool, boardSlug string) error {
-	board, boardErr := GetBoardBySlug(dbPool, boardSlug)
-	if boardErr != nil {
-		return boardErr
-	}
-	const query = `DELETE 
-		FROM boards_users bu
-       	WHERE board_id = $1
-    `
-	_, err := dbPool.Exec(
-		context.Background(),
-		query,
-		board.Id,
 	)
 	if err != nil {
 		return err

@@ -684,8 +684,13 @@ func Boards(
 			return
 		}
 
+		userId, userIdErr := GetUserIdFromSessionOrError(c, dbPool, logger)
+		if userIdErr != nil {
+			return
+		}
+
 		boardSlug := c.Param("boardSlug")
-		boardDeletedErr := lib.DeleteBoard(dbPool, boardSlug)
+		boardDeletedErr := lib.DeleteBoard(dbPool, boardSlug, userId)
 		if boardDeletedErr != nil {
 			logger.Error(fmt.Sprintf("Error deleting board: %v", boardDeletedErr))
 			c.JSON(http.StatusInternalServerError, gin.H{
