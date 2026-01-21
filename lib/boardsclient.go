@@ -237,7 +237,7 @@ func GetBoards(dbPool *pgxpool.Pool, omitEmpty bool) ([]Board, error) {
 		FROM boards b
 		JOIN users u on u.id = b.created_by_user_id
 		JOIN board_posts bp ON b.id = bp.board_id
-		WHERE deleted_at IS NULL AND deleted_by_user_id IS NULL
+		WHERE deactivated_at IS NULL AND deactivated_by_user_id IS NULL
 		%s
 		ORDER BY b.display_name
 	`, getBoardColumns(), havingClause)
@@ -650,15 +650,15 @@ func AddBoard(
 	return boardId, nil
 }
 
-func DeleteBoard(dbPool *pgxpool.Pool, boardSlug string, deleted_by_user_id int) error {
+func DeleteBoard(dbPool *pgxpool.Pool, boardSlug string, deactivatedByUserId int) error {
 	const query = `UPDATE boards
-		SET deleted_by_user_id = $1, deleted_at = NOW()
+		SET deactivated_by_user_id = $1, deactivated_at = NOW()
 		WHERE slug = $2
 	`
 	_, err := dbPool.Exec(
 		context.Background(),
 		query,
-		deleted_by_user_id,
+		deactivatedByUserId,
 		boardSlug,
 	)
 	if err != nil {
