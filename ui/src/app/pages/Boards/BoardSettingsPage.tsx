@@ -7,7 +7,7 @@ import {
     isSettingsAreaAvailable,
     saveBoardDetails
 } from "../../components/Boards/BoardsService.ts";
-import {NavigateFunction, Params, useNavigate, useParams} from "react-router";
+import {NavigateFunction, NavLink, Params, useNavigate, useParams} from "react-router";
 import {InputTextarea} from "primereact/inputtextarea";
 import {IBoardDetails} from "../../components/Boards/types/IBoardDetails.ts";
 import {Button} from "primereact/button";
@@ -39,10 +39,11 @@ export function BoardSettingsPage() {
     const saveSettings$ = React.useRef<Subscription>(null);
     const [boardUpdatePayload, setBoardUpdatePayload] = useState<IBoardDetailsPayload>();
     const [isBoardOwner, setIsBoardOwner] = useState<boolean>(false);
-    const canDeactivateBoard = useMemo(() => {
+    const canUpdateBoardActivationStatus = useMemo(() => {
         return isBoardOwner || isSuperMessageBoardAdmin(roles);
     }, [isBoardOwner, roles]);
     const [board, setBoard] = useState<IBoard>();
+    const [boardDetails, setBoardDetails] = useState<IBoardDetails>();
     const deactivateBoardSubjectRef = useRef<Subject<boolean | string>>(null);
 
     useEffect(() => {
@@ -60,6 +61,7 @@ export function BoardSettingsPage() {
         getBoardByBoardSlug(boardSlug).subscribe({
             next: (boardDetails: IBoardDetails) => {
                 setBoard(boardDetails.board);
+                setBoardDetails(boardDetails);
                 setIsBoardOwner(user?.id === boardDetails.board.createdAtByUserId);
                 setBoardUpdatePayload({
                     isPrivate: boardDetails.board.isPrivate,
@@ -118,7 +120,7 @@ export function BoardSettingsPage() {
         }
     }
 
-    const confirmDeactivateBoard = (event) => {
+    const confirmUpdateBoardActivationStatus = (event) => {
         const accept = () => {
             deactivateBoardSubjectRef.current = deactivateBoard(boardSlug);
             deactivateBoardSubjectRef.current.subscribe({
@@ -168,14 +170,10 @@ export function BoardSettingsPage() {
                         <div className="w-1/2">
                             <h1 className="text-3xl font-bold">Board Settings</h1>
                             {board && (
-                                <small className="italics">Viewing settings for
-                                    <span className="ml-2">
-                                        <BoardNameLink
-                                            isOfficial={board.isOfficial}
-                                            displayName={board.displayName}
-                                            slug={board.slug}/>
-                                    </span>
-                                </small>
+                                <BoardNameLink
+                                    isOfficial={board.isOfficial}
+                                    displayName={board.displayName}
+                                    slug={board.slug}/>
                             )}
                         </div>
                         <div className="w-1/2 gap-4 flex justify-end">
@@ -307,57 +305,115 @@ export function BoardSettingsPage() {
 
                         {/* Board details */}
                         <div className="w-1/2">
-                            <section className="mb-4">
-                                <Card>
-                                    <section className="flex justify-between">
-                                        <div className="w-[128px] h-[128px] mt-4">
-                                            <img src="/images/hot-pepper.png"
-                                                 width={128}
-                                                 height={128}
-                                                 alt="Board Thumbnail"/>
-                                        </div>
-                                        <div className="w-3/4">
-                                            <div className="pt-4 mb-4">
-                                                <label
-                                                    className="block mb-2 cursor-pointer"
-                                                    htmlFor="boardThumbnailFilename">
-                                                    <i className="pi pi-image pr-1"/> <strong>Board Thumbnail</strong>
-                                                </label>
-                                                <FileUpload
-                                                    mode="basic"
-                                                    name="boardThumbnailFilename"
-                                                    url={``}
-                                                    accept="image/*"
-                                                    maxFileSize={1000000}
-                                                    onUpload={onUpload}
-                                                />
+                            <section className="flex gap-4 justify-between">
+                                <section className="w-1/2 mb-4">
+                                    <Card>
+                                        <section className="flex justify-between">
+                                            <div className="w-[128px] h-[128px] mt-4 pr-4">
+                                                <img src="/images/hot-pepper.png"
+                                                     width={128}
+                                                     height={128}
+                                                     alt="Board Thumbnail"/>
                                             </div>
-                                            <div className="">
-                                                <label
-                                                    className="block mb-2 cursor-pointer"
-                                                    htmlFor="boardDescriptionTextbox">
-                                                    <i className="pi pi-file pr-1"/> <strong>Board Description</strong>
-                                                </label>
-                                                <InputTextarea value={boardUpdatePayload?.description}
-                                                               onChange={
-                                                                   (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                                                                       updateBoardDetails('description', e.target.value)
-                                                                   }
-                                                               }
-                                                               rows={5} cols={30}/>
+                                            <div className="w-3/4">
+                                                <div className="pt-4 mb-4">
+                                                    <label
+                                                        className="block mb-2 cursor-pointer"
+                                                        htmlFor="boardThumbnailFilename">
+                                                        <i className="pi pi-image pr-1"/> <strong>Board
+                                                        Thumbnail</strong>
+                                                    </label>
+                                                    <FileUpload
+                                                        mode="basic"
+                                                        name="boardThumbnailFilename"
+                                                        url={``}
+                                                        accept="image/*"
+                                                        maxFileSize={1000000}
+                                                        onUpload={onUpload}
+                                                    />
+                                                </div>
+                                                <div className="">
+                                                    <label
+                                                        className="block mb-2 cursor-pointer"
+                                                        htmlFor="boardDescriptionTextbox">
+                                                        <i className="pi pi-file pr-1"/> <strong>Board
+                                                        Description</strong>
+                                                    </label>
+                                                    <InputTextarea
+                                                        value={boardUpdatePayload?.description}
+                                                        onChange={
+                                                            (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                                                                updateBoardDetails('description', e.target.value)
+                                                            }
+                                                        }
+                                                        rows={5}
+                                                        cols={15}
+                                                    />
+                                                </div>
                                             </div>
-                                        </div>
-                                    </section>
-                                </Card>
+                                        </section>
+                                    </Card>
+                                </section>
+                                <section className="w-1/2">
+                                    <Card>
+                                        {boardDetails && board && (
+                                            <ul className="list-style-none">
+                                                <li>
+                                                    <i className="pi pi-user mr-2"/>
+                                                    <strong className="mr-2">Created By</strong>
+                                                    <NavLink
+                                                        to={`/users/${board.createdByUserSlug}`}>
+                                                        {board.createdByUsername}
+                                                    </NavLink>
+                                                </li>
+                                                <li>
+                                                    <i className="pi pi-users mr-2"/>
+                                                    <strong>Members</strong> {boardDetails.numBoardMembers}
+                                                </li>
+                                                <li>
+                                                    <i className="pi pi-comments mr-2"/>
+                                                    <strong>Total Posts</strong> {boardDetails.totalPosts}
+                                                </li>
+                                                <li>
+                                                    <i className="pi pi-calendar mr-2"/>
+                                                    <strong>Created</strong> {new Date(board.createdAt).toLocaleDateString()}
+                                                </li>
+                                                {board.updatedAt && (
+                                                    <li>
+                                                        <i className="pi pi-calendar mr-2"/>
+                                                        <strong>Last
+                                                            Updated</strong> {new Date(board.updatedAt).toLocaleDateString()}
+                                                    </li>
+                                                )}
+                                                {boardDetails && boardDetails.moderators.length > 0 && (
+                                                    <li>
+                                                        <i className="pi pi-user mr-2"/>
+                                                        <strong>Moderators</strong>
+                                                        <ul className="list-disc">
+                                                            {boardDetails.moderators.map(moderator => (
+                                                                <li className="ml-8" key={moderator.id}>
+                                                                    <NavLink
+                                                                        to={`/users/${moderator.slug}`}>
+                                                                        {moderator.username}
+                                                                    </NavLink>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </li>
+                                                )}
+                                            </ul>
+                                        )}
+                                    </Card>
+                                </section>
                             </section>
                             <section>
                                 <h1 className="text-2xl font-bold mb-4">Danger Zone</h1>
                                 <Card className="border-solid border-red-500 border-1">
                                     <Button
-                                        disabled={!canDeactivateBoard}
-                                        onClick={confirmDeactivateBoard}
+                                        disabled={!canUpdateBoardActivationStatus}
+                                        onClick={confirmUpdateBoardActivationStatus}
                                         severity="danger"
-                                        label="Deactivate Board"
+                                        label={`Deactivate Board`}
                                         icon="pi pi-trash"/>
                                     <ConfirmPopup/>
                                 </Card>

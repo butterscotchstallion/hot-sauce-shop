@@ -671,8 +671,20 @@ func Boards(
 		})
 	})
 
-	// deactivate board
-	r.DELETE("/api/v1/boards/:boardSlug", func(c *gin.Context) {
+	/**
+	 * Deactivate board - if DeactivatedByUserId is 0, then the board will be reactivated
+	 */
+	r.PUT("/api/v1/boards/:boardSlug/activation-status", func(c *gin.Context) {
+		var updateBoardActivationStatusRequest lib.UpdateBoardActivationStatusRequest
+		if err := c.ShouldBind(&updateBoardActivationStatusRequest); err != nil {
+			logger.Error(fmt.Sprintf("UpdateBoardActivationStatus: error binding request: %v", err.Error()))
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "ERROR",
+				"message": err.Error(),
+			})
+			return
+		}
+
 		// Check role (this also checks if the user is signed in)
 		// NOTE: this already sends a JSON response upon failure
 		isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsSuperMessageBoardAdmin(c, dbPool, logger)
@@ -684,15 +696,22 @@ func Boards(
 			return
 		}
 
-		userId, userIdErr := GetUserIdFromSessionOrError(c, dbPool, logger)
-		if userIdErr != nil {
-			return
+		// If the board is activated, then userId (deactivatedByUserId) is 0
+		var userId int
+		var userIdErr error
+		if updateBoardActivationStatusRequest.Activated {
+			userId = 0
+		} else {
+			userId, userIdErr = GetUserIdFromSessionOrError(c, dbPool, logger)
+			if userIdErr != nil {
+				return
+			}
 		}
 
 		boardSlug := c.Param("boardSlug")
-		boardDeletedErr := lib.DeactivateBoard(dbPool, boardSlug, userId)
-		if boardDeletedErr != nil {
-			logger.Error(fmt.Sprintf("Error deactivating board: %v", boardDeletedErr))
+		boardDeactivatedErr := lib.UpdateBoardActivationStatus(dbPool, boardSlug, userId)
+		if boardDeactivatedErr != nil {
+			logger.Error(fmt.Sprintf("Error deactivating board: %v", boardDeactivatedErr))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",
 				"message": "Error deactivating board",

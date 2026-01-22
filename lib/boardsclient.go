@@ -201,13 +201,15 @@ type BoardAdminsResponse struct {
 }
 
 type UpdateBoardRequest struct {
-	IsVisible              bool   `json:"isVisible"              validate:"required,boolean"`
-	IsPrivate              bool   `json:"isPrivate"              validate:"required,boolean"`
-	IsOfficial             bool   `json:"isOfficial"             validate:"required,boolean"`
-	IsPostApprovalRequired bool   `json:"isPostApprovalRequired" validate:"required,boolean"`
-	MinKarmaRequiredToPost int    `json:"minKarmaRequiredToPost" validate:"required,min=0,max=50000"`
-	Description            string `json:"description"            validate:"required,min=10,max=1000000"`
-	ThumbnailFilename      string `json:"thumbnailFilename"      validate:"required"`
+	IsVisible              bool       `json:"isVisible"              validate:"required,boolean"`
+	IsPrivate              bool       `json:"isPrivate"              validate:"required,boolean"`
+	IsOfficial             bool       `json:"isOfficial"             validate:"required,boolean"`
+	IsPostApprovalRequired bool       `json:"isPostApprovalRequired" validate:"required,boolean"`
+	MinKarmaRequiredToPost int        `json:"minKarmaRequiredToPost" validate:"required,min=0,max=50000"`
+	Description            string     `json:"description"            validate:"required,min=10,max=1000000"`
+	ThumbnailFilename      string     `json:"thumbnailFilename"      validate:"required"`
+	DeactivatedByUserId    *int       `json:"deactivatedByUserId"    validate:"number"`
+	DeactivatedAt          *time.Time `json:"deactivatedAt"          validate:"omitempty,datetime"`
 }
 
 type PostListResponseResults struct {
@@ -218,6 +220,10 @@ type PostListResponseResults struct {
 type PostListResponse struct {
 	Status  string                  `json:"status"`
 	Results PostListResponseResults `json:"results"`
+}
+
+type UpdateBoardActivationStatusRequest struct {
+	Activated bool `json:"activated" validate:"required,boolean"`
 }
 
 func GetBoards(dbPool *pgxpool.Pool, omitEmpty bool) ([]Board, error) {
@@ -650,19 +656,30 @@ func AddBoard(
 	return boardId, nil
 }
 
-func DeactivateBoard(dbPool *pgxpool.Pool, boardSlug string, deactivatedByUserId int) error {
-	const query = `UPDATE boards
-		SET deactivated_by_user_id = $1, deactivated_at = NOW()
-		WHERE slug = $2
-	`
-	_, err := dbPool.Exec(
-		context.Background(),
-		query,
-		deactivatedByUserId,
-		boardSlug,
-	)
-	if err != nil {
-		return err
+func UpdateBoardActivationStatus(dbPool *pgxpool.Pool, boardSlug string, deactivatedByUserId int) error {
+	if deactivatedByUserId == 0 {
+		query := `UPDATE boards SET deactivated_by_user_id = NULL, deactivated_at = NULL WHERE slug = $1`
+		_, err := dbPool.Exec(
+			context.Background(),
+			query,
+		)
+		if err != nil {
+			return err
+		}
+	} else {
+		query := `UPDATE boards
+			SET deactivated_by_user_id = $1, deactivated_at = NOW()
+			WHERE slug = $2
+		`
+		_, err := dbPool.Exec(
+			context.Background(),
+			query,
+			deactivatedByUserId,
+			boardSlug,
+		)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
