@@ -17,7 +17,7 @@
     "chart.js": "^4.4.8",
     "dayjs": "^1.11.13",
     "js-cookie": "^3.0.5",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "primeicons": "^7.0.0",
     "primereact": "^10.9.2",
     "react": "^19.2.0",
