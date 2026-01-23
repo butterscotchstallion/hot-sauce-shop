@@ -18,6 +18,8 @@ type ConfigTestUsers struct {
 	BoardAdminPassword   string `toml:"boardAdminPassword"`
 	UnprivilegedUsername string `toml:"unprivilegedUsername"`
 	UnprivilegedPassword string `toml:"unprivilegedPassword"`
+	AdminUsername        string `toml:"adminUsername"`
+	AdminPassword        string `toml:"adminPassword"`
 }
 
 type ConfigServer struct {

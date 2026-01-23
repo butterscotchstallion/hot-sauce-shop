@@ -80,6 +80,14 @@ type UserProfileResponse struct {
 	Results UserProfileResponseResults `json:"results"`
 }
 
+type UserCreateResponseResults struct {
+	User User `json:"user"`
+}
+type UserCreateResponse struct {
+	Status  string                    `json:"status"`
+	Results UserCreateResponseResults `json:"results"`
+}
+
 func GetUserPostVoteSum(dbPool *pgxpool.Pool, userId int) (int, error) {
 	const query = `
 		SELECT COALESCE(SUM(v.value), 0) AS voteSum

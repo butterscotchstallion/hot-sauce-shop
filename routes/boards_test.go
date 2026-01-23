@@ -1042,3 +1042,34 @@ func TestGetBoardUsersByRoleName(t *testing.T) {
 	// Clean up
 	DeleteBoardAndVerify(t, e, adminSessionID, addBoardResponse.Results.Slug)
 }
+
+func TestCreateBoardMakesCreatorAdmin(t *testing.T) {
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	adminSessionID := signInAndGetSessionId(
+		t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword,
+	)
+	addBoardResponse := CreateBoardAndVerify(t, e, adminSessionID, lib.AddBoardRequest{
+		DisplayName:            GenerateUniqueName(),
+		Description:            "Testing create board makes creator admin",
+		IsVisible:              true,
+		IsPrivate:              false,
+		IsOfficial:             false,
+		IsPostApprovalRequired: false,
+		MinKarmaRequiredToPost: 0,
+	})
+
+	// Verify board details
+	detailsResponse := getBoardDetailsAndVerify(GetBoardDetailsRequest{
+		T:    t,
+		E:    e,
+		Slug: addBoardResponse.Results.Slug,
+	})
+
+	if len(detailsResponse.Results.Admins) != 1 {
+		t.Fatalf("Expected 1 admin, got %d", len(detailsResponse.Results.Admins))
+	}
+	adminInList := isUserIdInUserList(unprivUserId, detailsResponse.Results.Admins)
+	if !adminInList {
+		t.Fatal("Admin user was not found in the board details")
+	}
+}

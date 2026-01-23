@@ -159,3 +159,18 @@ func TestGetUserProfile(t *testing.T) {
 		t.Fatal("User moderated boards contains duplicates")
 	}
 }
+
+func TestCreateUser(t *testing.T) {
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	sessionID := signInAndGetSessionId(t, e, config.TestUsers.AdminUsername, config.TestUsers.AdminPassword)
+	var userCreateResponse lib.UserCreateResponse
+	e.POST("/api/v1/user").
+		WithCookie("sessionId", sessionID).
+		Expect().
+		Status(http.StatusCreated).
+		JSON().
+		Decode(&userCreateResponse)
+	if userCreateResponse.Status != "OK" {
+		t.Fatal("Failed to create user")
+	}
+}
