@@ -1030,4 +1030,7 @@ func TestGetBoardUsersByRoleName(t *testing.T) {
 	if !modInList {
 		t.Fatal("Moderator user was not found in the board details")
 	}
+
+	// Clean up
+	DeleteBoardAndVerify(t, e, adminSessionID, addBoardResponse.Results.Slug)
 }

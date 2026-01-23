@@ -740,6 +740,58 @@ func Boards(
 		})
 	})
 
+	// Delete board (only used in tests currently)
+	r.DELETE("/api/v1/boards/:boardSlug", func(c *gin.Context) {
+		var updateBoardActivationStatusRequest lib.UpdateBoardActivationStatusRequest
+		if err := c.ShouldBind(&updateBoardActivationStatusRequest); err != nil {
+			logger.Error(fmt.Sprintf("DeleteBoard: error binding request: %v", err.Error()))
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "ERROR",
+				"message": err.Error(),
+			})
+			return
+		}
+
+		// Check role (this also checks if the user is signed in)
+		// NOTE: this already sends a JSON response upon failure
+		isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsSuperMessageBoardAdmin(c, dbPool, logger)
+		if isMessageBoardAdminErr != nil {
+			return
+		}
+		if !isMessageBoardAdmin {
+			logger.Error("Error deleting board: user is not message board admin")
+			return
+		}
+
+		// If the board is activated, then userId (deactivatedByUserId) is 0
+		var userId int
+		var userIdErr error
+		if updateBoardActivationStatusRequest.Activated {
+			userId = 0
+		} else {
+			userId, userIdErr = GetUserIdFromSessionOrError(c, dbPool, logger)
+			if userIdErr != nil {
+				return
+			}
+		}
+
+		boardSlug := c.Param("boardSlug")
+		boardDeactivatedErr := lib.UpdateBoardActivationStatus(dbPool, boardSlug, userId)
+		if boardDeactivatedErr != nil {
+			logger.Error(fmt.Sprintf("Error deleting board: %v", boardDeactivatedErr))
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": "Error deleting board",
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "OK",
+			"message": "Board deleted",
+		})
+	})
+
 	// Delete Post
 	r.DELETE("/api/v1/boards/posts/:postSlug", func(c *gin.Context) {
 		postSlug := c.Param("postSlug")

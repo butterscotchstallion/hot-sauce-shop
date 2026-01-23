@@ -203,3 +203,15 @@ func GetRoleIdsFromRoles(roles []Role) []int {
 	}
 	return roleIds
 }
+
+func AddUserRole(dbPool *pgxpool.Pool, userId int, roleId int) error {
+	const query = `INSERT INTO user_roles (user_id, role_id) 
+		VALUES ($1, $2)
+		ON CONFLICT DO NOTHING
+	`
+	_, err := dbPool.Exec(context.Background(), query, userId, roleId)
+	if err != nil {
+		return err
+	}
+	return nil
+}

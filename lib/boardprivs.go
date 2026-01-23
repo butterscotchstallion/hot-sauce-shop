@@ -55,6 +55,13 @@ func AddBoardAdmin(dbPool *pgxpool.Pool, userId int, boardId int) error {
 	if err != nil {
 		return err
 	}
+
+	// the function to get roles uses an inner join, so we need to add the role here too
+	addRoleErr := AddUserRole(dbPool, userId, boardAdminRoleId)
+	if addRoleErr != nil {
+		return addRoleErr
+	}
+
 	return nil
 }
 
@@ -69,6 +76,13 @@ func AddBoardModerator(dbPool *pgxpool.Pool, userId int, boardId int) error {
 	if err != nil {
 		return err
 	}
+
+	// the function to get roles uses an inner join, so we need to add the role here too
+	addRoleErr := AddUserRole(dbPool, userId, boardModeratorRoleId)
+	if addRoleErr != nil {
+		return addRoleErr
+	}
+
 	return nil
 }
 
