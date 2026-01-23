@@ -126,6 +126,7 @@ type AddBoardResponse struct {
 type BoardDetailResponseResults struct {
 	Board              Board  `json:"board"`
 	Moderators         []User `json:"moderators"`
+	Admins             []User `json:"admins"`
 	NumBoardModerators int    `json:"numBoardModerators"`
 	TotalPosts         int    `json:"totalPosts"`
 	NumBoardMembers    int    `json:"numBoardMembers"`

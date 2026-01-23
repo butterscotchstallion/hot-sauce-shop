@@ -8,6 +8,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+const BoardAdminRoleName = "Message Board Admin"
+const BoardModeratorRoleName = "Message Board Moderator"
+
 // GetBoardsByRole
 // Returns boards the user has the specified role on
 func GetBoardsByRole(dbPool *pgxpool.Pool, userId int, roleName string) ([]Board, error) {
@@ -63,10 +66,10 @@ func IsUserBoardModerator(dbPool *pgxpool.Pool, boardSlug string, userId int) (b
 	return len(mods) > 0, err
 }
 
-func GetBoardModerators(dbPool *pgxpool.Pool, boardSlug string, userId int) ([]User, error) {
+func GetBoardUsersByRole(dbPool *pgxpool.Pool, boardSlug string, userId int, roleName string) ([]User, error) {
 	userFilterClause := ""
 	if userId > 0 {
-		userFilterClause = " AND urb.user_id = $2"
+		userFilterClause = " AND urb.user_id = $3"
 	}
 	query := `SELECT u.*
 		FROM users u
@@ -75,14 +78,14 @@ func GetBoardModerators(dbPool *pgxpool.Pool, boardSlug string, userId int) ([]U
         JOIN roles r ON r.id = urb.role_id
         JOIN boards b ON b.id = urb.board_id
 		WHERE b.slug = $1
-		AND r.slug = 'message-board-moderator'
+		AND r.name = $2
 	` + userFilterClause
 	var rows pgx.Rows
 	var err error
 	if userId > 0 {
-		rows, err = dbPool.Query(context.Background(), query, boardSlug, userId)
+		rows, err = dbPool.Query(context.Background(), query, boardSlug, roleName, userId)
 	} else {
-		rows, err = dbPool.Query(context.Background(), query, boardSlug)
+		rows, err = dbPool.Query(context.Background(), query, boardSlug, roleName)
 	}
 	if err != nil {
 		return []User{}, err
@@ -92,4 +95,12 @@ func GetBoardModerators(dbPool *pgxpool.Pool, boardSlug string, userId int) ([]U
 		return nil, collectRowsErr
 	}
 	return moderators, err
+}
+
+func GetBoardModerators(dbPool *pgxpool.Pool, boardSlug string, userId int) ([]User, error) {
+	return GetBoardUsersByRole(dbPool, boardSlug, userId, BoardModeratorRoleName)
+}
+
+func GetBoardAdmins(dbPool *pgxpool.Pool, boardSlug string) ([]User, error) {
+	return GetBoardUsersByRole(dbPool, boardSlug, 0, BoardAdminRoleName)
 }

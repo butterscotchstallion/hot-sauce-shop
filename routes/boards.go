@@ -65,6 +65,11 @@ func Boards(
 			logger.Error(fmt.Sprintf("Error fetching mods: %v", modsErr.Error()))
 		}
 
+		admins, adminsErr := lib.GetBoardAdmins(dbPool, boardSlug)
+		if adminsErr != nil {
+			logger.Error(fmt.Sprintf("Error fetching admins: %v", adminsErr.Error()))
+		}
+
 		if board == (lib.Board{}) {
 			c.JSON(http.StatusNotFound, gin.H{
 				"status":  "ERROR",
@@ -88,6 +93,7 @@ func Boards(
 			Results: lib.BoardDetailResponseResults{
 				Board:           board,
 				Moderators:      mods,
+				Admins:          admins,
 				NumBoardMembers: numBoardMembers,
 				TotalPosts:      totalPosts,
 			},

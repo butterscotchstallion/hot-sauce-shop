@@ -385,12 +385,14 @@ export function BoardSettingsPage() {
                                                             Updated</strong> {new Date(board.updatedAt).toLocaleDateString()}
                                                     </li>
                                                 )}
-                                                {boardDetails && boardDetails.moderators.length > 0 && (
-                                                    <li>
-                                                        <i className="pi pi-user mr-2"/>
-                                                        <strong>Moderators</strong>
+                                                <li>
+                                                    <i className="pi pi-user mr-2"/>
+                                                    <strong className="mr-2">Moderators</strong>
+                                                    {boardDetails.moderators.length === 0 ? (
+                                                        "None"
+                                                    ) : (
                                                         <ul className="list-disc">
-                                                            {boardDetails.moderators.map(moderator => (
+                                                            {boardDetails.moderators.map((moderator: IUser) => (
                                                                 <li className="ml-8" key={moderator.id}>
                                                                     <NavLink
                                                                         to={`/users/${moderator.slug}`}>
@@ -399,8 +401,26 @@ export function BoardSettingsPage() {
                                                                 </li>
                                                             ))}
                                                         </ul>
-                                                    </li>
-                                                )}
+                                                    )}
+                                                </li>
+                                                <li>
+                                                    <i className="pi pi-user mr-2"/>
+                                                    <strong className="mr-2">Admins</strong>
+                                                    {boardDetails.admins.length === 0 ? (
+                                                        "None"
+                                                    ) : (
+                                                        <ul className="list-disc">
+                                                            {boardDetails.admins.map((admin: IUser) => (
+                                                                <li className="ml-8" key={admin.id}>
+                                                                    <NavLink
+                                                                        to={`/users/${admin.slug}`}>
+                                                                        {admin.username}
+                                                                    </NavLink>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    )}
+                                                </li>
                                             </ul>
                                         )}
                                     </Card>
