@@ -16,12 +16,13 @@ import (
 )
 
 type CreateUserRequest struct {
-	T              *testing.T
-	E              *httpexpect.Expect
-	Username       string
-	Password       string
-	AvatarFilename string
-	SessionId      string
+	T                  *testing.T
+	E                  *httpexpect.Expect
+	Username           string
+	Password           string
+	AvatarFilename     string
+	SessionId          string
+	ExpectedStatusCode int
 }
 
 func GetUserIdFromSessionOrError(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (int, error) {
@@ -46,17 +47,20 @@ func CreateUserAndVerify(request CreateUserRequest) {
 		WithCookie("sessionId", request.SessionId).
 		WithJSON(request).
 		Expect().
-		Status(http.StatusCreated).
+		Status(request.ExpectedStatusCode).
 		JSON().
 		Decode(&userCreateResponse)
-	if userCreateResponse.Status != "OK" {
-		request.T.Fatal("Failed to create user")
-	}
-	if userCreateResponse.Results.User.Username != request.Username {
-		request.T.Fatal("Created user username mismatch")
-	}
-	if userCreateResponse.Results.User.AvatarFilename != request.AvatarFilename {
-		request.T.Fatal("Created user avatar filename mismatch")
+	// Only verify this stuff if we're expecting it to work
+	if request.ExpectedStatusCode == http.StatusCreated {
+		if userCreateResponse.Status != "OK" {
+			request.T.Fatal("Failed to create user")
+		}
+		if userCreateResponse.Results.User.Username != request.Username {
+			request.T.Fatal("Created user username mismatch")
+		}
+		if userCreateResponse.Results.User.AvatarFilename != request.AvatarFilename {
+			request.T.Fatal("Created user avatar filename mismatch")
+		}
 	}
 }
 
@@ -73,4 +77,30 @@ func GenerateUsername(n int) string {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
 	}
 	return string(b)
+}
+
+type CreateRandomUserResponse struct {
+	Username string
+	Password string
+}
+
+func CreateRandomUserAndVerify(t *testing.T, e *httpexpect.Expect, sessionId string, expectedStatusCode int) CreateRandomUserResponse {
+	password := GenerateUniqueName()
+	hashedPw, err := HashPassword(password)
+	if err != nil {
+		t.Fatal(err)
+	}
+	username := GenerateUsername(20)
+	CreateUserAndVerify(CreateUserRequest{
+		T:                  t,
+		E:                  e,
+		SessionId:          sessionId,
+		Username:           username,
+		Password:           hashedPw,
+		ExpectedStatusCode: expectedStatusCode,
+	})
+	return CreateRandomUserResponse{
+		Username: username,
+		Password: password,
+	}
 }

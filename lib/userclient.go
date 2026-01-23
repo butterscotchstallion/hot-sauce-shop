@@ -342,19 +342,28 @@ func CreateUser(dbPool *pgxpool.Pool, payload UserCreatePayload) (User, error) {
 	usernameSlug := slug.Make(payload.Username)
 	const query = `INSERT INTO users (username, password, avatar_filename, slug) 
 		VALUES ($1, $2, $3, $4)
-		RETURNING username, password, avatar_filename, slug, created_at, updated_at
+		RETURNING *
 	`
-	var user User
-	err := dbPool.QueryRow(
+	row, rowErr := dbPool.Query(
 		context.Background(),
 		query,
 		payload.Username,
 		payload.Password,
 		payload.AvatarFilename,
 		usernameSlug,
-	).Scan(&user)
-	if err != nil {
-		return User{}, err
+	)
+	if rowErr != nil {
+		return User{}, rowErr
+	}
+	user, collectRowsErr := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[User])
+	if collectRowsErr != nil {
+		return User{}, collectRowsErr
 	}
 	return user, nil
+}
+
+func DeleteUser(dbPool *pgxpool.Pool, userId int) error {
+	const query = `DELETE FROM users WHERE id = $1`
+	_, err := dbPool.Exec(context.Background(), query, userId)
+	return err
 }

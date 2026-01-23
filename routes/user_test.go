@@ -162,18 +162,25 @@ func TestGetUserProfile(t *testing.T) {
 
 func TestCreateUser(t *testing.T) {
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
-	sessionID := signInAndGetSessionId(t, e, config.TestUsers.AdminUsername, config.TestUsers.AdminPassword)
-	testUsername := GenerateUsername(20)
-	testPassword, hashErr := HashPassword(GenerateUniqueName())
-	if hashErr != nil {
-		t.Fatal("Failed to hash password")
-	}
-	CreateUserAndVerify(CreateUserRequest{
-		T:              t,
-		E:              e,
-		Username:       testUsername,
-		Password:       testPassword,
-		AvatarFilename: "meow.jpg",
-		SessionId:      sessionID,
-	})
+	adminSessionId := signInAndGetSessionId(
+		t,
+		e,
+		config.TestUsers.AdminUsername,
+		config.TestUsers.AdminPassword,
+	)
+	unprivSessionId := signInAndGetSessionId(
+		t,
+		e,
+		config.TestUsers.UnprivilegedUsername,
+		config.TestUsers.UnprivilegedPassword,
+	)
+	// Only admins can create users - test permissions as well
+	CreateRandomUserAndVerify(t, e, unprivSessionId, http.StatusForbidden)
+
+	// Admin attempt expected to succeed
+	CreateRandomUserAndVerify(t, e, adminSessionId, http.StatusCreated)
+
+	// Test sign in
+
+	// Test user profile
 }
