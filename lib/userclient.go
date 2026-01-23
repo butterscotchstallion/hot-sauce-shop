@@ -88,6 +88,12 @@ type UserCreateResponse struct {
 	Results UserCreateResponseResults `json:"results"`
 }
 
+type UserCreatePayload struct {
+	Username       string `json:"username"       validate:"required,alphanum,min=3,max=20"`
+	Password       string `json:"password"       validate:"required,min=18,max=100"`
+	AvatarFilename string `json:"avatarFilename" validate:"min=5,max=255"`
+}
+
 func GetUserPostVoteSum(dbPool *pgxpool.Pool, userId int) (int, error) {
 	const query = `
 		SELECT COALESCE(SUM(v.value), 0) AS voteSum
@@ -329,4 +335,19 @@ func GetUserLevelInfoByUserId(dbPool *pgxpool.Pool, userId int) (UserLevelInfo, 
 		Experience:                experience,
 		PercentageOfLevelComplete: percentage,
 	}, nil
+}
+
+func CreateUser(dbPool *pgxpool.Pool, payload UserCreatePayload) (User, error) {
+	const query = `INSERT INTO users (username, password, avatar_filename) VALUES ($1, $2, $3) RETURNING *`
+	var user User
+	err := dbPool.QueryRow(
+		context.Background(),
+		query,
+		payload.Username,
+		payload.Password,
+		payload.AvatarFilename).Scan(&user)
+	if err != nil {
+		return User{}, err
+	}
+	return user, nil
 }

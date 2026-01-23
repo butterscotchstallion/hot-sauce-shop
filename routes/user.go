@@ -9,24 +9,9 @@ import (
 	"hotsauceshop/lib"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
-
-func GetUserIdFromSessionOrError(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (int, error) {
-	userId, err := lib.GetUserIdFromSession(c, dbPool, logger)
-	if err != nil || userId == 0 {
-		if err != nil {
-			logger.Error(fmt.Sprintf("GetUserIdFromSessionOrError: %v", err.Error()))
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"status":  "ERROR",
-				"message": "User not signed in",
-			})
-			return 0, err
-		}
-		return 0, nil
-	}
-	return userId, nil
-}
 
 func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	r.GET("/api/v1/user", func(c *gin.Context) {
@@ -236,6 +221,45 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		c.JSON(http.StatusOK, lib.GenericResponse{
 			Status:  "OK",
 			Message: "Board added",
+		})
+	})
+
+	// Create user
+	r.POST("/api/v1/user", func(c *gin.Context) {
+		var payload lib.UserCreatePayload
+		if err := c.ShouldBindJSON(&payload); err != nil {
+			logger.Error(err.Error())
+			c.JSON(http.StatusBadRequest, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: err.Error(),
+			})
+			return
+		}
+
+		validate := validator.New(validator.WithRequiredStructEnabled())
+		err := validate.Struct(payload)
+		if err != nil {
+			logger.Error(err.Error())
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "ERROR",
+				"message": fmt.Sprintf("Validation failed: %v", err),
+			})
+			return
+		}
+
+		user, createUserErr := lib.CreateUser(dbPool, payload)
+		if createUserErr != nil {
+			logger.Error(fmt.Sprintf("Error creating user: %v", createUserErr.Error()))
+			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: createUserErr.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusCreated, lib.UserCreateResponse{
+			Status:  "OK",
+			Results: lib.UserCreateResponseResults{User: user},
 		})
 	})
 }

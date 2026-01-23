@@ -163,14 +163,17 @@ func TestGetUserProfile(t *testing.T) {
 func TestCreateUser(t *testing.T) {
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.AdminUsername, config.TestUsers.AdminPassword)
-	var userCreateResponse lib.UserCreateResponse
-	e.POST("/api/v1/user").
-		WithCookie("sessionId", sessionID).
-		Expect().
-		Status(http.StatusCreated).
-		JSON().
-		Decode(&userCreateResponse)
-	if userCreateResponse.Status != "OK" {
-		t.Fatal("Failed to create user")
+	testUsername := GenerateUniqueName()
+	testPassword, hashErr := HashPassword(GenerateUniqueName())
+	if hashErr != nil {
+		t.Fatal("Failed to hash password")
 	}
+	CreateUserAndVerify(CreateUserRequest{
+		T:              t,
+		E:              e,
+		Username:       testUsername,
+		Password:       testPassword,
+		AvatarFilename: "meow.jpg",
+		SessionId:      sessionID,
+	})
 }
