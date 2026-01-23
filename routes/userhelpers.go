@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"log/slog"
+	"math/rand"
 	"net/http"
 	"testing"
 
@@ -62,4 +63,14 @@ func CreateUserAndVerify(request CreateUserRequest) {
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
+}
+
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func GenerateUsername(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
 }

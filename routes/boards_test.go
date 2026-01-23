@@ -991,6 +991,9 @@ func TestBoardListHasPostsFilter(t *testing.T) {
 	DeleteBoardAndVerify(t, e, adminSessionID, boardResponse.Results.Slug)
 }
 
+// TODO: create user here instead of using an existing user because
+// there is no clean up function here for roles. This means existing
+// data can be misleading with regard to test results.
 func TestGetBoardUsersByRoleName(t *testing.T) {
 	const unprivUserId = 3
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
@@ -1044,6 +1047,7 @@ func TestGetBoardUsersByRoleName(t *testing.T) {
 }
 
 func TestCreateBoardMakesCreatorAdmin(t *testing.T) {
+	const unprivUserId = 3
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	adminSessionID := signInAndGetSessionId(
 		t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword,

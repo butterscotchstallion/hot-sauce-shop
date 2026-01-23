@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gosimple/slug"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -89,7 +90,7 @@ type UserCreateResponse struct {
 }
 
 type UserCreatePayload struct {
-	Username       string `json:"username"       validate:"required,alphanum,min=3,max=20"`
+	Username       string `json:"username"       validate:"required,min=3,max=20"`
 	Password       string `json:"password"       validate:"required,min=18,max=100"`
 	AvatarFilename string `json:"avatarFilename" validate:"min=5,max=255"`
 }
@@ -338,14 +339,20 @@ func GetUserLevelInfoByUserId(dbPool *pgxpool.Pool, userId int) (UserLevelInfo, 
 }
 
 func CreateUser(dbPool *pgxpool.Pool, payload UserCreatePayload) (User, error) {
-	const query = `INSERT INTO users (username, password, avatar_filename) VALUES ($1, $2, $3) RETURNING *`
+	usernameSlug := slug.Make(payload.Username)
+	const query = `INSERT INTO users (username, password, avatar_filename, slug) 
+		VALUES ($1, $2, $3, $4)
+		RETURNING username, password, avatar_filename, slug, created_at, updated_at
+	`
 	var user User
 	err := dbPool.QueryRow(
 		context.Background(),
 		query,
 		payload.Username,
 		payload.Password,
-		payload.AvatarFilename).Scan(&user)
+		payload.AvatarFilename,
+		usernameSlug,
+	).Scan(&user)
 	if err != nil {
 		return User{}, err
 	}

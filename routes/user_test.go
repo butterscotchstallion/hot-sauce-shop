@@ -163,7 +163,7 @@ func TestGetUserProfile(t *testing.T) {
 func TestCreateUser(t *testing.T) {
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.AdminUsername, config.TestUsers.AdminPassword)
-	testUsername := GenerateUniqueName()
+	testUsername := GenerateUsername(20)
 	testPassword, hashErr := HashPassword(GenerateUniqueName())
 	if hashErr != nil {
 		t.Fatal("Failed to hash password")
