@@ -7,6 +7,8 @@ timeZone = ""
 dsn = "postgres://user:example@localhost"
 
 [testUsers]
+adminUsername = "admin-user"
+adminPassword = "admin-user-password"
 boardAdminUsername = "test-user"
 boardAdminPassword = "test-user-password"
 unprivilegedUsername = "unprivileged-user"
