@@ -78,9 +78,37 @@ func getBoardList(request GetBoardListRequest) lib.BoardListResponse {
 	return boardsResponse
 }
 
+type GetBoardDetailsRequest struct {
+	T    *testing.T
+	E    *httpexpect.Expect
+	Slug string
+}
+
+func getBoardDetailsAndVerify(request GetBoardDetailsRequest) lib.BoardDetailResponse {
+	var detailResponse lib.BoardDetailResponse
+	request.E.GET(fmt.Sprintf("/api/v1/boards/%s", request.Slug)).
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&detailResponse)
+	if detailResponse.Status != "OK" {
+		request.T.Fatal("Failed to get board detail")
+	}
+	return detailResponse
+}
+
 func isPostSlugInList(postSlug string, posts []lib.BoardPost) bool {
 	for _, post := range posts {
 		if post.Slug == postSlug {
+			return true
+		}
+	}
+	return false
+}
+
+func isUserIdInUserList(userId int, users []lib.User) bool {
+	for _, user := range users {
+		if user.Id == userId {
 			return true
 		}
 	}

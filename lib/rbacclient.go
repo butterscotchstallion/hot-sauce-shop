@@ -158,6 +158,7 @@ func UserHasRole(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger, role
 			"status":  "ERROR",
 			"message": rolesErr.Error(),
 		})
+		return false, rolesErr
 	}
 
 	for _, role := range roles {
@@ -170,12 +171,12 @@ func UserHasRole(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger, role
 }
 
 func IsUserAdmin(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (bool, error) {
-	return UserHasRole(c, dbPool, logger, "User Admin")
+	return UserHasRole(c, dbPool, logger, UserRoleUserAdmin)
 }
 
 // IsSuperMessageBoardAdmin Sends JSON response upon failure
 func IsSuperMessageBoardAdmin(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (bool, error) {
-	return UserHasRole(c, dbPool, logger, "Super Message Board Admin")
+	return UserHasRole(c, dbPool, logger, UserRoleSuperAdmin)
 }
 
 // IsMessageBoardAdmin - checks admin status of a specific board

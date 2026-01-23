@@ -41,7 +41,7 @@ func GetBoardsByRole(dbPool *pgxpool.Pool, userId int, roleName string) ([]Board
 }
 
 func GetUserAdminBoards(dbPool *pgxpool.Pool, userId int) ([]Board, error) {
-	return GetBoardsByRole(dbPool, userId, "Message Board Admin")
+	return GetBoardsByRole(dbPool, userId, UserRoleMessageBoardAdmin)
 }
 
 func AddBoardAdmin(dbPool *pgxpool.Pool, userId int, boardId int) error {
@@ -52,6 +52,20 @@ func AddBoardAdmin(dbPool *pgxpool.Pool, userId int, boardId int) error {
 		ON CONFLICT DO NOTHING
 	`
 	_, err := dbPool.Exec(context.Background(), query, userId, boardId, boardAdminRoleId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func AddBoardModerator(dbPool *pgxpool.Pool, userId int, boardId int) error {
+	const boardModeratorRoleId = 5
+	const query = `
+		INSERT INTO user_roles_boards (user_id, board_id, role_id)
+		VALUES ($1, $2, $3)
+		ON CONFLICT DO NOTHING
+	`
+	_, err := dbPool.Exec(context.Background(), query, userId, boardId, boardModeratorRoleId)
 	if err != nil {
 		return err
 	}

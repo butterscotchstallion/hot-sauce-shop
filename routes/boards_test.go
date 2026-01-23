@@ -992,5 +992,42 @@ func TestBoardListHasPostsFilter(t *testing.T) {
 }
 
 func TestGetBoardUsersByRoleName(t *testing.T) {
+	const unprivUserId = 3
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	adminSessionID := signInAndGetSessionId(
+		t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword,
+	)
+	addBoardResponse := CreateBoardAndVerify(t, e, adminSessionID, lib.AddBoardRequest{
+		DisplayName:            GenerateUniqueName(),
+		Description:            "Testing get board users by role name",
+		IsVisible:              true,
+		IsPrivate:              false,
+		IsOfficial:             false,
+		IsPostApprovalRequired: false,
+		MinKarmaRequiredToPost: 0,
+	})
+	addAdminErr := lib.AddBoardAdmin(dbPool, unprivUserId, addBoardResponse.Results.BoardId)
+	if addAdminErr != nil {
+		t.Fatalf("Error adding board admin role: %v", addAdminErr)
+	}
+	addModErr := lib.AddBoardModerator(dbPool, unprivUserId, addBoardResponse.Results.BoardId)
+	if addModErr != nil {
+		t.Fatalf("Error adding board moderator role: %v", addModErr)
+	}
 
+	// Verify board details
+	detailsResponse := getBoardDetailsAndVerify(GetBoardDetailsRequest{
+		T:    t,
+		E:    e,
+		Slug: addBoardResponse.Results.Slug,
+	})
+
+	adminInList := isUserIdInUserList(unprivUserId, detailsResponse.Results.Admins)
+	if !adminInList {
+		t.Fatal("Admin user was not found in the board details")
+	}
+	modInList := isUserIdInUserList(unprivUserId, detailsResponse.Results.Moderators)
+	if !modInList {
+		t.Fatal("Moderator user was not found in the board details")
+	}
 }

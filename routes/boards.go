@@ -627,10 +627,19 @@ func Boards(
 		// NOTE: this already sends a JSON response upon failure
 		isMessageBoardAdmin, isMessageBoardAdminErr := lib.IsSuperMessageBoardAdmin(c, dbPool, logger)
 		if isMessageBoardAdminErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "ERROR",
+				"message": "Error checking if user is super admin",
+			})
 			return
 		}
 		if !isMessageBoardAdmin {
 			logger.Error("Error adding board: user is not message board admin")
+			// the above check is sending a 200 OK somehow. this sends the correct status response
+			c.JSON(http.StatusForbidden, gin.H{
+				"status":  "ERROR",
+				"message": "Error adding board: permission denied",
+			})
 			return
 		}
 
