@@ -1022,6 +1022,14 @@ func TestGetBoardUsersByRoleName(t *testing.T) {
 		Slug: addBoardResponse.Results.Slug,
 	})
 
+	if len(detailsResponse.Results.Admins) != 1 {
+		t.Fatalf("Expected 1 admin, got %d", len(detailsResponse.Results.Admins))
+	}
+
+	if len(detailsResponse.Results.Moderators) != 1 {
+		t.Fatalf("Expected 1 moderator, got %d", len(detailsResponse.Results.Moderators))
+	}
+
 	adminInList := isUserIdInUserList(unprivUserId, detailsResponse.Results.Admins)
 	if !adminInList {
 		t.Fatal("Admin user was not found in the board details")

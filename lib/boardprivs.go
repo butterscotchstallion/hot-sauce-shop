@@ -104,7 +104,9 @@ func GetBoardUsersByRole(dbPool *pgxpool.Pool, boardSlug string, userId int, rol
         JOIN boards b ON b.id = urb.board_id
 		WHERE b.slug = $1
 		AND r.name = $2
-	` + userFilterClause
+	` + userFilterClause + `
+	GROUP BY u.id`
+
 	var rows pgx.Rows
 	var err error
 	if userId > 0 {
