@@ -8,9 +8,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-const BoardAdminRoleName = "Message Board Admin"
-const BoardModeratorRoleName = "Message Board Moderator"
-
 // GetBoardsByRole
 // Returns boards the user has the specified role on
 func GetBoardsByRole(dbPool *pgxpool.Pool, userId int, roleName string) ([]Board, error) {
@@ -98,9 +95,9 @@ func GetBoardUsersByRole(dbPool *pgxpool.Pool, boardSlug string, userId int, rol
 }
 
 func GetBoardModerators(dbPool *pgxpool.Pool, boardSlug string, userId int) ([]User, error) {
-	return GetBoardUsersByRole(dbPool, boardSlug, userId, BoardModeratorRoleName)
+	return GetBoardUsersByRole(dbPool, boardSlug, userId, UserRoleMessageBoardModerator)
 }
 
 func GetBoardAdmins(dbPool *pgxpool.Pool, boardSlug string) ([]User, error) {
-	return GetBoardUsersByRole(dbPool, boardSlug, 0, BoardAdminRoleName)
+	return GetBoardUsersByRole(dbPool, boardSlug, 0, UserRoleMessageBoardAdmin)
 }

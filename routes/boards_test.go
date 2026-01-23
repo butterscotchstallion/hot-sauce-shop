@@ -990,3 +990,7 @@ func TestBoardListHasPostsFilter(t *testing.T) {
 	// Clean up
 	DeleteBoardAndVerify(t, e, adminSessionID, boardResponse.Results.Slug)
 }
+
+func TestGetBoardUsersByRoleName(t *testing.T) {
+
+}

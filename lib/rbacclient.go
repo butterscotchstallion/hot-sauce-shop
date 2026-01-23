@@ -31,6 +31,7 @@ type Permission struct {
 const UserRoleMessageBoardAdmin = "Message Board Admin"
 const UserRoleSuperAdmin = "Super Message Board Admin"
 const UserRoleUserAdmin = "User Admin"
+const UserRoleMessageBoardModerator = "Message Board Moderator"
 
 // UpdateUserRoles
 // - Delete existing user roles
