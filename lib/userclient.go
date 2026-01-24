@@ -92,7 +92,7 @@ type UserCreateResponse struct {
 type UserCreatePayload struct {
 	Username       string `json:"username"       validate:"required,min=3,max=20"`
 	Password       string `json:"password"       validate:"required,min=18,max=100"`
-	AvatarFilename string `json:"avatarFilename" validate:"min=5,max=255"`
+	AvatarFilename string `json:"avatarFilename"`
 }
 
 func GetUserPostVoteSum(dbPool *pgxpool.Pool, userId int) (int, error) {

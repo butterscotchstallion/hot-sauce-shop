@@ -226,6 +226,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 
 	// Create user
 	r.POST("/api/v1/user", func(c *gin.Context) {
+		// Check payload
 		var payload lib.UserCreatePayload
 		if err := c.ShouldBindJSON(&payload); err != nil {
 			logger.Error(err.Error())
@@ -236,6 +237,25 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			return
 		}
 
+		// Check user role
+		isUserAdmin, isUserAdminErr := lib.IsUserAdmin(c, dbPool, logger)
+		if isUserAdminErr != nil {
+			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: isUserAdminErr.Error(),
+			})
+			return
+		}
+		if !isUserAdmin {
+			logger.Error("Error creating user: user is not admin")
+			c.JSON(http.StatusForbidden, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: "Permission denied",
+			})
+			return
+		}
+
+		// Validate payload
 		validate := validator.New(validator.WithRequiredStructEnabled())
 		err := validate.Struct(payload)
 		if err != nil {
@@ -247,6 +267,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			return
 		}
 
+		// Create user
 		user, createUserErr := lib.CreateUser(dbPool, payload)
 		if createUserErr != nil {
 			logger.Error(fmt.Sprintf("Error creating user: %v", createUserErr.Error()))

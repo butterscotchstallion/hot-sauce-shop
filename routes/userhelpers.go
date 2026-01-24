@@ -84,7 +84,9 @@ type CreateRandomUserResponse struct {
 	Password string
 }
 
-func CreateRandomUserAndVerify(t *testing.T, e *httpexpect.Expect, sessionId string, expectedStatusCode int) CreateRandomUserResponse {
+func CreateRandomUserAndVerify(
+	t *testing.T, e *httpexpect.Expect, sessionId string, expectedStatusCode int,
+) CreateRandomUserResponse {
 	password := GenerateUniqueName()
 	hashedPw, err := HashPassword(password)
 	if err != nil {
