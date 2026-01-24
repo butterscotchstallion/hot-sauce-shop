@@ -137,3 +137,21 @@ func GetUserProfileAndVerify(
 	}
 	return userProfileResponse
 }
+
+func DeleteUserAndVerify(
+	t *testing.T, e *httpexpect.Expect, expectedStatusCode int, sessionId string, userSlug string,
+) {
+	var deleteUserResponse lib.GenericResponse
+	e.DELETE(fmt.Sprintf("/api/v1/user/%s", userSlug)).
+		WithCookie("sessionId", sessionId).
+		Expect().
+		Status(expectedStatusCode).
+		JSON().
+		Decode(&deleteUserResponse)
+	if expectedStatusCode != http.StatusOK {
+		return
+	}
+	if deleteUserResponse.Status != "OK" {
+		t.Fatal("Failed to delete user")
+	}
+}

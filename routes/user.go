@@ -283,4 +283,51 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			Results: lib.UserCreateResponseResults{User: user},
 		})
 	})
+
+	// Delete user
+	r.DELETE("/api/v1/user/:slug", func(c *gin.Context) {
+		slug := c.Param("slug")
+
+		// Check user role
+		isUserAdmin, isUserAdminErr := lib.IsUserAdmin(c, dbPool, logger)
+		if isUserAdminErr != nil {
+			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: isUserAdminErr.Error(),
+			})
+			return
+		}
+		if !isUserAdmin {
+			logger.Error("Error creating user: user is not admin")
+			c.JSON(http.StatusForbidden, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: "Permission denied",
+			})
+			return
+		}
+
+		user, err := lib.GetUserBySlug(dbPool, logger, slug)
+		if err != nil || user == (lib.User{}) {
+			logger.Error("Error fetching user with slug %v: %v", slug, err)
+			c.JSON(http.StatusNotFound, gin.H{
+				"status":  "ERROR",
+				"message": "User not found",
+			})
+		}
+
+		deleteUserErr := lib.DeleteUser(dbPool, user.Id)
+		if deleteUserErr != nil {
+			logger.Error(fmt.Sprintf("Error deleting user: %v", deleteUserErr.Error()))
+			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: deleteUserErr.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, lib.GenericResponse{
+			Status:  "OK",
+			Message: "User deleted",
+		})
+	})
 }

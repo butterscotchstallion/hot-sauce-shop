@@ -362,7 +362,17 @@ func CreateUser(dbPool *pgxpool.Pool, payload UserCreatePayload) (User, error) {
 	return user, nil
 }
 
+func DeleteUserSessions(dbPool *pgxpool.Pool, userId int) error {
+	const query = `DELETE FROM user_sessions WHERE user_id = $1`
+	_, err := dbPool.Exec(context.Background(), query, userId)
+	return err
+}
+
 func DeleteUser(dbPool *pgxpool.Pool, userId int) error {
+	deleteSessionsErr := DeleteUserSessions(dbPool, userId)
+	if deleteSessionsErr != nil {
+		return deleteSessionsErr
+	}
 	const query = `DELETE FROM users WHERE id = $1`
 	_, err := dbPool.Exec(context.Background(), query, userId)
 	return err
