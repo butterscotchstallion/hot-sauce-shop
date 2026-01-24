@@ -124,39 +124,24 @@ func TestGetUserAdminBoards(t *testing.T) {
 func TestGetUserProfile(t *testing.T) {
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
-	var userProfileResponse lib.UserProfileResponse
-	// TODO: add functions for creating a user here
-	e.GET("/api/v1/user/profile/sauceboss").
-		WithCookie("sessionId", sessionID).
-		Expect().
-		Status(http.StatusOK).
-		JSON().
-		Decode(&userProfileResponse)
-	if userProfileResponse.Status != "OK" {
-		t.Fatal("Failed to get user profile")
-	}
-	if userProfileResponse.Results.User == (lib.User{}) {
-		t.Fatal("User profile is nil")
-	}
-	if len(userProfileResponse.Results.Roles) == 0 {
+	GetUserProfileAndVerify(t, e, sessionID, config.TestUsers.BoardAdminUsername)
+}
+
+func TestGetKnownUserProfile(t *testing.T) {
+	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
+	sessionID := signInAndGetSessionId(t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword)
+	profile := GetUserProfileAndVerify(t, e, sessionID, config.TestUsers.BoardAdminUsername)
+	if len(profile.Results.Roles) == 0 {
 		t.Fatal("User roles are empty")
 	}
-	if userProfileResponse.Results.UserPostCount == 0 {
+	if profile.Results.UserPostCount == 0 {
 		t.Fatal("User post count is 0")
 	}
-	if userProfileResponse.Results.UserPostVoteSum == 0 {
+	if profile.Results.UserPostVoteSum == 0 {
 		t.Fatal("User post vote sum is 0")
 	}
-	if len(userProfileResponse.Results.UserModeratedBoards) == 0 {
+	if len(profile.Results.UserModeratedBoards) == 0 {
 		t.Fatal("User moderated boards is empty")
-	}
-	// ensure user moderated boards doesn't contain duplicates
-	userModeratedBoards := make(map[string]bool)
-	for _, board := range userProfileResponse.Results.UserModeratedBoards {
-		userModeratedBoards[board.Slug] = true
-	}
-	if len(userModeratedBoards) != len(userProfileResponse.Results.UserModeratedBoards) {
-		t.Fatal("User moderated boards contains duplicates")
 	}
 }
 
@@ -178,9 +163,16 @@ func TestCreateUser(t *testing.T) {
 	CreateRandomUserAndVerify(t, e, unprivSessionId, http.StatusForbidden)
 
 	// Admin attempt expected to succeed
-	CreateRandomUserAndVerify(t, e, adminSessionId, http.StatusCreated)
+	newUserInfo := CreateRandomUserAndVerify(t, e, adminSessionId, http.StatusCreated)
 
 	// Test sign in
+	newUserSessionId := signInAndGetSessionId(
+		t,
+		e,
+		newUserInfo.Username,
+		newUserInfo.Password,
+	)
 
 	// Test user profile
+	GetUserProfileAndVerify(t, e, newUserSessionId, newUserInfo.Response.Results.User.Slug)
 }

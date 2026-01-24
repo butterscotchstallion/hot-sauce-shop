@@ -41,7 +41,7 @@ func GetUserIdFromSessionOrError(c *gin.Context, dbPool *pgxpool.Pool, logger *s
 	return userId, nil
 }
 
-func CreateUserAndVerify(request CreateUserRequest) {
+func CreateUserAndVerify(request CreateUserRequest) lib.UserCreateResponse {
 	var userCreateResponse lib.UserCreateResponse
 	request.E.POST("/api/v1/user").
 		WithCookie("sessionId", request.SessionId).
@@ -62,6 +62,7 @@ func CreateUserAndVerify(request CreateUserRequest) {
 			request.T.Fatal("Created user avatar filename mismatch")
 		}
 	}
+	return userCreateResponse
 }
 
 func HashPassword(password string) (string, error) {
@@ -82,18 +83,20 @@ func GenerateUsername(n int) string {
 type CreateRandomUserResponse struct {
 	Username string
 	Password string
+	Response lib.UserCreateResponse
 }
 
 func CreateRandomUserAndVerify(
 	t *testing.T, e *httpexpect.Expect, sessionId string, expectedStatusCode int,
 ) CreateRandomUserResponse {
+	const UsernameLength = 20
 	password := GenerateUniqueName()
 	hashedPw, err := HashPassword(password)
 	if err != nil {
 		t.Fatal(err)
 	}
-	username := GenerateUsername(20)
-	CreateUserAndVerify(CreateUserRequest{
+	username := GenerateUsername(UsernameLength)
+	response := CreateUserAndVerify(CreateUserRequest{
 		T:                  t,
 		E:                  e,
 		SessionId:          sessionId,
@@ -104,5 +107,33 @@ func CreateRandomUserAndVerify(
 	return CreateRandomUserResponse{
 		Username: username,
 		Password: password,
+		Response: response,
 	}
+}
+
+func GetUserProfileAndVerify(
+	t *testing.T, e *httpexpect.Expect, sessionId string, userSlug string,
+) lib.UserProfileResponse {
+	var userProfileResponse lib.UserProfileResponse
+	e.GET(fmt.Sprintf("/api/v1/user/profile/%s", userSlug)).
+		WithCookie("sessionId", sessionId).
+		Expect().
+		Status(http.StatusOK).
+		JSON().
+		Decode(&userProfileResponse)
+	if userProfileResponse.Status != "OK" {
+		t.Fatal("Failed to get user profile")
+	}
+	if userProfileResponse.Results.User == (lib.User{}) {
+		t.Fatal("User profile is nil")
+	}
+	// ensure user moderated boards doesn't contain duplicates
+	userModeratedBoards := make(map[string]bool)
+	for _, board := range userProfileResponse.Results.UserModeratedBoards {
+		userModeratedBoards[board.Slug] = true
+	}
+	if len(userModeratedBoards) != len(userProfileResponse.Results.UserModeratedBoards) {
+		t.Fatal("User moderated boards contains duplicates")
+	}
+	return userProfileResponse
 }
