@@ -176,6 +176,17 @@ func TestCreateUser(t *testing.T) {
 	// Test user profile
 	GetUserProfileAndVerify(t, e, newUserSessionId, newUserInfo.Response.Results.User.Slug)
 
+	// Test creating users that exist already
+	CreateUserAndVerify(CreateUserRequest{
+		T:                  t,
+		E:                  e,
+		Username:           newUserInfo.Username,
+		Password:           newUserInfo.Password,
+		AvatarFilename:     "",
+		SessionId:          adminSessionId,
+		ExpectedStatusCode: 500,
+	})
+
 	// Clean up: delete user, test permissions
 	DeleteUserAndVerify(t, e, http.StatusForbidden, unprivSessionId, newUserInfo.Response.Results.User.Slug)
 	DeleteUserAndVerify(t, e, http.StatusOK, adminSessionId, newUserInfo.Response.Results.User.Slug)
