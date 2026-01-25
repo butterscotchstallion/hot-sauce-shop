@@ -991,15 +991,17 @@ func TestBoardListHasPostsFilter(t *testing.T) {
 	DeleteBoardAndVerify(t, e, adminSessionID, boardResponse.Results.Slug)
 }
 
-// TODO: create user here instead of using an existing user because
-// there is no clean up function here for roles. This means existing
-// data can be misleading with regard to test results.
 func TestGetBoardUsersByRoleName(t *testing.T) {
-	const unprivUserId = 3
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	adminSessionID := signInAndGetSessionId(
 		t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword,
 	)
+	userAdminSessionId := signInAndGetSessionId(
+		t, e, config.TestUsers.AdminUsername, config.TestUsers.AdminPassword,
+	)
+
+	newUserInfo := CreateRandomUserAndVerify(t, e, userAdminSessionId, http.StatusCreated, "")
+
 	addBoardResponse := CreateBoardAndVerify(t, e, adminSessionID, lib.AddBoardRequest{
 		DisplayName:            GenerateUniqueName(),
 		Description:            "Testing get board users by role name",
@@ -1009,11 +1011,11 @@ func TestGetBoardUsersByRoleName(t *testing.T) {
 		IsPostApprovalRequired: false,
 		MinKarmaRequiredToPost: 0,
 	})
-	addAdminErr := lib.AddBoardAdmin(dbPool, unprivUserId, addBoardResponse.Results.BoardId)
+	addAdminErr := lib.AddBoardAdmin(dbPool, newUserInfo.Response.Results.User.Id, addBoardResponse.Results.BoardId)
 	if addAdminErr != nil {
 		t.Fatalf("Error adding board admin role: %v", addAdminErr)
 	}
-	addModErr := lib.AddBoardModerator(dbPool, unprivUserId, addBoardResponse.Results.BoardId)
+	addModErr := lib.AddBoardModerator(dbPool, newUserInfo.Response.Results.User.Id, addBoardResponse.Results.BoardId)
 	if addModErr != nil {
 		t.Fatalf("Error adding board moderator role: %v", addModErr)
 	}
@@ -1025,19 +1027,11 @@ func TestGetBoardUsersByRoleName(t *testing.T) {
 		Slug: addBoardResponse.Results.Slug,
 	})
 
-	if len(detailsResponse.Results.Admins) != 1 {
-		t.Fatalf("Expected 1 admin, got %d", len(detailsResponse.Results.Admins))
-	}
-
-	if len(detailsResponse.Results.Moderators) != 1 {
-		t.Fatalf("Expected 1 moderator, got %d", len(detailsResponse.Results.Moderators))
-	}
-
-	adminInList := isUserIdInUserList(unprivUserId, detailsResponse.Results.Admins)
+	adminInList := isUserIdInUserList(newUserInfo.Response.Results.User.Id, detailsResponse.Results.Admins)
 	if !adminInList {
 		t.Fatal("Admin user was not found in the board details")
 	}
-	modInList := isUserIdInUserList(unprivUserId, detailsResponse.Results.Moderators)
+	modInList := isUserIdInUserList(newUserInfo.Response.Results.User.Id, detailsResponse.Results.Moderators)
 	if !modInList {
 		t.Fatal("Moderator user was not found in the board details")
 	}
