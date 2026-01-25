@@ -23,6 +23,7 @@ type CreateUserRequest struct {
 	AvatarFilename     string
 	SessionId          string
 	ExpectedStatusCode int
+	ExpectedErrorCode  string
 }
 
 func GetUserIdFromSessionOrError(c *gin.Context, dbPool *pgxpool.Pool, logger *slog.Logger) (int, error) {
@@ -62,6 +63,15 @@ func CreateUserAndVerify(request CreateUserRequest) lib.UserCreateResponse {
 			request.T.Fatal("Created user avatar filename mismatch")
 		}
 	}
+	if len(request.ExpectedErrorCode) > 0 {
+		if userCreateResponse.ErrorCode != request.ExpectedErrorCode {
+			request.T.Fatalf(
+				"Expected error code %s, got %s",
+				request.ExpectedErrorCode,
+				userCreateResponse.ErrorCode,
+			)
+		}
+	}
 	return userCreateResponse
 }
 
@@ -88,6 +98,7 @@ type CreateRandomUserResponse struct {
 
 func CreateRandomUserAndVerify(
 	t *testing.T, e *httpexpect.Expect, sessionId string, expectedStatusCode int,
+	expectedErrorCode string,
 ) CreateRandomUserResponse {
 	const UsernameLength = 20
 	password := GenerateUniqueName()
@@ -103,6 +114,7 @@ func CreateRandomUserAndVerify(
 		Username:           username,
 		Password:           hashedPw,
 		ExpectedStatusCode: expectedStatusCode,
+		ExpectedErrorCode:  expectedErrorCode,
 	})
 	return CreateRandomUserResponse{
 		Username: username,

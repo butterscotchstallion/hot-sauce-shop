@@ -85,8 +85,9 @@ type UserCreateResponseResults struct {
 	User User `json:"user"`
 }
 type UserCreateResponse struct {
-	Status  string                    `json:"status"`
-	Results UserCreateResponseResults `json:"results"`
+	Status    string                    `json:"status"`
+	Results   UserCreateResponseResults `json:"results"`
+	ErrorCode string                    `json:"errorCode"`
 }
 
 type UserCreatePayload struct {
@@ -175,6 +176,20 @@ func UserIdExists(dbPool *pgxpool.Pool, id int) (bool, error) {
         )
 	`
 	err := dbPool.QueryRow(context.Background(), query, id).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
+func UsernameExists(dbPool *pgxpool.Pool, username string) (bool, error) {
+	exists := false
+	const query = `
+		SELECT EXISTS (
+			SELECT 1 FROM users WHERE username = $1
+        )
+	`
+	err := dbPool.QueryRow(context.Background(), query, username).Scan(&exists)
 	if err != nil {
 		return false, err
 	}

@@ -19,3 +19,6 @@ func (e *StatusForbiddenError) Error() string {
 }
 
 const ErrorCodeInsufficientKarma = "ERR_INSUFFICIENT_KARMA"
+const ErrorCodePermissionDenied = "ERR_PERMISSION_DENIED"
+const ErrorCodeUserNotFound = "ERR_USER_NOT_FOUND"
+const ErrorCodeUserExists = "ERR_USER_EXISTS"

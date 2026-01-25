@@ -160,10 +160,10 @@ func TestCreateUser(t *testing.T) {
 		config.TestUsers.UnprivilegedPassword,
 	)
 	// Only admins can create users - test permissions as well
-	CreateRandomUserAndVerify(t, e, unprivSessionId, http.StatusForbidden)
+	CreateRandomUserAndVerify(t, e, unprivSessionId, http.StatusForbidden, lib.ErrorCodePermissionDenied)
 
 	// Admin attempt expected to succeed
-	newUserInfo := CreateRandomUserAndVerify(t, e, adminSessionId, http.StatusCreated)
+	newUserInfo := CreateRandomUserAndVerify(t, e, adminSessionId, http.StatusCreated, "")
 
 	// Test sign in
 	newUserSessionId := signInAndGetSessionId(
@@ -184,7 +184,8 @@ func TestCreateUser(t *testing.T) {
 		Password:           newUserInfo.Password,
 		AvatarFilename:     "",
 		SessionId:          adminSessionId,
-		ExpectedStatusCode: 500,
+		ExpectedStatusCode: http.StatusBadRequest,
+		ExpectedErrorCode:  lib.ErrorCodeUserExists,
 	})
 
 	// Clean up: delete user, test permissions

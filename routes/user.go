@@ -248,9 +248,10 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		}
 		if !isUserAdmin {
 			logger.Error("Error creating user: user is not admin")
-			c.JSON(http.StatusForbidden, lib.GenericResponse{
-				Status:  "ERROR",
-				Message: "Permission denied",
+			c.JSON(http.StatusForbidden, lib.GenericResponseWithErrorCode{
+				Status:    "ERROR",
+				Message:   "Permission denied",
+				ErrorCode: lib.ErrorCodePermissionDenied,
 			})
 			return
 		}
@@ -263,6 +264,27 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status":  "ERROR",
 				"message": fmt.Sprintf("Validation failed: %v", err),
+			})
+			return
+		}
+
+		// Check if username exists
+		userExists, userExistsErr := lib.UsernameExists(dbPool, payload.Username)
+		if userExistsErr != nil {
+			logger.Error(fmt.Sprintf("Error checking if username exists: %v", userExistsErr.Error()))
+			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: userExistsErr.Error(),
+			})
+			return
+		}
+
+		if userExists {
+			logger.Error(fmt.Sprintf("User with username %v already exists", payload.Username))
+			c.JSON(http.StatusBadRequest, lib.GenericResponseWithErrorCode{
+				Status:    "ERROR",
+				Message:   fmt.Sprintf("User with username %v already exists", payload.Username),
+				ErrorCode: lib.ErrorCodeUserExists,
 			})
 			return
 		}
@@ -313,6 +335,7 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 				"status":  "ERROR",
 				"message": "User not found",
 			})
+			return
 		}
 
 		deleteUserErr := lib.DeleteUser(dbPool, user.Id)
