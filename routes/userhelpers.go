@@ -12,7 +12,6 @@ import (
 	"github.com/gavv/httpexpect/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type CreateUserRequest struct {
@@ -75,11 +74,6 @@ func CreateUserAndVerify(request CreateUserRequest) lib.UserCreateResponse {
 	return userCreateResponse
 }
 
-func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	return string(bytes), err
-}
-
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 func GenerateUsername(n int) string {
@@ -102,7 +96,7 @@ func CreateRandomUserAndVerify(
 ) CreateRandomUserResponse {
 	const UsernameLength = 20
 	password := GenerateUniqueName()
-	hashedPw, err := HashPassword(password)
+	hashedPw, err := lib.HashPassword(password)
 	if err != nil {
 		t.Fatal(err)
 	}
