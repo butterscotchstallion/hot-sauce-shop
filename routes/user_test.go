@@ -145,6 +145,15 @@ func TestGetKnownUserProfile(t *testing.T) {
 	}
 }
 
+/**
+ * Create user tests
+ * - Covers user creation
+ * - Tests permissions
+ * - Tests user creation with valid and invalid data
+ * - Tests user sign in
+ * - Tests user profile
+ * - Tests user deletion
+ */
 func TestCreateUser(t *testing.T) {
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	adminSessionId := signInAndGetSessionId(
@@ -189,6 +198,8 @@ func TestCreateUser(t *testing.T) {
 	})
 
 	// Clean up: delete user, test permissions
+
+	// Unprivileged user should not be able to delete the user
 	DeleteUserAndVerify(DeleteUserRequest{
 		T:                  t,
 		E:                  e,
@@ -197,6 +208,8 @@ func TestCreateUser(t *testing.T) {
 		ExpectedStatusCode: http.StatusForbidden,
 		ExpectedErrorCode:  lib.ErrorCodePermissionDenied,
 	})
+	
+	// Admin should be able to delete the user
 	DeleteUserAndVerify(DeleteUserRequest{
 		T:                  t,
 		E:                  e,
