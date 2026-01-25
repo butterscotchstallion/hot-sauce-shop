@@ -14,30 +14,27 @@ import (
 //nolint:funlen
 func Cart(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 	r.GET("/api/v1/cart", func(c *gin.Context) {
-		var res gin.H
-
 		userId, userSessionErr := GetUserIdFromSessionOrError(c, dbPool, logger)
 		if userSessionErr != nil || userId == 0 {
 			return
 		}
 
-		cartItems, err := lib.GetCartItems(dbPool, userId, logger)
+		cartItems, err := lib.GetCartItems(dbPool, userId)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Error getting cart items: %v", err))
-			res = gin.H{
+			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",
 				"message": fmt.Sprintf("Error fetching cart: %v", err),
-			}
-			c.JSON(http.StatusInternalServerError, res)
-		} else {
-			res = gin.H{
-				"status": "OK",
-				"results": gin.H{
-					"cartItems": cartItems,
-				},
-			}
-			c.JSON(http.StatusOK, res)
+			})
+			return
 		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "OK",
+			"results": gin.H{
+				"cartItems": cartItems,
+			},
+		})
 	})
 
 	/**
@@ -70,11 +67,12 @@ func Cart(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 				"status":  "ERROR",
 				"message": err.Error(),
 			})
-		} else {
-			c.JSON(http.StatusCreated, gin.H{
-				"status": "OK",
-			})
+			return
 		}
+
+		c.JSON(http.StatusCreated, gin.H{
+			"status": "OK",
+		})
 	})
 
 	var deleteRequest lib.DeleteCartItemRequest
@@ -100,10 +98,11 @@ func Cart(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 				"status":  "ERROR",
 				"message": deleteErr.Error(),
 			})
-		} else {
-			c.JSON(http.StatusOK, gin.H{
-				"status": "OK",
-			})
+			return
 		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "OK",
+		})
 	})
 }
