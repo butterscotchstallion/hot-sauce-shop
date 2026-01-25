@@ -4,9 +4,15 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"slices"
+	"strconv"
+	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/gosimple/slug"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -308,4 +314,88 @@ func GetTotalInventoryItems(dbPool *pgxpool.Pool) (int32, error) {
 		return 0, err
 	}
 	return count, nil
+}
+
+func GetValidPaginationData(c *gin.Context) PaginationData {
+	var paginationData PaginationData
+	offset := c.DefaultQuery("offset", "0")
+	perPage := c.DefaultQuery("perPage", "10")
+
+	// Validate page/offset
+	perPageInt, perPageErr := strconv.Atoi(perPage)
+	if perPageErr != nil || perPageInt < 10 || perPageInt > 30 {
+		perPageInt = 10
+	}
+
+	offsetInt, offsetErr := strconv.Atoi(offset)
+	if offsetErr != nil || offsetInt < 0 || offsetInt > 1000000 {
+		offsetInt = 0
+	}
+
+	paginationData.Offset = offsetInt
+	paginationData.PerPage = perPageInt
+
+	return paginationData
+}
+
+func ToIntArray(str string) []int {
+	chunks := strings.Split(str, ",")
+	var res []int
+	for _, c := range chunks {
+		i, err := strconv.Atoi(c)
+		if err != nil {
+			continue
+		}
+		res = append(res, i)
+	}
+	return res
+}
+
+func ValidateInventoryItemAddOrUpdateRequest(
+	c *gin.Context,
+	logger *slog.Logger,
+	itemUpdateRequest InventoryItemUpdateRequest) (InventoryItemUpdateRequest, error) {
+	if err := c.ShouldBindJSON(&itemUpdateRequest); err != nil {
+		logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "ERROR",
+			"message": "Malformed request body.",
+		})
+		return itemUpdateRequest, err
+	}
+
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	err := validate.Struct(itemUpdateRequest)
+	if err != nil {
+		logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "ERROR",
+			"message": fmt.Sprintf("Validation failed: %v", err),
+		})
+		return itemUpdateRequest, err
+	}
+
+	return itemUpdateRequest, nil
+}
+
+func SaveInventoryItem(
+	dbPool *pgxpool.Pool, logger *slog.Logger, itemUpdateRequest InventoryItemUpdateRequest,
+) (int, error) {
+	var item InventoryItem
+	item.Name = itemUpdateRequest.Name
+	item.Price = itemUpdateRequest.Price
+	item.SpiceRating = itemUpdateRequest.SpiceRating
+	item.Description = itemUpdateRequest.Description
+	item.ShortDescription = itemUpdateRequest.ShortDescription
+	item.Slug = slug.Make(itemUpdateRequest.Name)
+
+	logger.Info(fmt.Sprintf("Saving inventory item: %+v", item))
+
+	itemId, addUpdateItemErr := AddOrUpdateInventoryItem(dbPool, logger, item)
+	if addUpdateItemErr != nil {
+		logger.Error(addUpdateItemErr.Error())
+		return 0, addUpdateItemErr
+	}
+
+	return itemId, nil
 }

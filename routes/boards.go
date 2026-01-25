@@ -12,7 +12,6 @@ import (
 	"hotsauceshop/lib"
 
 	"github.com/gabriel-vasile/mimetype"
-	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gosimple/slug"
@@ -24,7 +23,6 @@ func Boards(
 	r *gin.Engine,
 	dbPool *pgxpool.Pool,
 	logger *slog.Logger,
-	store *persistence.InMemoryStore,
 ) {
 	// Board list
 	r.GET("/api/v1/boards", func(c *gin.Context) {
@@ -188,7 +186,7 @@ func Boards(
 
 	// All posts
 	r.GET("/api/v1/posts", func(c *gin.Context) {
-		paginationData := getValidPaginationData(c)
+		paginationData := lib.GetValidPaginationData(c)
 		var posts []lib.BoardPost
 		var getPostsErr error
 

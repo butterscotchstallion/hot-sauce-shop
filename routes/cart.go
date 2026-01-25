@@ -28,7 +28,7 @@ func Cart(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 				"status":  "ERROR",
 				"message": fmt.Sprintf("Error fetching cart: %v", err),
 			}
-			c.JSON(500, res)
+			c.JSON(http.StatusInternalServerError, res)
 		} else {
 			res = gin.H{
 				"status": "OK",
@@ -36,7 +36,7 @@ func Cart(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 					"cartItems": cartItems,
 				},
 			}
-			c.JSON(200, res)
+			c.JSON(http.StatusOK, res)
 		}
 	})
 

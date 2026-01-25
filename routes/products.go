@@ -6,8 +6,6 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
-	"strconv"
-	"strings"
 	"time"
 
 	"hotsauceshop/lib"
@@ -16,97 +14,14 @@ import (
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/gosimple/slug"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func getValidPaginationData(c *gin.Context) lib.PaginationData {
-	var paginationData lib.PaginationData
-	offset := c.DefaultQuery("offset", "0")
-	perPage := c.DefaultQuery("perPage", "10")
-
-	// Validate page/offset
-	perPageInt, perPageErr := strconv.Atoi(perPage)
-	if perPageErr != nil || perPageInt < 10 || perPageInt > 30 {
-		perPageInt = 10
-	}
-
-	offsetInt, offsetErr := strconv.Atoi(offset)
-	if offsetErr != nil || offsetInt < 0 || offsetInt > 1000000 {
-		offsetInt = 0
-	}
-
-	paginationData.Offset = offsetInt
-	paginationData.PerPage = perPageInt
-
-	return paginationData
-}
-
-func toIntArray(str string) []int {
-	chunks := strings.Split(str, ",")
-	var res []int
-	for _, c := range chunks {
-		i, err := strconv.Atoi(c)
-		if err != nil {
-			continue
-		}
-		res = append(res, i)
-	}
-	return res
-}
-
-func validateInventoryItemAddOrUpdateRequest(
-	c *gin.Context,
-	logger *slog.Logger,
-	itemUpdateRequest lib.InventoryItemUpdateRequest) (lib.InventoryItemUpdateRequest, error) {
-	if err := c.ShouldBindJSON(&itemUpdateRequest); err != nil {
-		logger.Error(err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  "ERROR",
-			"message": "Malformed request body.",
-		})
-		return itemUpdateRequest, err
-	}
-
-	validate := validator.New(validator.WithRequiredStructEnabled())
-	err := validate.Struct(itemUpdateRequest)
-	if err != nil {
-		logger.Error(err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  "ERROR",
-			"message": fmt.Sprintf("Validation failed: %v", err),
-		})
-		return itemUpdateRequest, err
-	}
-
-	return itemUpdateRequest, nil
-}
-
-func saveInventoryItem(
-	dbPool *pgxpool.Pool, logger *slog.Logger, itemUpdateRequest lib.InventoryItemUpdateRequest,
-) (int, error) {
-	var item lib.InventoryItem
-	item.Name = itemUpdateRequest.Name
-	item.Price = itemUpdateRequest.Price
-	item.SpiceRating = itemUpdateRequest.SpiceRating
-	item.Description = itemUpdateRequest.Description
-	item.ShortDescription = itemUpdateRequest.ShortDescription
-	item.Slug = slug.Make(itemUpdateRequest.Name)
-
-	logger.Info(fmt.Sprintf("Saving inventory item: %+v", item))
-
-	itemId, addUpdateItemErr := lib.AddOrUpdateInventoryItem(dbPool, logger, item)
-	if addUpdateItemErr != nil {
-		logger.Error(addUpdateItemErr.Error())
-		return 0, addUpdateItemErr
-	}
-
-	return itemId, nil
-}
+const CacheTimeProductPage = 15 * time.Minute
 
 //nolint:funlen
 func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *persistence.InMemoryStore) {
-	r.GET("/api/v1/products/:slug", cache.CachePage(store, time.Minute*15, func(c *gin.Context) {
+	r.GET("/api/v1/products/:slug", cache.CachePage(store, CacheTimeProductPage, func(c *gin.Context) {
 		urlSlug := c.Param("slug")
 		var res gin.H
 		product, err := lib.GetInventoryItemBySlug(dbPool, urlSlug)
@@ -140,10 +55,10 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 	}))
 
 	r.GET("/api/v1/products", cache.CachePage(store, time.Minute*15, func(c *gin.Context) {
-		paginationData := getValidPaginationData(c)
+		paginationData := lib.GetValidPaginationData(c)
 		filterTags := c.DefaultQuery("tags", "")
 
-		tagIds := toIntArray(filterTags)
+		tagIds := lib.ToIntArray(filterTags)
 
 		// Validate sort
 		sort := c.DefaultQuery("sort", "name")
@@ -280,7 +195,7 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 	})
 
 	r.GET("/api/v1/products/:slug/reviews", func(c *gin.Context) {
-		paginationData := getValidPaginationData(c)
+		paginationData := lib.GetValidPaginationData(c)
 		itemSlug := c.Param("slug")
 		reviews, reviewsErr := lib.GetInventoryItemReviewsBySlug(
 			dbPool,
@@ -319,13 +234,13 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 	// TODO: add product admin role check here
 	r.POST("/api/v1/products", func(c *gin.Context) {
 		itemUpdateRequest := lib.InventoryItemUpdateRequest{}
-		itemUpdateRequest, validationErr := validateInventoryItemAddOrUpdateRequest(c, logger, itemUpdateRequest)
+		itemUpdateRequest, validationErr := lib.ValidateInventoryItemAddOrUpdateRequest(c, logger, itemUpdateRequest)
 		// Error responses handled in the above func
 		if validationErr != nil {
 			return
 		}
 
-		itemId, saveItemErr := saveInventoryItem(dbPool, logger, itemUpdateRequest)
+		itemId, saveItemErr := lib.SaveInventoryItem(dbPool, logger, itemUpdateRequest)
 		if saveItemErr != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",
@@ -352,7 +267,7 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 
 	r.PUT("/api/v1/products/:slug", func(c *gin.Context) {
 		itemUpdateRequest := lib.InventoryItemUpdateRequest{}
-		itemUpdateRequest, validationErr := validateInventoryItemAddOrUpdateRequest(c, logger, itemUpdateRequest)
+		itemUpdateRequest, validationErr := lib.ValidateInventoryItemAddOrUpdateRequest(c, logger, itemUpdateRequest)
 		if validationErr != nil {
 			return
 		}
@@ -376,7 +291,7 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 			return
 		}
 
-		itemId, saveItemErr := saveInventoryItem(dbPool, logger, itemUpdateRequest)
+		itemId, saveItemErr := lib.SaveInventoryItem(dbPool, logger, itemUpdateRequest)
 		if saveItemErr != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status":  "ERROR",

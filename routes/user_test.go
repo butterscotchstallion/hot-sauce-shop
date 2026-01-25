@@ -208,7 +208,7 @@ func TestCreateUser(t *testing.T) {
 		ExpectedStatusCode: http.StatusForbidden,
 		ExpectedErrorCode:  lib.ErrorCodePermissionDenied,
 	})
-	
+
 	// Admin should be able to delete the user
 	DeleteUserAndVerify(DeleteUserRequest{
 		T:                  t,
