@@ -321,9 +321,10 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		}
 		if !isUserAdmin {
 			logger.Error("Error creating user: user is not admin")
-			c.JSON(http.StatusForbidden, lib.GenericResponse{
-				Status:  "ERROR",
-				Message: "Permission denied",
+			c.JSON(http.StatusForbidden, lib.GenericResponseWithErrorCode{
+				Status:    "ERROR",
+				Message:   "Permission denied",
+				ErrorCode: lib.ErrorCodePermissionDenied,
 			})
 			return
 		}
@@ -331,9 +332,10 @@ func User(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger) {
 		user, err := lib.GetUserBySlug(dbPool, logger, slug)
 		if err != nil || user == (lib.User{}) {
 			logger.Error("Error fetching user with slug %v: %v", slug, err)
-			c.JSON(http.StatusNotFound, gin.H{
-				"status":  "ERROR",
-				"message": "User not found",
+			c.JSON(http.StatusNotFound, lib.GenericResponseWithErrorCode{
+				Status:    "ERROR",
+				Message:   "User not found",
+				ErrorCode: lib.ErrorCodeUserNotFound,
 			})
 			return
 		}

@@ -189,6 +189,20 @@ func TestCreateUser(t *testing.T) {
 	})
 
 	// Clean up: delete user, test permissions
-	DeleteUserAndVerify(t, e, http.StatusForbidden, unprivSessionId, newUserInfo.Response.Results.User.Slug)
-	DeleteUserAndVerify(t, e, http.StatusOK, adminSessionId, newUserInfo.Response.Results.User.Slug)
+	DeleteUserAndVerify(DeleteUserRequest{
+		T:                  t,
+		E:                  e,
+		UserSlug:           newUserInfo.Response.Results.User.Slug,
+		SessionId:          unprivSessionId,
+		ExpectedStatusCode: http.StatusForbidden,
+		ExpectedErrorCode:  lib.ErrorCodePermissionDenied,
+	})
+	DeleteUserAndVerify(DeleteUserRequest{
+		T:                  t,
+		E:                  e,
+		UserSlug:           newUserInfo.Response.Results.User.Slug,
+		SessionId:          adminSessionId,
+		ExpectedStatusCode: http.StatusOK,
+		ExpectedErrorCode:  "",
+	})
 }
