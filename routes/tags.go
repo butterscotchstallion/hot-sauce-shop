@@ -13,8 +13,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+const CacheTimeTagsList = time.Minute * 60
+
 func Tags(r *gin.Engine, dbPool *pgxpool.Pool, store *persistence.InMemoryStore) {
-	r.GET("/api/v1/tags", cache.CachePage(store, time.Minute*60, func(c *gin.Context) {
+	r.GET("/api/v1/tags", cache.CachePage(store, CacheTimeTagsList, func(c *gin.Context) {
 		var res gin.H
 		tags, err := lib.GetTagsOrderedByName(dbPool)
 		if err != nil {

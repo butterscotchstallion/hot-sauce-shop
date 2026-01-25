@@ -18,6 +18,7 @@ import (
 )
 
 const CacheTimeProductPage = 15 * time.Minute
+const CacheTimeProductList = 15 * time.Minute
 
 //nolint:funlen
 func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *persistence.InMemoryStore) {
@@ -54,7 +55,7 @@ func Products(r *gin.Engine, dbPool *pgxpool.Pool, logger *slog.Logger, store *p
 		})
 	}))
 
-	r.GET("/api/v1/products", cache.CachePage(store, time.Minute*15, func(c *gin.Context) {
+	r.GET("/api/v1/products", cache.CachePage(store, CacheTimeProductList, func(c *gin.Context) {
 		paginationData := lib.GetValidPaginationData(c)
 		filterTags := c.DefaultQuery("tags", "")
 
