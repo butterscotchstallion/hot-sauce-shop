@@ -1047,7 +1047,7 @@ func TestGetBoardUsersByRoleName(t *testing.T) {
 }
 
 func TestCreateBoardMakesCreatorAdmin(t *testing.T) {
-	const unprivUserId = 3
+	const adminUserId = 2
 	e := httpexpect.Default(t, config.Server.AddressWithProtocol)
 	adminSessionID := signInAndGetSessionId(
 		t, e, config.TestUsers.BoardAdminUsername, config.TestUsers.BoardAdminPassword,
@@ -1072,7 +1072,7 @@ func TestCreateBoardMakesCreatorAdmin(t *testing.T) {
 	if len(detailsResponse.Results.Admins) != 1 {
 		t.Fatalf("Expected 1 admin, got %d", len(detailsResponse.Results.Admins))
 	}
-	adminInList := isUserIdInUserList(unprivUserId, detailsResponse.Results.Admins)
+	adminInList := isUserIdInUserList(adminUserId, detailsResponse.Results.Admins)
 	if !adminInList {
 		t.Fatal("Admin user was not found in the board details")
 	}

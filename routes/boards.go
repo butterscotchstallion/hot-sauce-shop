@@ -673,6 +673,17 @@ func Boards(
 			return
 		}
 
+		// Make this user an admin of the board they created
+		addBoardAdminErr := lib.AddBoardAdmin(dbPool, userId, boardId)
+		if addBoardAdminErr != nil {
+			logger.Error(fmt.Sprintf("AddBoardAdmin: error making user board admin: %v", addBoardAdminErr))
+			c.JSON(http.StatusInternalServerError, lib.GenericResponse{
+				Status:  "ERROR",
+				Message: "Error making user admin",
+			})
+			return
+		}
+
 		c.JSON(http.StatusCreated, lib.AddBoardResponse{
 			Status:  "OK",
 			Message: "Board added",
