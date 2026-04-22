@@ -17,7 +17,7 @@
     "chart.js": "^4.4.8",
     "dayjs": "^1.11.13",
     "js-cookie": "^3.0.5",
-    "lodash": "^4.17.23",
+    "lodash": "^4.18.1",
     "primeicons": "^7.0.0",
     "primereact": "^10.9.2",
     "react": "^19.2.0",
@@ -50,6 +50,6 @@
     "tailwindcss": "^4.1.14",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
-    "vite": "^6.4.1"
+    "vite": "^6.4.2"
   }
 }
