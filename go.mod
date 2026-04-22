@@ -13,7 +13,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/gosimple/slug v1.15.0
-	github.com/jackc/pgx/v5 v5.9.1
+	github.com/jackc/pgx/v5 v5.9.2
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	golang.org/x/crypto v0.50.0
 	golang.org/x/text v0.36.0
